@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<configuration>
+
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
+  </property>
+  <property>
+    <description>user group that the YARN users will run under (e.g. hadoop).
+      should match container-executor.cfg</description>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>ldapusers</value>
+  </property>
+
+<!-- Uncomment this if you want to control memory through cgroups.
+  <property>
+    <name>yarn.nodemanager.resource.memory.enabled</name>
+    <value>true</value>
+    <description>enable memory controlling through cgroups</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+  </property>
+-->
+
+</configuration>
