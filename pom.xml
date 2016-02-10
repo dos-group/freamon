@@ -13,6 +13,7 @@
 
     <modules>
         <module>freamon-monitor</module>
+        <module>freamon-yarn-client</module>
     </modules>
 
 </project>
