@@ -1,38 +1,41 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import akka.actor.{Address, Actor}
+import akka.actor.{ActorSelection, Address, Actor}
 import akka.event.Logging
 
-import de.tuberlin.cit.freamon.monitor.actors.MonitorMasterActor.ContainerReport
+case class StartRecording(applicationId: String, containerIds: Array[String])
 
-case class sendReport(applicationId: String)
-
-case class startRecording(applicationId: String)
+case class StopRecording(applicationId: String)
 
 class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
 
+  def getMasterActor:ActorSelection = {
+    val hostConfig = context.system.settings.config
+
+    val masterSystemPath = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.master.name"),
+      hostConfig.getString("freamon.hosts.master.hostname"), hostConfig.getInt("freamon.hosts.master.port"))
+
+    val masterActorPath = masterSystemPath.toString + "/user/" + hostConfig.getString("freamon.actors.systems.master.actor")
+
+    context.actorSelection(masterActorPath)
+  }
+
   def receive = {
 
-    case sendReport(applicationId: String) => {
+    case StartRecording(applicationId: String, containerIds: Array[String]) => {
+      log.info("Monitor Agent starts recording for " + applicationId)
+    }
 
-      val hostConfig = context.system.settings.config
+    case StopRecording(applicationId: String) => {
 
-      val masterSystemPath = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.master.name"),
-        hostConfig.getString("freamon.hosts.master.host"), hostConfig.getInt("freamon.hosts.master.port"))
-
-      val masterActorPath = masterSystemPath.toString + "/user/" + hostConfig.getString("freamon.actors.systems.master.actor")
-
-      val monitorMaster = context.actorSelection(masterActorPath)
+      // TODO: use sender instead?
+      val monitorMaster = this.getMasterActor
 
       log.info("Monitor Agent sends Report for " + applicationId)
       monitorMaster ! new ContainerReport(applicationId, null, null)
       monitorMaster.anchorPath
-    }
-
-    case startRecording(applicationId: String) => {
-      log.info("Monitor Agent starts recording for " + applicationId)
     }
 
   }

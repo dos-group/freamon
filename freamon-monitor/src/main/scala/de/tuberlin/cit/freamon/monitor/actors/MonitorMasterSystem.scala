@@ -8,11 +8,13 @@ object MonitorMasterSystem extends App {
 
   val hostConfig = ConfigUtil.loadHostConfig(args)
   val portConfig = ConfigUtil.setRemotingPort(hostConfig, hostConfig.getInt("freamon.hosts.master.port"))
-  val masterConfig = ConfigUtil.setRemotingHost(portConfig, hostConfig.getString("freamon.hosts.master.host"))
+  val masterConfig = ConfigUtil.setRemotingHost(portConfig, hostConfig.getString("freamon.hosts.master.hostname"))
 
   // start master system
   val actorSystem = ActorSystem(masterConfig.getString("freamon.actors.systems.master.name"), masterConfig)
   val monitorMasterName = masterConfig.getString("freamon.actors.systems.master.actor")
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
+
+  monitorMaster ! StartMonitoringForApplication("application_123", Array("container1", "container2"))
 
 }

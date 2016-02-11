@@ -9,19 +9,16 @@ import com.typesafe.config.Config
 object ConfigUtil {
 
   def loadHostConfig(hostName: String): Config = {
+    println("Loading host configuration for " + hostName)
     val reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/hosts/" + hostName + "/hosts.conf")))
     ConfigFactory.parseReader(reader).withFallback(ConfigFactory.load())
   }
 
   def loadHostConfig(args: Array[String]): Config = {
     if ((args.length == 2) && (args(0) == "-h")) {
-      val hostName = args(1)
-      println("Loading host configuration for " + hostName)
-      loadHostConfig(hostName)
+      loadHostConfig(args(1))
     } else {
-      val hostName = InetAddress.getLocalHost.getHostName
-      println("Loading host configuration for " + hostName)
-      loadHostConfig(hostName)
+      loadHostConfig(InetAddress.getLocalHost.getHostName)
     }
   }
 
