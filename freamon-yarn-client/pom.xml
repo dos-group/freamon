@@ -12,12 +12,14 @@
 
     <parent>
         <groupId>de.tuberlin.cit</groupId>
-        <artifactId>freamon</artifactId>
+        <artifactId>freamon-monitor</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <!-- Needs to be fixed -->
+        <!-- <relativePath>..</relativePath> -->
     </parent>
 
     <dependencies>
+        <!--TODO: do we need this here, or it is enough to have it in the monitor pom -->
         <dependency>
             <!--TODO: change to yarn-client? -->
             <groupId>org.apache.hadoop</groupId>
