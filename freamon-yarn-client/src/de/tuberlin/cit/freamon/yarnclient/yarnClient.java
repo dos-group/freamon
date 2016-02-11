@@ -15,41 +15,58 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+//TODO: Timer einbauen
+
 public class yarnClient {
-    public static void main(String[] args) throws IOException, YarnException {
+    final YarnClient yarnClient;
+    private ArrayList<Integer> runningApplications = new ArrayList<Integer>();
 
-        System.out.println("start");
+    public yarnClient() {
+        this.yarnClient = YarnClient.createYarnClient();
+        initYarnClient();
+    }
 
+    private void initYarnClient() {
         Configuration conf = new YarnConfiguration();
-        YarnClient yarnClient = YarnClient.createYarnClient();
-
         yarnClient.init(conf);
         yarnClient.start();
-        ArrayList<Integer> runningApplications = new ArrayList<Integer>();
+    }
 
-        for (ApplicationReport applicationReport : yarnClient.getApplications()) {
-            final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
-            final int applicationId = applicationReport.getApplicationId().getId();
-            if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId)) {
-                final ApplicationAttemptId applicationAttemptId = applicationReport.getCurrentApplicationAttemptId();
-                final List<ContainerReport> containerReportList = yarnClient.getContainers(applicationAttemptId);
-                long containerIds[] = new long[containerReportList.size()];
-                for (int i = 0; i < containerIds.length; i++) {
-                    containerIds[i] = containerReportList.get(i).getContainerId().getContainerId();
+    private void evalApplications() {
+        try {
+            for (ApplicationReport applicationReport : yarnClient.getApplications()) {
+                final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
+                final int applicationId = applicationReport.getApplicationId().getId();
+                if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId)) {
+                    final ApplicationAttemptId applicationAttemptId = applicationReport.getCurrentApplicationAttemptId();
+                    final List<ContainerReport> containerReportList = yarnClient.getContainers(applicationAttemptId);
+                    long containerIds[] = new long[containerReportList.size()];
+                    for (int i = 0; i < containerIds.length; i++) {
+                        containerIds[i] = containerReportList.get(i).getContainerId().getContainerId();
+                    }
+                    runningApplications.add(applicationId);
+                    //todo: new application message to akka
+                    System.out.println("Yarn Client: New Application with ID: " + applicationId + " on ContainerIDs: " + containerIds);
+
+                } else if (applicationState != YarnApplicationState.RUNNING && runningApplications.contains(applicationId)) {
+                    runningApplications.remove((Object) applicationId);
+                    //todo: finished application message to akka
+                    System.out.println("Yarn Client: Finished Application with ID" + applicationId);
                 }
-                runningApplications.add(applicationId);
+            }
 
-                //todo: new application message to akka
-                System.out.println("new App" + applicationId);
+        } catch (IOException e) {
+            System.err.println("IOException: " + e.getMessage());
 
-            } else if (applicationState != YarnApplicationState.RUNNING && runningApplications.contains(applicationId)) {
-                runningApplications.remove((Object) applicationId);
-                //todo: finished application message to akka
-
-
+        } catch (YarnException e) {
+            System.err.println("YarnException: " + e.getMessage());
         }
     }
-}
+
+    public static void main(String[] args) {
+        new yarnClient().evalApplications();
+
+    }
 
 
 }
