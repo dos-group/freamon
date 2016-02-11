@@ -13,6 +13,8 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 //TODO: Timer einbauen
@@ -63,10 +65,17 @@ public class yarnClient {
         }
     }
 
-    public static void main(String[] args) {
-        new yarnClient().evalApplications();
-
+    private void startPolling(int intervalInSec) {
+        System.out.println("Yarn Client: Start Polling for applications every: " + intervalInSec + " second(s)");
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                evalApplications();
+            }
+        }, 0, 1000 * intervalInSec);
     }
 
-
+    public static void main(String[] args) {
+        new yarnClient().startPolling(1);
+    }
 }
