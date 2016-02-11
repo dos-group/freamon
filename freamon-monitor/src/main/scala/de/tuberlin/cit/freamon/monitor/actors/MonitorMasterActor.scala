@@ -1,8 +1,9 @@
-package de.tuberlin.cit.freamon.monitor
+package de.tuberlin.cit.freamon.monitor.actors
 
 import akka.actor.Actor
 import akka.event.Logging
-import de.tuberlin.cit.freamon.monitor.MonitorMasterActor.ContainerReport
+
+import de.tuberlin.cit.freamon.monitor.actors.MonitorMasterActor.ContainerReport
 
 object MonitorMasterActor {
 
