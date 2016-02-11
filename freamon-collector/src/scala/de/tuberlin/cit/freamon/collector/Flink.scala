@@ -2,12 +2,22 @@ package de.tuberlin.cit.freamon.collector
 
 import scala.util.parsing.json.JSON
 
+/**
+ * Provides an interface to the TaskManagers API of one Flink/JobManager instance.
+ */
 class Flink(appId: String) {
 
+  val apiTaskmanagersAddress = "taskmanagers"
+
   var apiAddress = "http://localhost:8088/proxy"
-  var apiTaskmanagersAddress = "taskmanagers"
   var taskManagerStats: Map[String, TaskManagerStats] = null
 
+  /**
+   * Connect to the Flink API at apiAddress and get information
+   * about all running taskmanagers.
+   *
+   * @return map of taskmanager ID to TaskManagerStats instance
+   */
   def pollTaskmanagersApi(): Map[String, TaskManagerStats] = {
     val url = String.join("/", apiAddress, appId, apiTaskmanagersAddress)
     val jsonText = scala.io.Source.fromURL(url, "utf-8").mkString
