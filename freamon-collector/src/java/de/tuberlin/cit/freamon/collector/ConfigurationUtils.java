@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package de.tuberlin.cit.freamon.cgroups;
+package de.tuberlin.cit.freamon.collector;
 
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;

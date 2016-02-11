@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.cgroups
+package de.tuberlin.cit.freamon.collector
 
 import java.io.File
 
