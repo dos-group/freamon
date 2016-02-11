@@ -1,7 +1,6 @@
 package de.tuberlin.cit.freamon.yarnclient;
 
 
-import javafx.application.Application;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.YarnClient;
@@ -30,7 +29,7 @@ public class yarnClient {
         yarnClient.start();
     }
 
-    private ApplicationId evalYarnForNewApp() {
+    public ApplicationId evalYarnForNewApp() {
         try {
             for (ApplicationReport applicationReport : yarnClient.getApplications()) {
                 final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
@@ -50,11 +49,7 @@ public class yarnClient {
         return null;
     }
 
-    public String evalYarnForNewAppScala() {
-        return evalYarnForNewApp().toString();
-    }
-
-    private ApplicationId evalYarnForReleasedApp() {
+    public ApplicationId evalYarnForReleasedApp() {
         try {
             for (ApplicationReport applicationReport : yarnClient.getApplications()) {
                 final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
@@ -73,11 +68,8 @@ public class yarnClient {
         }
         return null;
     }
-    public String evalYarnForReleasedAppScala() {
-        return evalYarnForReleasedApp().toString();
-    }
 
-    private long[] getApplicationContainerIds(ApplicationId applicationId) {
+    public long[] getApplicationContainerIds(ApplicationId applicationId) {
 
         try {
             //TODO aussume first application attempt always works
@@ -89,7 +81,7 @@ public class yarnClient {
                 for (int i = 0; i < containerIds.length; i++) {
                     containerIds[i] = containerReportList.get(i).getContainerId().getContainerId();
                 }
-                System.out.println("Yarn Client: Found " +containerIds.length+" containers");
+                System.out.println("Yarn Client: Found " + containerIds.length + " containers");
                 return containerIds;
             } else {
                 System.err.println("Yarn Client: ERROR - could not fetch containerIds, because of too many application attempts ");
@@ -103,48 +95,14 @@ public class yarnClient {
         return null;
     }
 
-
-
-    /*
-    public void evalApplications() {
-        try {
-            for (ApplicationReport applicationReport : yarnClient.getApplications()) {
-                final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
-                final int applicationId = applicationReport.getApplicationId().getId();
-                if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId)) {
-                    final ApplicationAttemptId applicationAttemptId = applicationReport.getCurrentApplicationAttemptId();
-                    final List<ContainerReport> containerReportList = yarnClient.getContainers(applicationAttemptId);
-                    long containerIds[] = new long[containerReportList.size()];
-                    for (int i = 0; i < containerIds.length; i++) {
-                        containerIds[i] = containerReportList.get(i).getContainerId().getContainerId();
-                    }
-                    runningApplications.add(applicationId);
-                    //todo: new application message to akka
-                    System.out.println("Yarn Client: New Application with ID: " + applicationId + " on ContainerIDs: " + containerIds);
-
-                } else if (applicationState != YarnApplicationState.RUNNING && runningApplications.contains(applicationId)) {
-                    runningApplications.remove((Object) applicationId);
-                    //todo: finished application message to akka
-                    System.out.println("Yarn Client: Finished Application with ID " + applicationId);
-                }
-            }
-
-        } catch (IOException e) {
-            System.err.println("IOException: " + e.getMessage());
-
-        } catch (YarnException e) {
-            System.err.println("YarnException: " + e.getMessage());
-        }
-    }
-     */
-
-    public void startPolling(int intervalInSec) {
+    //todo implement this into scala MonitorAgent
+    private void startPolling(int intervalInSec) {
         System.out.println("Yarn Client: Start Polling for applications every: " + intervalInSec + " second(s)");
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
                 ApplicationId x = evalYarnForNewApp();
-                if (x!=null)
+                if (x != null)
                     getApplicationContainerIds(x);
                 evalYarnForReleasedApp();
             }
