@@ -12,10 +12,9 @@
 
     <parent>
         <groupId>de.tuberlin.cit</groupId>
-        <artifactId>freamon-monitor</artifactId>
+        <artifactId>freamon</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <!-- Needs to be fixed -->
-        <!-- <relativePath>..</relativePath> -->
+         <relativePath>..</relativePath>
     </parent>
 
     <dependencies>
