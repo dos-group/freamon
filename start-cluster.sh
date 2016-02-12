@@ -14,7 +14,6 @@
 
 HOST_CONFIG=$1
 
-PWD="$(pwd)"
 SCRIPT_DIR="$(dirname $BASH_SOURCE)"
 SLAVES_PATH="$PWD/slaves"
 RELATIVE_JAR_PATH="freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
