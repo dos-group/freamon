@@ -1,9 +1,10 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{IOException, File}
-import java.util.concurrent.{TimeUnit, Executors}
+import java.io.{File, IOException}
+import java.util.concurrent.{Executors, TimeUnit}
 
 import scala.collection.mutable
+import scala.io.Source
 
 /**
  * Provides an interface to the raw data of one cgroup.
@@ -134,6 +135,13 @@ class Cgroup {
   }
 
   private def readParam(controller: String, param: String): String = {
-    io.Source.fromFile(String.join("/", mountPath, controller, groupId, param)).mkString.trim
+    val path = String.join("/", mountPath, controller, groupId, param)
+    val source = Source.fromFile(path)
+    try source.mkString.trim
+    catch {
+      case e: IOException =>
+        throw new IOException("Could not read cgroups parameter at " + path, e)
+    }
+    finally source.close()
   }
 }

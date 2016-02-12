@@ -28,9 +28,9 @@ class YarnConfig {
     }
     catch {
       case e: IOException =>
-        throw new IOException("Could not load file: " + configPath)
+        throw new IOException("Could not load file: " + configPath, e)
       case e: Throwable =>
-        throw new IOException("Wrong format: " + configPath)
+        throw new IOException("Wrong format: " + configPath, e)
     }
   }
 

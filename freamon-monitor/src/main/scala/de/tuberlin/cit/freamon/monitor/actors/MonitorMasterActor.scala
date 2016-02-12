@@ -55,6 +55,9 @@ class MonitorMasterActor extends Actor {
 
     case ContainerReport(containerId, cpuUtil, memUtil) => {
       log.info("Received a container Report of " + containerId + " from " + sender)
+      log.info(cpuUtil.length + " samples")
+      log.info("CPU: " + cpuUtil.mkString(", "))
+      log.info("Memory: " + memUtil.mkString(", "))
     }
 
   }
