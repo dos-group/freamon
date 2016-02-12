@@ -34,7 +34,7 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case StartMonitoringForApplication(applicationId: String, containerIds: Array[String]) => {
+    case StartMonitoringForApplication(applicationId: String, containerIds: Array[Long]) => {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StartRecording(applicationId, containerIds)
