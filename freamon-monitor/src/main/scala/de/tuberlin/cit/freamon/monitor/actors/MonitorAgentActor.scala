@@ -1,5 +1,7 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
+import java.net.InetAddress
+
 import akka.actor.{ActorSelection, Address, Actor}
 import akka.event.Logging
 
@@ -10,6 +12,11 @@ case class StopRecording(applicationId: String)
 class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
+
+  override def preStart(): Unit ={
+    log.info("Monitor Master started")
+    this.getMasterActor ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
+  }
 
   def getMasterActor:ActorSelection = {
     val hostConfig = context.system.settings.config
@@ -29,13 +36,8 @@ class MonitorAgentActor() extends Actor {
     }
 
     case StopRecording(applicationId: String) => {
-
-      // TODO: use sender instead?
-      val monitorMaster = this.getMasterActor
-
       log.info("Monitor Agent sends Report for " + applicationId)
-      monitorMaster ! new ContainerReport(applicationId, null, null)
-      monitorMaster.anchorPath
+      sender ! new ContainerReport(applicationId, null, null)
     }
 
   }

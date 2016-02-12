@@ -2,17 +2,22 @@ package de.tuberlin.cit.freamon.monitor.actors
 
 import akka.actor.{ActorSelection, Address, Actor}
 import akka.event.Logging
-import scala.collection.JavaConversions._
+
+import scala.collection.mutable
 
 case class StartMonitoringForApplication(applicationId: String, containerIds: Array[Long])
 
 case class StopMonitoringForApplication(applicationId: String)
 
+case class WorkerAnnouncement(workerHostname: String)
+
 case class ContainerReport(containerId: String, cpuUtil: Array[Float], memUtil: Array[Int])
 
 
 class MonitorMasterActor extends Actor {
+
   val log = Logging(context.system, this)
+  var workers: scala.collection.mutable.ListBuffer[String] = mutable.ListBuffer()
 
   override def preStart(): Unit ={
     log.info("Monitor Master started")
@@ -29,17 +34,28 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case StartMonitoringForApplication(applicationId: String, containerIds: Array[Long]) => {
-      val hostConfig = context.system.settings.config
-
-      for (host <- hostConfig.getStringList("freamon.hosts.slaves.hostnames")) {
+    case StartMonitoringForApplication(applicationId: String, containerIds: Array[String]) => {
+      for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StartRecording(applicationId, containerIds)
       }
     }
 
-    case ContainerReport(containerId, cpuUtil, memUtil) => {
-      log.info("recv a container Report of " + containerId)
+    case StopMonitoringForApplication(applicationId: String) => {
+      for (host <- workers) {
+        val agentActor = this.getAgentActorOnHost(host)
+        agentActor ! StopRecording(applicationId)
+      }
     }
+
+    case WorkerAnnouncement(workerHostname) => {
+      log.info(sender + " registered a new worker on " + workerHostname)
+      workers += workerHostname
+    }
+
+    case ContainerReport(containerId, cpuUtil, memUtil) => {
+      log.info("Received a container Report of " + containerId + " from " + sender)
+    }
+
   }
 }

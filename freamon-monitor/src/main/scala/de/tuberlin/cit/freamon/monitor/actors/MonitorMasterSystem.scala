@@ -17,10 +17,6 @@ object MonitorMasterSystem extends App {
   val monitorMasterName = masterConfig.getString("freamon.actors.systems.master.actor")
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
 
-  // monitorMaster ! StartMonitoringForApplication("application_123", Array(123,456))
-
-  yarnPolling(3)
-
   def yarnPolling(intervalSec: Int) {
     var yclient: yarnClient = new yarnClient
     // start polling
@@ -41,5 +37,10 @@ object MonitorMasterSystem extends App {
       }
     }, 0, 1000 * intervalSec)
   }
+
+  yarnPolling(3)
+
+  //  Thread.sleep(10000)
+  //  monitorMaster ! StartMonitoringForApplication("application_123", Array("container1", "container2"))
 
 }

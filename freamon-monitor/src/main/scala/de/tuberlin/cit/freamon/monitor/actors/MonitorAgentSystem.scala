@@ -16,7 +16,4 @@ object MonitorAgentSystem extends App {
   val monitorAgent = actorSystem.actorOf(Props(new MonitorAgentActor()),
     name = agentConfig.getString("freamon.actors.systems.slave.actor"))
 
-  //  monitorAgent ! StartRecording("appId 1")
-  //  monitorAgent ! StopRecording("appId 1")
-
 }
