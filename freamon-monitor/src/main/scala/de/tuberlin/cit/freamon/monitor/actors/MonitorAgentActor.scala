@@ -3,7 +3,7 @@ package de.tuberlin.cit.freamon.monitor.actors
 import akka.actor.{ActorSelection, Address, Actor}
 import akka.event.Logging
 
-case class StartRecording(applicationId: String, containerIds: Array[String])
+case class StartRecording(applicationId: String, containerIds: Array[Long])
 
 case class StopRecording(applicationId: String)
 
@@ -24,7 +24,7 @@ class MonitorAgentActor() extends Actor {
 
   def receive = {
 
-    case StartRecording(applicationId: String, containerIds: Array[String]) => {
+    case StartRecording(applicationId: String, containerIds: Array[Long]) => {
       log.info("Monitor Agent starts recording for " + applicationId)
     }
 

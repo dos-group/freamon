@@ -3,7 +3,6 @@ package de.tuberlin.cit.freamon.monitor.actors
 import java.net.InetAddress
 
 import akka.actor.{ActorSystem, Props}
-
 import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorAgentSystem extends App {
@@ -17,6 +16,7 @@ object MonitorAgentSystem extends App {
   val monitorAgent = actorSystem.actorOf(Props(new MonitorAgentActor()),
     name = agentConfig.getString("freamon.actors.systems.slave.actor"))
 
-//  monitorAgent ! StartRecording("appId 1")
-//  monitorAgent ! StopRecording("appId 1")
+  //  monitorAgent ! StartRecording("appId 1")
+  //  monitorAgent ! StopRecording("appId 1")
+
 }

@@ -4,7 +4,9 @@ import akka.actor.{ActorSelection, Address, Actor}
 import akka.event.Logging
 import scala.collection.JavaConversions._
 
-case class StartMonitoringForApplication(applicationId: String, containerIds: Array[String])
+case class StartMonitoringForApplication(applicationId: String, containerIds: Array[Long])
+
+case class StopMonitoringForApplication(applicationId: String)
 
 case class ContainerReport(containerId: String, cpuUtil: Array[Float], memUtil: Array[Int])
 
@@ -27,7 +29,7 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case StartMonitoringForApplication(applicationId: String, containerIds: Array[String]) => {
+    case StartMonitoringForApplication(applicationId: String, containerIds: Array[Long]) => {
       val hostConfig = context.system.settings.config
 
       for (host <- hostConfig.getStringList("freamon.hosts.slaves.hostnames")) {
