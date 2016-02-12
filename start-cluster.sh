@@ -14,10 +14,11 @@
 
 HOST_CONFIG=$1
 
-PWD=$(pwd)
-SLAVES_PATH="slaves"
+PWD="$(pwd)"
+SCRIPT_DIR="$(dirname $BASH_SOURCE)"
+SLAVES_PATH="$PWD/slaves"
 RELATIVE_JAR_PATH="freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
-ABSOLUTE_JAR_PATH="$PWD/$RELATIVE_JAR_PATH"
+ABSOLUTE_JAR_PATH="$SCRIPT_DIR/$RELATIVE_JAR_PATH"
 
 if [ ! -f "$ABSOLUTE_JAR_PATH" ]
 then
