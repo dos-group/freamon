@@ -49,15 +49,13 @@ class AppStatsCollector(applicationId: String, containerIds: Array[Long], yarnSi
 
   var onCollect = () => {}
 
-  /**
-   * Starts recording after clearing all previous statistics.
-   *
-   * @return this instance for method chaining
-   */
-  def startRecording() = {
-    val containers = containerIds.map(containerId => {
-      val attemptNr = 1 // TODO get from yarn, yarn-client assumes this to be 1
-      val fullId = "container_%s_%02d_%06d".format(applicationId, attemptNr, containerId)
+  def getContainerCgroups: List[Cgroup] = {
+    // applicationId format: application_1455551433868_0002
+    val strippedAppId = applicationId.substring("application_".length)
+
+    containerIds.map(containerId => {
+      val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+      val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
 
       try new Cgroup(conf.cgroupsMountPath, conf.cgroupsHierarchy + "/" + fullId)
       catch {
@@ -65,6 +63,15 @@ class AppStatsCollector(applicationId: String, containerIds: Array[Long], yarnSi
           throw new IOException("AppStatsCollector for " + applicationId + " could not read cgroup for container " + fullId, e)
       }
     }).toList
+  }
+
+  /**
+   * Starts recording after clearing all previous statistics.
+   *
+   * @return this instance for method chaining
+   */
+  def startRecording(): AppStatsCollector = {
+    val containers = getContainerCgroups
 
     cpuUtil.clear()
     memUtil.clear()
@@ -99,7 +106,7 @@ class AppStatsCollector(applicationId: String, containerIds: Array[Long], yarnSi
   /**
    * Stops recording and returns all collected statistics.
    */
-  def stopRecording() = {
+  def stopRecording(): (Array[Float], Array[Int]) = {
     executor.shutdownNow
 
     (cpuUtil.toArray, memUtil.toArray)
