@@ -19,6 +19,7 @@ class MonitorAgentActor(yarnSitePath: String) extends Actor {
 
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
+    log.info("Using yarn-site.xml at " + yarnSitePath)
     this.getMasterActor ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
   }
 
@@ -42,8 +43,8 @@ class MonitorAgentActor(yarnSitePath: String) extends Actor {
       val appStats = new AppStatsCollector(applicationId, containerIds, yarnSitePath, 1)
       applications(applicationId) = appStats
       appStats.onCollect = () => {
-        log.info("%s CPU avg: %.2f cores", applicationId, appStats.cpuUtil.last)
-        log.info("%s Memory: %d MB", applicationId, appStats.memUtil.last)
+        log.info(applicationId + " CPU avg: " + appStats.cpuUtil.last.formatted("%.2f  cores"))
+        log.info(applicationId + " Memory: " + appStats.memUtil.last + " MB")
       }
       appStats.startRecording()
 
