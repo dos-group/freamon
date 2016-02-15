@@ -17,7 +17,7 @@
 HOST_CONFIG=$1
 
 SCRIPT_DIR="$(dirname $BASH_SOURCE)"
-SLAVES_PATH="$PWD/slaves"
+SLAVES_FILE="$PWD/slaves"
 RELATIVE_JAR_PATH="freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
 ABSOLUTE_JAR_PATH="$PWD/$RELATIVE_JAR_PATH"
 LOG_FOLDER="$PWD/logs"
@@ -34,7 +34,7 @@ then
     exit 1
 fi
 
-if [ ! -f "$SLAVES_PATH" ]
+if [ ! -f "$SLAVES_FILE" ]
 then
     echo "No slaves file in $PWD"
     exit 1
@@ -54,20 +54,17 @@ echo "Starting freamon master system"
 java -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -h $HOST_CONFIG >$MASTER_LOG_FILE 2>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
 echo "Started freamon master on $HOSTNAME (PID=$(cat $MASTER_PID_FILE))"
 
-while read slave; do
-    echo "Starting freamon worker system on $slave"
+for SLAVE in $(cat $SLAVES_FILE ) ; do
     
-    WORKER_LOG_FILE="$LOG_FOLDER/$slave-worker.out"
-    WORKER_ERR_FILE="$LOG_FOLDER/$slave-worker.err"
-    WORKER_PID_FILE="$LOG_FOLDER/$slave-worker.pid"
-    
-    # java -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo $! >$WORKER_PID_FILE
+    echo "Starting freamon worker system on $SLAVE"
+
+    WORKER_LOG_FILE="$LOG_FOLDER/$SLAVE-worker.out"
+    WORKER_ERR_FILE="$LOG_FOLDER/$SLAVE-worker.err"
+    WORKER_PID_FILE="$LOG_FOLDER/$SLAVE-worker.pid"
+   
     CMD="$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG"
+    ssh "$SLAVE" "nohup $CMD >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo \$!" > $WORKER_PID_FILE
+   
+    echo "Started freamon worker system on $SLAVE (PID=$(cat $WORKER_PID_FILE))"
     
-    ssh "$slave" "nohup $CMD >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo \$!" > $WORKER_PID_FILE
-    
-    # nohup $CMD >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo $! > $WORKER_PID_FILE
-    echo "Started freamon worker system on $slave (PID=$(cat $WORKER_PID_FILE))"
-done <$SLAVES_PATH
-
-
+done
