@@ -94,28 +94,29 @@ class AppStatsCollector(applicationId: String, yarnConfig: YarnConfig, intervalS
    * Starts recording after clearing all previous statistics.
    */
   def startRecording() = {
+
+    def tryOrElse[T](f: => T, default: T): T = {
+      try f
+      catch {
+        case e: Throwable =>
+          println("AppStatsCollector encountered an error during stats collection for " + applicationId)
+          e.printStackTrace()
+          default
+      }
+    }
+
     val runnable = new Runnable() {
       def run() {
         // TODO lock
         ticksPassed += 1
-        for (stats <- containerStats) {
-          val cgroup = containerCgroups(stats.containerId)
-          try {
-            val containerCpus = cgroup.getCurrentCpuUsage
-            // TODO this is optional
-            val containerMems = (cgroup.getCurrentMemUsage / 1024 / 1024).toInt
+        for (container <- containerStats) {
+          val cgroup = containerCgroups(container.containerId)
 
-            stats.cpuUtil += containerCpus
-            stats.memUtil += containerMems
+          container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, Float.NaN)
+          // TODO memory might not be managed using cgroups, use other source
+          container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
-            onCollect(stats)
-          }
-          catch {
-            case e: Throwable =>
-              // print error to stdout, or it will get discarded by the executor
-              println("AppStatsCollector encountered an error during stats collection for " + stats.containerId)
-              e.printStackTrace()
-          }
+          onCollect(container)
         }
       }
     }
