@@ -84,7 +84,7 @@ class Cgroup {
   /**
    * Retrieves the average CPU usage since the last measurement relative to one core.
    *
-   * @return usage; relative to one core, thus can be > 1.0
+   * @return usage in cores, can be > 1.0
    */
   def getCurrentCpuUsage: Float = {
     val usageAbsolute = readParam(Cgroup.CONTROLLER_CPU, Cgroup.PARAM_CPU_USAGE_TOTAL).toLong
@@ -113,9 +113,9 @@ class Cgroup {
   /**
    * Retrieves how many bytes of memory are used by this group.
    *
-   * @return share in bytes, or -1 if unlimited
+   * @return usage in bytes
    */
-  def getCurrentMemUsage = {
+  def getCurrentMemUsage: Long = {
     readParam(Cgroup.CONTROLLER_MEM, Cgroup.PARAM_MEM_USAGE).toLong
   }
 
@@ -124,7 +124,7 @@ class Cgroup {
    *
    * @return share in bytes, or -1 if unlimited
    */
-  def getMemLimit = {
+  def getMemLimit: Long = {
     readParam(Cgroup.CONTROLLER_MEM, Cgroup.PARAM_MEM_LIMIT).toLong
   }
 
