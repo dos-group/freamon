@@ -12,6 +12,8 @@
 #    one from freamon-monitor/src/main/resources/hosts/
 # 2. build system: mvn clean package
 
+# TODO: preserve older logs by appending a number like Hadoop and Flink do it
+
 HOST_CONFIG=$1
 
 SCRIPT_DIR="$(dirname $BASH_SOURCE)"
@@ -24,10 +26,11 @@ MASTER_LOG_FILE="$LOG_FOLDER/$HOSTNAME-master.out"
 MASTER_ERR_FILE="$LOG_FOLDER/$HOSTNAME-master.err"
 MASTER_PID_FILE="$LOG_FOLDER/$HOSTNAME-master.pid"
 WORKER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorAgentSystem"
+JAVA_BIN=$(which java)
 
 if [ ! -f "$ABSOLUTE_JAR_PATH" ]
 then
-    echo "Jar not found"
+    echo "Jar not found, build freamon-monitor first"
     exit 1
 fi
 
@@ -45,7 +48,7 @@ fi
 
 mkdir -p $LOG_FOLDER
 
-# TODO: preserve older logs by appending a number like Hadoop and Flink do it
+echo "Using $JAVA_BIN"
 
 echo "Starting freamon master system"
 java -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -h $HOST_CONFIG >$MASTER_LOG_FILE 2>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
@@ -59,7 +62,7 @@ while read slave; do
     WORKER_PID_FILE="$LOG_FOLDER/$slave-worker.pid"
     
     # java -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo $! >$WORKER_PID_FILE
-    CMD="java -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG"
+    CMD="$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG"
     
     ssh "$slave" "nohup $CMD >$WORKER_LOG_FILE 2>$WORKER_ERR_FILE & echo \$!" > $WORKER_PID_FILE
     
