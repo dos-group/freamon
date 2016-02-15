@@ -21,7 +21,7 @@ object Cgroup {
 
   def main(args: Array[String]) {
     if (args.length < 2) {
-      println("Usage: java -jar cgstats.jar </path/to/yarn-site.xml> <seconds to run>")
+      println("Params: </path/to/yarn-site.xml> <seconds to run>")
       return
     }
 
