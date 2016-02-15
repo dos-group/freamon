@@ -6,6 +6,17 @@ import java.util.concurrent.{Executors, TimeUnit}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+/**
+ * Stores the recorded statistics about one container.
+ *
+ * @param containerId ID of the monitored container
+ * @param startTick ticks after application start when this container was started to be monitored
+ */
+case class ContainerStats(containerId: Long, startTick: Long) {
+  val cpuUtil = new ArrayBuffer[Float]
+  val memUtil = new ArrayBuffer[Int]
+}
+
 object AppStatsCollector {
 
   def main(args: Array[String]) {
@@ -131,15 +142,4 @@ class AppStatsCollector(applicationId: String, yarnConfig: YarnConfig, intervalS
     results
   }
 
-}
-
-/**
- * Stores the recorded statistics about one container.
- *
- * @param containerId ID of the monitored container
- * @param startTick ticks after application start when this container was started to be monitored
- */
-case class ContainerStats(containerId: Long, startTick: Long) {
-  val cpuUtil = new ArrayBuffer[Float]
-  val memUtil = new ArrayBuffer[Int]
 }

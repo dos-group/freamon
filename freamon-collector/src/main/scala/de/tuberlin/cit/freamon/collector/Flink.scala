@@ -2,6 +2,19 @@ package de.tuberlin.cit.freamon.collector
 
 import scala.util.parsing.json.JSON
 
+case class TaskManagerStats() {
+  var instanceId: String = null
+  var actorPath: String = null
+  var dataPort: Double = -1
+  var timeSinceLastHeartbeat: Double = -1
+  var totalSlots: Double = -1
+  var availableSlots: Double = -1
+  var cpuCores: Double = -1
+  var physicalMemory: Double = -1
+  var freeMemory: Double = -1
+  var managedMemory: Double = -1
+}
+
 /**
  * Provides an interface to the TaskManagers API of one Flink/JobManager instance.
  */
@@ -25,41 +38,24 @@ class Flink(appId: String) {
     val taskManagersJson = jsonRoot.get("taskmanagers").get.asInstanceOf[List[Map[String, Any]]]
 
     taskManagerStats = taskManagersJson.map { taskManagerJson =>
-      val taskManager = new TaskManagerStats(taskManagerJson)
+      def get[T](key: String) = taskManagerJson.get(key).get.asInstanceOf[T]
+
+      val taskManager = new TaskManagerStats
+      taskManager.instanceId = get[String]("id")
+      taskManager.actorPath = get[String]("path")
+      taskManager.dataPort = get[Double]("dataPort")
+      taskManager.timeSinceLastHeartbeat = get[Double]("timeSinceLastHeartbeat")
+      taskManager.totalSlots = get[Double]("slotsNumber")
+      taskManager.availableSlots = get[Double]("freeSlots")
+      taskManager.cpuCores = get[Double]("cpuCores")
+      taskManager.physicalMemory = get[Double]("physicalMemory")
+      taskManager.managedMemory = get[Double]("managedMemory")
+      taskManager.freeMemory = get[Double]("freeMemory")
+
       (taskManager.instanceId, taskManager)
     }.toMap
 
     taskManagerStats
   }
 
-}
-
-class TaskManagerStats() {
-  var instanceId: String = null
-  var actorPath: String = null
-  var dataPort: Double = -1
-  var timeSinceLastHeartbeat: Double = -1
-  var totalSlots: Double = -1
-  var availableSlots: Double = -1
-  var cpuCores: Double = -1
-  var physicalMemory: Double = -1
-  var freeMemory: Double = -1
-  var managedMemory: Double = -1
-
-  def this(jsonTaskManager: Map[String, Any]) {
-    this()
-
-    def get[T](key: String) = jsonTaskManager.get(key).get.asInstanceOf[T]
-
-    instanceId = get[String]("id")
-    actorPath = get[String]("path")
-    dataPort = get[Double]("dataPort")
-    timeSinceLastHeartbeat = get[Double]("timeSinceLastHeartbeat")
-    totalSlots = get[Double]("slotsNumber")
-    availableSlots = get[Double]("freeSlots")
-    cpuCores = get[Double]("cpuCores")
-    physicalMemory = get[Double]("physicalMemory")
-    managedMemory = get[Double]("managedMemory")
-    freeMemory = get[Double]("freeMemory")
-  }
 }
