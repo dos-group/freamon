@@ -12,7 +12,7 @@ case class StopMonitoringForApplication(applicationId: String)
 
 case class WorkerAnnouncement(workerHostname: String)
 
-case class ContainerReport(containerId: String, container: ContainerStats)
+case class ContainerReport(applicationId: String, container: ContainerStats)
 
 
 class MonitorMasterActor extends Actor {
@@ -54,9 +54,9 @@ class MonitorMasterActor extends Actor {
       workers += workerHostname
     }
 
-    case ContainerReport(containerId, container) => {
-      log.info("Received a container Report of " + containerId + " from " + sender)
-      log.info(container.cpuUtil.length + " samples")
+    case ContainerReport(applicationId, container) => {
+      log.info("Received a container report of " + applicationId + " from " + sender)
+      log.info("for container " + container.containerId + " with " + container.cpuUtil.length + " samples:")
       log.info("CPU: " + container.cpuUtil.mkString(", "))
       log.info("Memory: " + container.memUtil.mkString(", "))
     }

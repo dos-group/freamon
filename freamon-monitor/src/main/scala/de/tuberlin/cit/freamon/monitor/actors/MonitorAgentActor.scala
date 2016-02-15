@@ -45,11 +45,14 @@ class MonitorAgentActor() extends Actor {
 
     case StartRecording(applicationId: String, containerIds: Array[Long]) =>
       log.info("Monitor Agent starts recording for app " + applicationId)
-      log.info(containerIds.length + " containers: " + containerIds.mkString(", "))
+      log.info("Requested " + containerIds.length
+        + " containers: " + containerIds.mkString(", "))
 
-      applications.get(applicationId) match {
-        case Some(appStats) => // already recording, just add the new containers
-          appStats.addContainers(containerIds)
+      val appStats = applications.get(applicationId) match {
+        case Some(app) => // already recording, just add the new containers
+          app.addContainers(containerIds)
+
+          app
 
         case None => // new application
           val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
@@ -61,7 +64,12 @@ class MonitorAgentActor() extends Actor {
 
           appStats.addContainers(containerIds)
           appStats.startRecording()
+
+          appStats
       }
+
+      log.info("This node now records " + appStats.containerStats.length
+        + " containers: " + appStats.containerCgroups.keys.mkString(", "))
 
 
     case StopRecording(applicationId: String) =>
