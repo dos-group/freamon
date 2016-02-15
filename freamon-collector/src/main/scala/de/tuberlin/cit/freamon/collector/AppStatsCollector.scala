@@ -64,35 +64,30 @@ class AppStatsCollector(applicationId: String, yarnConfig: YarnConfig, intervalS
   var onCollect = (container: ContainerStats) => {}
 
 
-/**
- * Try adding a set of containers to monitor.
- *
- * @return this instance for method chaining
- */
+  /**
+   * Try adding a set of containers to monitor.
+   *
+   * @return this instance for method chaining
+   */
   def addContainers(containerIds: Array[Long]) = {
     // applicationId format: application_1455551433868_0002
     val strippedAppId = applicationId.substring("application_".length)
 
-    // try to create cgroup monitors first, as this might fail
-    containerCgroups ++= containerIds.map(containerId => {
-      val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-      val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
-
+    for (containerId <- containerIds) {
       try {
+        val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+        val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
         val cgroup = new Cgroup(yarnConfig.cgroupsMountPath, yarnConfig.cgroupsHierarchy + "/" + fullId)
 
-        (containerId, cgroup)
+        containerCgroups.put(containerId, cgroup)
+        containerStats += new ContainerStats(containerId, ticksPassed)
       }
       catch {
-        case e: IOException =>
-          // TODO skip this container, it is on a different node
-          throw new IOException("AppStatsCollector for " + applicationId + " could not read cgroup for container " + fullId, e)
+        case e: IOException => // skip this container, it is not on this node
       }
-    })
+    }
 
-    containerStats ++= containerIds.map(new ContainerStats(_, ticksPassed))
-
-  this
+    this
   }
 
   /**
