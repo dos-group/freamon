@@ -4,7 +4,8 @@ import java.net.InetAddress
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
-import de.tuberlin.cit.freamon.collector.AppStatsCollector
+import com.typesafe.config.Config
+import de.tuberlin.cit.freamon.collector.{AppStatsCollector, YarnConfig}
 
 import scala.collection.mutable
 
@@ -12,22 +13,28 @@ case class StartRecording(applicationId: String, containerIds: Array[Long])
 
 case class StopRecording(applicationId: String)
 
-class MonitorAgentActor(yarnSitePath: String) extends Actor {
+class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
   val applications = new mutable.HashMap[String, AppStatsCollector]
+  var yarnConfig: YarnConfig = null
 
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
-    log.info("Using yarn-site.xml at " + yarnSitePath)
-    this.getMasterActor ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
-  }
-
-  def getMasterActor: ActorSelection = {
     val hostConfig = context.system.settings.config
 
-    val masterSystemPath = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.master.name"),
-      hostConfig.getString("freamon.hosts.master.hostname"), hostConfig.getInt("freamon.hosts.master.port"))
+    this.getMasterActor(hostConfig) ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
+
+    val yarnSitePath = hostConfig.getString("freamon.hosts.slaves.yarnsite")
+    log.info("Using yarn-site.xml at " + yarnSitePath)
+    yarnConfig = new YarnConfig(yarnSitePath)
+  }
+
+  def getMasterActor(hostConfig: Config): ActorSelection = {
+    val masterSystemPath = new Address("akka.tcp",
+      hostConfig.getString("freamon.actors.systems.master.name"),
+      hostConfig.getString("freamon.hosts.master.hostname"),
+      hostConfig.getInt("freamon.hosts.master.port"))
 
     val masterActorPath = masterSystemPath.toString + "/user/" + hostConfig.getString("freamon.actors.systems.master.actor")
 
@@ -40,7 +47,9 @@ class MonitorAgentActor(yarnSitePath: String) extends Actor {
       log.info("Monitor Agent starts recording for app " + applicationId)
       log.info(containerIds.length + " containers: " + containerIds.mkString(", "))
 
-      val appStats = new AppStatsCollector(applicationId, containerIds, yarnSitePath, 1)
+      val appStats = applications.getOrElseUpdate(applicationId,
+        new AppStatsCollector(applicationId, containerIds, yarnConfig, 1))
+
       applications(applicationId) = appStats
       appStats.onCollect = () => {
         log.info(applicationId + " CPU avg: " + appStats.cpuUtil.last.formatted("%.2f  cores"))

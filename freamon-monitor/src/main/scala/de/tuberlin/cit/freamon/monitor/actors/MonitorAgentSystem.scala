@@ -11,11 +11,9 @@ object MonitorAgentSystem extends App {
   val portConfig = ConfigUtil.setRemotingPort(hostConfig, hostConfig.getInt("freamon.hosts.slaves.port"))
   val agentConfig = ConfigUtil.setRemotingHost(portConfig, InetAddress.getLocalHost.getHostName)
 
-  val yarnSitePath = "yarn-site.xml" // TODO load from config or args
-
   val actorSystem = ActorSystem(agentConfig.getString("freamon.actors.systems.slave.name"), agentConfig)
 
-  val monitorAgent = actorSystem.actorOf(Props(new MonitorAgentActor(yarnSitePath)),
+  val monitorAgent = actorSystem.actorOf(Props(new MonitorAgentActor),
     name = agentConfig.getString("freamon.actors.systems.slave.actor"))
 
 }

@@ -14,20 +14,20 @@ object AppStatsCollector {
     }
 
     val yarnSitePath = args(0)
-    val seconds = args(1).toInt
+    val secondsToRun = args(1).toInt
     val appId = args(2)
     val containerIds = args.drop(3).map(_.toLong)
-    println("Starting for " + seconds + "s with YARN config at " + yarnSitePath)
+    println("Starting for " + secondsToRun + "s with YARN config at " + yarnSitePath)
     println("Recording " + containerIds.length + " containers: " + containerIds.mkString(" "))
 
-    val appStats = new AppStatsCollector(appId, containerIds, yarnSitePath, 1)
+    val appStats = new AppStatsCollector(appId, containerIds, new YarnConfig(yarnSitePath), 1)
     appStats.onCollect = () => {
       println("CPU-avg: " + appStats.cpuUtil.last + " cores")
       println("Memory: " + appStats.memUtil.last + " MB")
     }
 
     appStats.startRecording()
-    Thread.sleep(1000 * seconds)
+    Thread.sleep(1000 * secondsToRun)
     val (cpuUtil, memUtil) = appStats.stopRecording()
 
     println("CPU history: " + cpuUtil.mkString(", "))
@@ -38,10 +38,9 @@ object AppStatsCollector {
 /**
  * Collects statistics from a single node.
  */
-class AppStatsCollector(applicationId: String, containerIds: Array[Long], yarnSitePath: String, intervalSeconds: Long) {
+class AppStatsCollector(applicationId: String, containerIds: Array[Long], conf: YarnConfig, intervalSeconds: Long) {
 
   private val executor = Executors.newScheduledThreadPool(1)
-  private val conf = new YarnConfig(yarnSitePath)
 
   val cpuUtil = new ArrayBuffer[Float]
   val memUtil = new ArrayBuffer[Int]
