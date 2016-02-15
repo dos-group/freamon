@@ -1,7 +1,8 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import akka.actor.{ActorSelection, Address, Actor}
+import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
+import de.tuberlin.cit.freamon.collector.ContainerStats
 
 import scala.collection.mutable
 
@@ -11,7 +12,7 @@ case class StopMonitoringForApplication(applicationId: String)
 
 case class WorkerAnnouncement(workerHostname: String)
 
-case class ContainerReport(containerId: String, cpuUtil: Array[Float], memUtil: Array[Int])
+case class ContainerReport(containerId: String, container: ContainerStats)
 
 
 class MonitorMasterActor extends Actor {
@@ -19,11 +20,11 @@ class MonitorMasterActor extends Actor {
   val log = Logging(context.system, this)
   var workers: scala.collection.mutable.ListBuffer[String] = mutable.ListBuffer()
 
-  override def preStart(): Unit ={
+  override def preStart(): Unit = {
     log.info("Monitor Master started")
   }
 
-  def getAgentActorOnHost(hostname: String):ActorSelection = {
+  def getAgentActorOnHost(hostname: String): ActorSelection = {
     val hostConfig = context.system.settings.config
 
     val agentSystem = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.slave.name"),
@@ -53,11 +54,11 @@ class MonitorMasterActor extends Actor {
       workers += workerHostname
     }
 
-    case ContainerReport(containerId, cpuUtil, memUtil) => {
+    case ContainerReport(containerId, container) => {
       log.info("Received a container Report of " + containerId + " from " + sender)
-      log.info(cpuUtil.length + " samples")
-      log.info("CPU: " + cpuUtil.mkString(", "))
-      log.info("Memory: " + memUtil.mkString(", "))
+      log.info(container.cpuUtil.length + " samples")
+      log.info("CPU: " + container.cpuUtil.mkString(", "))
+      log.info("Memory: " + container.memUtil.mkString(", "))
     }
 
   }

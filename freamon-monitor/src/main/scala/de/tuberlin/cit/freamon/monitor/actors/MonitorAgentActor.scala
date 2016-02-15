@@ -47,22 +47,29 @@ class MonitorAgentActor() extends Actor {
       log.info("Monitor Agent starts recording for app " + applicationId)
       log.info(containerIds.length + " containers: " + containerIds.mkString(", "))
 
-      val appStats = applications.getOrElseUpdate(applicationId,
-        new AppStatsCollector(applicationId, containerIds, yarnConfig, 1))
+      applications.get(applicationId) match {
+        case Some(appStats) => // already recording, just add the new containers
+          appStats.addContainers(containerIds)
 
-      applications(applicationId) = appStats
-      appStats.onCollect = () => {
-        log.info(applicationId + " CPU avg: " + appStats.cpuUtil.last.formatted("%.2f  cores"))
-        log.info(applicationId + " Memory: " + appStats.memUtil.last + " MB")
+        case None => // new application
+          val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
+          applications(applicationId) = appStats
+          appStats.onCollect = container => {
+            log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
+            log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
+          }
+
+          appStats.addContainers(containerIds)
+          appStats.startRecording()
       }
-      appStats.startRecording()
 
 
     case StopRecording(applicationId: String) =>
-      log.info("Monitor Agent sends Report for " + applicationId)
-      val (cpuUtil, memUtil) = applications(applicationId).stopRecording()
-      log.info(cpuUtil.length + " samples")
-      sender ! new ContainerReport(applicationId, cpuUtil, memUtil)
+      log.info("Monitor Agent sends reports for " + applicationId)
+      for (container <- applications(applicationId).stopRecording()) {
+        log.info(container.containerId + ": " + container.cpuUtil.length + " samples")
+        sender ! new ContainerReport(applicationId, container)
+      }
 
   }
 
