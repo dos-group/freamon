@@ -73,20 +73,6 @@
             <version>${akka.version}</version>
         </dependency>
 
-        <dependency>
-            <!--TODO: change to yarn-client? -->
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-yarn-client</artifactId>
-            <version>2.7.1</version>
-        </dependency>
-        <!--TODO: change to yarn-common? -->
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>2.7.1</version>
-        </dependency>
-
-
     </dependencies>
 
     <build>
