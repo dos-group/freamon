@@ -1,18 +1,20 @@
 #!/bin/bash
 
-# assumptions:
-# - execute this script on the node that runs the master
-# - the script assumes passwordless ssh-access to all slaves and this project dir on all workers
-
-# arguments
-# host configuration to select
+# usage: ./start-cluster [HOST]
+# - HOST: host-config to use, if no host is given $HOSTNAME is used by default by the actor systems
+#         (see freamon-monitor/src/main/resources/hosts), e.g. ./start-cluster wally
 
 # preparation:
 # 1. provide a slaves file, e.g. by soft-linking Hadoop's slave file or 
 #    one from freamon-monitor/src/main/resources/hosts/
 # 2. build system: mvn clean package
 
+# assumptions:
+# - execute this script on the node that runs the master
+# - the script assumes passwordless ssh-access to all slaves and this project dir on all workers
+
 # TODO: preserve older logs by appending a number like Hadoop and Flink do it
+# TODO: better argument parsing, add -h flag for the host argument
 
 HOST_CONFIG=$1
 
