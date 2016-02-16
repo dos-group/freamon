@@ -15,16 +15,18 @@ import java.util.TimerTask;
 
 
 public class yarnClient {
-    final YarnClient yarnClient;
+    YarnClient yarnClient;
     private ArrayList<ApplicationId> runningApplications = new ArrayList<ApplicationId>();
 
     public yarnClient() {
-        this.yarnClient = YarnClient.createYarnClient();
         initYarnClient();
     }
 
     private void initYarnClient() {
         Configuration conf = new YarnConfiguration();
+        //TODO fixed host name! We could parse this from yarn-site.xml in the future?
+        conf.set("yarn.resourcemanager.hostname", "wally089.cit.tu-berlin.de");
+        yarnClient = YarnClient.createYarnClient();
         yarnClient.init(conf);
         yarnClient.start();
     }
@@ -34,7 +36,11 @@ public class yarnClient {
             for (ApplicationReport applicationReport : yarnClient.getApplications()) {
                 final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
                 final ApplicationId applicationId = applicationReport.getApplicationId();
-                if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId)) {
+                int runningContainers = applicationReport.getApplicationResourceUsageReport().getNumUsedContainers();
+                int resContainers = applicationReport.getApplicationResourceUsageReport().getNumReservedContainers();
+                applicationReport.getApplicationResourceUsageReport().getReservedResources().getVirtualCores();
+                //TODO runningContainers>1 is not a good solution
+                if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId) && runningContainers > 1) {
                     runningApplications.add(applicationId);
                     System.out.println("Yarn Client: New Application with ID: " + applicationId);
                     return applicationId;
@@ -72,16 +78,21 @@ public class yarnClient {
     public long[] getApplicationContainerIds(ApplicationId applicationId) {
 
         try {
-            //TODO aussume first application attempt always works
+            //TODO assume first application attempt always works
             List<ApplicationAttemptReport> applicationAttemptReports = yarnClient.getApplicationAttempts(applicationId);
             if (applicationAttemptReports.size() == 1) {
                 ApplicationAttemptId applicationAttemptid = applicationAttemptReports.get(0).getApplicationAttemptId();
                 final List<ContainerReport> containerReportList = yarnClient.getContainers(applicationAttemptid);
                 long containerIds[] = new long[containerReportList.size()];
+                System.out.print("Yarn Client: Found " + containerIds.length + " with IDs: (");
                 for (int i = 0; i < containerIds.length; i++) {
+                    //TODO Covers also the AM
+                    //containerIds[i] = "container_" + applicationId.getClusterTimestamp() + "_" + String.format("%04d", applicationId.getId()) + "_01_" + String.format("%06d", containerReportList.get(i).getContainerId().getContainerId());
                     containerIds[i] = containerReportList.get(i).getContainerId().getContainerId();
+                    System.out.print(containerIds[i] + ", ");
                 }
-                System.out.println("Yarn Client: Found " + containerIds.length + " containers");
+                System.out.println(")");
+
                 return containerIds;
             } else {
                 System.err.println("Yarn Client: ERROR - could not fetch containerIds, because of too many application attempts ");
