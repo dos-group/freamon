@@ -18,7 +18,7 @@ object MonitorMasterSystem extends App {
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
 
   def yarnPolling(intervalSec: Int) {
-    var yclient: yarnClient = new yarnClient
+    val yclient: yarnClient = new yarnClient(hostConfig.getString("freamon.hosts.slaves.yarnsite"))
     // start polling
     val timer: Timer = new Timer
     System.out.println("Start polling yarn for applications every: " + intervalSec + " second(s)")

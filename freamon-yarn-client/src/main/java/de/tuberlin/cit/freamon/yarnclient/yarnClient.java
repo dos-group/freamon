@@ -1,6 +1,7 @@
 package de.tuberlin.cit.freamon.yarnclient;
 
 
+import de.tuberlin.cit.freamon.collector.YarnConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.YarnClient;
@@ -18,14 +19,16 @@ public class yarnClient {
     YarnClient yarnClient;
     private ArrayList<ApplicationId> runningApplications = new ArrayList<ApplicationId>();
 
-    public yarnClient() {
-        initYarnClient();
+    public yarnClient(String yarnSitePath) {
+        initYarnClient(yarnSitePath);
     }
 
-    private void initYarnClient() {
+    private void initYarnClient(String yarnSitePath) {
         Configuration conf = new YarnConfiguration();
-        //TODO fixed host name! We could parse this from yarn-site.xml in the future?
-        conf.set("yarn.resourcemanager.hostname", "wally089.cit.tu-berlin.de");
+        YarnConfig yarnConfig = new YarnConfig(yarnSitePath);
+        String hostName = yarnConfig.resourceManagerHostName();
+        conf.set("yarn.resourcemanager.hostname", hostName);
+        System.out.println("Starting Yarn Client for " + hostName);
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(conf);
         yarnClient.start();
@@ -61,7 +64,7 @@ public class yarnClient {
                 final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
                 final ApplicationId applicationId = applicationReport.getApplicationId();
                 if (applicationState != YarnApplicationState.RUNNING && runningApplications.contains(applicationId)) {
-                    runningApplications.remove((Object) applicationId);
+                    runningApplications.remove(applicationId);
                     System.out.println("Yarn Client: Finished Application with ID " + applicationId);
                     return applicationId;
                 }
@@ -121,6 +124,6 @@ public class yarnClient {
     }
 
     public static void main(String[] args) {
-        new yarnClient().startPolling(1);
+        new yarnClient("~/yarn-site.xml").startPolling(1);
     }
 }
