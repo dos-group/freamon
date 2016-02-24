@@ -1,11 +1,14 @@
 <?xml version="1.0"?>
 <configuration>
 
+<!-- linux container executor (needed for cgroups) -->
   <property>
+    <description>The class which will execute (launch) the containers.</description>
     <name>yarn.nodemanager.container-executor.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
   </property>
   <property>
+    <description>The class which should help the LCE handle resources.</description>
     <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
     <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
   </property>
@@ -15,12 +18,17 @@
     <name>yarn.nodemanager.linux-container-executor.group</name>
     <value>ldapusers</value>
   </property>
-
-<!-- Uncomment this if you want to control memory through cgroups.
   <property>
+    <description>This determines which of the two modes that LCE should use on a non-secure cluster. If this value is set to true, then all containers will be launched as the user specified in yarn.nodemanager.linux-container-executor.nonsecure-mode.local-user (default is "nobody"). If this value is set to false, then containers will run as the user who submitted the application.</description>
+    <name>yarn.nodemanager.linux-container-executor.nonsecure-mode.limit-users</name>
+    <value>false</value>
+  </property>
+
+<!-- memory control and monitoring -->
+  <property>
+    <description>enable memory controlling through cgroups</description>
     <name>yarn.nodemanager.resource.memory.enabled</name>
     <value>true</value>
-    <description>enable memory controlling through cgroups</description>
   </property>
   <property>
     <name>yarn.nodemanager.pmem-check-enabled</name>
@@ -30,6 +38,86 @@
     <name>yarn.nodemanager.vmem-check-enabled</name>
     <value>false</value>
   </property>
--->
+
+<!-- resource allocation -->
+  <property>
+    <description>
+      Percentage of CPU that can be allocated for containers.
+      This setting allows users to limit the amount of CPU that YARN containers use.
+      Currently functional only on Linux using cgroups.
+      The default is to use 100% of CPU.
+    </description>
+    <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
+    <value>100</value>
+  </property>
+  <property>
+    <description>
+      CGroups allows cpu usage limits to be hard or soft.
+      When this setting is true, containers cannot use more CPU usage than allocated even if spare CPU is available.
+      This ensures that containers can only use CPU that they were allocated.
+      When set to false, containers can use spare CPU if available.
+      It should be noted that irrespective of whether set to true or false,
+      at no time can the combined CPU usage of all containers exceed the value specified
+      in “yarn.nodemanager.resource.percentage-physical-cpu-limit”.
+    </description>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <description>Minimum limit of memory to allocate to each container request at the Resource Manager.</description>
+    <name>yarn.scheduler.minimum-allocation-mb</name>
+    <value>512</value>
+  </property>
+  <property>
+    <description>Maximum limit of memory to allocate to each container request at the Resource Manager.</description>
+    <name>yarn.scheduler.maximum-allocation-mb</name>
+    <value>8192</value> <!-- Max. 8GiB memory per container -->
+  </property>
+
+  <property>
+    <description>Physical memory, in MB, to be made available to running containers</description>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>14336</value> <!-- 13GiB memory per node -->
+  </property>
+  <property>
+    <description>Number of CPU cores that can be allocated for containers.</description>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>7</value> <!-- usable cores total -->
+  </property>
+
+  <property>
+    <description>The minimum allocation for every container request at the RM, in terms of virtual CPU cores. Requests lower than this won't take effect, and the specified value will get allocated the minimum.</description>
+    <name>yarn.scheduler.minimum-allocation-vcores</name>
+    <value>1</value>
+  </property>
+  <property>
+    <description>The maximum allocation for every container request at the RM, in terms of virtual CPU cores. Requests higher than this won't take effect, and will get capped to this value.</description>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>7</value>
+  </property>
+
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.retain-seconds</name>
+    <value>3600</value>
+  </property>
+
+  <property>
+    <description>The hostname of the RM.</description>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>wally001</value>
+  </property>
+  <property>
+      <name>yarn.nodemanager.local-dirs</name>
+      <value>/data/bbdc/hadoop/local-dirs</value>
+  </property>
+  <property>
+      <name>yarn.nodemanager.log-dirs</name>
+      <value>/data/bbdc/hadoop/log-dirs</value>
+  </property>
 
 </configuration>
