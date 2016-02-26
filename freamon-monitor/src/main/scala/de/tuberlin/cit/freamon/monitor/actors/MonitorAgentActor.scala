@@ -48,35 +48,42 @@ class MonitorAgentActor() extends Actor {
       log.info("Requested " + containerIds.length
         + " containers: " + containerIds.mkString(", "))
 
-      val appStats = applications.get(applicationId) match {
-        case Some(app) => // already recording, just add the new containers
-          app.addContainers(containerIds)
-
-          app
-
+      applications.get(applicationId) match {
         case None => // new application
           val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
-          applications(applicationId) = appStats
-          appStats.onCollect = container => {
-            log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
-            log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
+          appStats.addContainers(containerIds)
+          // only record if this worker has at least one of the recorded containers
+          if (appStats.containerStats.length <= 0) {
+            log.info("This node has none of these containers, not recording anything")
+          } else {
+            applications(applicationId) = appStats
+            appStats.onCollect = container => {
+              log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
+              log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
+            }
+            appStats.startRecording()
+            log.info("This node now records " + appStats.containerStats.length
+              + " containers: " + appStats.containerCgroups.keys.mkString(", "))
           }
 
+        case Some(appStats) => // already recording, just add the new containers
           appStats.addContainers(containerIds)
-          appStats.startRecording()
-
-          appStats
+          log.info("This node now records " + appStats.containerStats.length
+            + " containers: " + appStats.containerCgroups.keys.mkString(", "))
       }
-
-      log.info("This node now records " + appStats.containerStats.length
-        + " containers: " + appStats.containerCgroups.keys.mkString(", "))
 
 
     case StopRecording(applicationId: String) =>
-      log.info("Monitor Agent sends reports for " + applicationId)
-      for (container <- applications(applicationId).stopRecording()) {
-        log.info(container.containerId + ": " + container.cpuUtil.length + " samples")
-        sender ! new ContainerReport(applicationId, container)
+      applications.get(applicationId) match {
+        case None => log.info("Monitor Agent has no reports for " + applicationId)
+
+        case Some(appStats) =>
+          val containers = appStats.stopRecording()
+          log.info("Monitor Agent sends " + containers.length + " reports for " + applicationId)
+          for (container <- containers) {
+            log.info(container.containerId + ": " + container.cpuUtil.length + " samples")
+            sender ! new ContainerReport(applicationId, container)
+          }
       }
 
   }
