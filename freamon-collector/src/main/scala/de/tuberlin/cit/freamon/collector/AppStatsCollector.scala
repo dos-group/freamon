@@ -64,65 +64,52 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
   private val executor = Executors.newScheduledThreadPool(1)
 
+  // applicationId format: application_1455551433868_0002
+  val strippedAppId = applicationId.substring("application_".length)
+
+  val cgroupsMountPath = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/")
+  val cgroupsHierarchy = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn")
+
+  val containerIds = new mutable.HashSet[Long]()
   val containerCgroups = new mutable.HashMap[Long, Cgroup]()
   val containerStats = new ArrayBuffer[ContainerStats]()
   var ticksPassed = 0
 
   var onCollect = (container: ContainerStats) => {}
 
-
-  /**
-   * Try adding a set of containers to monitor.
-   *
-   * @return this instance for method chaining
-   */
-  def addContainers(containerIds: Array[Long]) = {
-    // applicationId format: application_1455551433868_0002
-    val strippedAppId = applicationId.substring("application_".length)
-    val cgroupsMountPath = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/")
-    val cgroupsHierarchy = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn")
-
-    for (containerId <- containerIds) {
-      try {
-        val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-        val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
-        val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
-
-        containerCgroups.put(containerId, cgroup)
-        containerStats += new ContainerStats(containerId, ticksPassed)
-      }
-      catch {
-        case e: IOException => // skip this container, it is not on this node
-      }
-    }
-
+  def addContainers(newContainerIds: Array[Long]) = {
+    containerIds ++= newContainerIds
     this
   }
 
-  /**
-   * Starts recording after clearing all previous statistics.
-   */
   def startRecording() = {
-
-    def tryOrElse[T](f: => T, default: T): T = {
-      try f
-      catch {
-        case e: Throwable =>
-          println("AppStatsCollector encountered an error during stats collection for " + applicationId)
-          e.printStackTrace()
-          default
-      }
-    }
 
     val runnable = new Runnable() {
       def run() {
-        // TODO lock
         ticksPassed += 1
+
+        // try to create previously unavailable container monitors
+        for (containerId <- containerIds) {
+          containerCgroups.getOrElse(containerId, try {
+            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+            val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
+            val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
+            val container: ContainerStats = new ContainerStats(containerId, ticksPassed)
+            println("Recording " + fullId + " after " + (ticksPassed * intervalSeconds) + "s")
+            containerCgroups.put(containerId, cgroup)
+            containerStats += container
+          }
+          catch {
+            case e: IOException => // skip this container, it is not on this node
+          })
+        }
+
+        // collect data for available containers
         for (container <- containerStats) {
           val cgroup = containerCgroups(container.containerId)
 
           container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, Float.NaN)
-          // TODO memory might not be managed using cgroups, use other source
+          // TODO memory might not be managed using cgroups, fallback to other source
           container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
           onCollect(container)
@@ -130,12 +117,14 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
       }
     }
 
-    // TODO decide if several updates in quick succession or delayed values are better; if the latter, use Timer.schedule
     executor.scheduleAtFixedRate(runnable, 0, intervalSeconds * 1000, TimeUnit.MILLISECONDS)
+    this
   }
 
   /**
    * Stop recording and return all recorded container statistics.
+   *
+   * This also clears the recorded statistics.
    */
   def stopRecording(): Array[ContainerStats] = {
     executor.shutdownNow
@@ -145,6 +134,16 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
     containerCgroups.clear()
 
     results
+  }
+
+  def tryOrElse[T](f: => T, default: T): T = {
+    try f
+    catch {
+      case e: Throwable =>
+        println("AppStatsCollector encountered an error during stats collection for " + applicationId)
+        e.printStackTrace()
+        default
+    }
   }
 
 }

@@ -51,29 +51,17 @@ class MonitorAgentActor() extends Actor {
       log.info("Requested " + containerIds.length
         + " containers: " + containerIds.mkString(", "))
 
-      applications.get(applicationId) match {
-        case None => // new application
-          val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
-          appStats.addContainers(containerIds)
-          // only record if this worker has at least one of the recorded containers
-          if (appStats.containerStats.length <= 0) {
-            log.info("This node has none of these containers, not recording anything")
-          } else {
-            applications(applicationId) = appStats
-            appStats.onCollect = container => {
-              log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
-              log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
-            }
-            appStats.startRecording()
-            log.info("This node now records " + appStats.containerStats.length
-              + " containers: " + appStats.containerCgroups.keys.mkString(", "))
-          }
+      val appStats = applications.getOrElse(applicationId, {
+        val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
+        appStats.onCollect = container => {
+          log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
+          log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
+        }
+        applications(applicationId) = appStats
+        appStats.startRecording()
+      })
 
-        case Some(appStats) => // already recording, just add the new containers
-          appStats.addContainers(containerIds)
-          log.info("This node now records " + appStats.containerStats.length
-            + " containers: " + appStats.containerCgroups.keys.mkString(", "))
-      }
+      appStats.addContainers(containerIds)
 
 
     case StopRecording(applicationId: String) =>
