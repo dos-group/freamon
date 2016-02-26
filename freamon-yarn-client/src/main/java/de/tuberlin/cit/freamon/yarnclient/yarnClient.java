@@ -12,8 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 public class yarnClient {
@@ -43,8 +41,8 @@ public class yarnClient {
                 final YarnApplicationState applicationState = applicationReport.getYarnApplicationState();
                 final ApplicationId applicationId = applicationReport.getApplicationId();
                 int runningContainers = applicationReport.getApplicationResourceUsageReport().getNumUsedContainers();
-                int resContainers = applicationReport.getApplicationResourceUsageReport().getNumReservedContainers();
-                applicationReport.getApplicationResourceUsageReport().getReservedResources().getVirtualCores();
+//                int reservedContainers = applicationReport.getApplicationResourceUsageReport().getNumReservedContainers();
+//                long virtualCores = applicationReport.getApplicationResourceUsageReport().getReservedResources().getVirtualCores();
                 //TODO runningContainers>1 is not a good solution
                 if (applicationState == YarnApplicationState.RUNNING && !runningApplications.contains(applicationId) && runningContainers > 1) {
                     runningApplications.add(applicationId);
@@ -82,7 +80,6 @@ public class yarnClient {
     }
 
     public long[] getApplicationContainerIds(ApplicationId applicationId) {
-
         try {
             //TODO assume first application attempt always works
             List<ApplicationAttemptReport> applicationAttemptReports = yarnClient.getApplicationAttempts(applicationId);
@@ -105,28 +102,9 @@ public class yarnClient {
             }
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
-
         } catch (YarnException e) {
             System.err.println("YarnException: " + e.getMessage());
         }
         return null;
-    }
-
-    //todo implement this into scala MonitorAgent
-    private void startPolling(int intervalInSec) {
-        System.out.println("Yarn Client: Start Polling for applications every: " + intervalInSec + " second(s)");
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            public void run() {
-                ApplicationId x = evalYarnForNewApp();
-                if (x != null)
-                    getApplicationContainerIds(x);
-                evalYarnForReleasedApp();
-            }
-        }, 0, 1000 * intervalInSec);
-    }
-
-    public static void main(String[] args) {
-        new yarnClient("~/yarn-site.xml").startPolling(1);
     }
 }
