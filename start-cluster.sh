@@ -27,7 +27,7 @@ MASTER_LOG_FILE="$LOG_FOLDER/$HOSTNAME-master.out"
 MASTER_ERR_FILE="$LOG_FOLDER/$HOSTNAME-master.err"
 MASTER_PID_FILE="$LOG_FOLDER/$HOSTNAME-master.pid"
 WORKER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorAgentSystem"
-JAVA_BIN=$(which java)
+JAVA_BIN='/usr/lib/jvm/jre-1.8.0/bin/java'
 
 if [ ! -f "$ABSOLUTE_JAR_PATH" ]
 then
