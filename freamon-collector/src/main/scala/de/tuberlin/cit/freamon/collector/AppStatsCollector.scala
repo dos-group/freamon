@@ -1,7 +1,11 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.IOException
+import java.io.{FileInputStream, IOException}
 import java.util.concurrent.{Executors, TimeUnit}
+
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.yarn.conf.YarnConfiguration
+import org.apache.hadoop.yarn.conf.YarnConfiguration._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -32,7 +36,10 @@ object AppStatsCollector {
     println("Starting for " + secondsToRun + "s with YARN config at " + yarnSitePath)
     println("Recording " + containerIds.length + " containers: " + containerIds.mkString(" "))
 
-    val appStats = new AppStatsCollector(appId, new YarnConfig(yarnSitePath), 1)
+    val yarnConf = new YarnConfiguration()
+    yarnConf.addResource(new FileInputStream(yarnSitePath), YARN_SITE_CONFIGURATION_FILE)
+
+    val appStats = new AppStatsCollector(appId, yarnConf, 1)
     appStats.addContainers(containerIds)
     appStats.onCollect = container => {
       println(container.containerId + " CPU-avg: " + container.cpuUtil.last + " cores")
@@ -53,7 +60,7 @@ object AppStatsCollector {
 /**
  * Collects statistics from a single node.
  */
-class AppStatsCollector(applicationId: String, yarnConfig: YarnConfig, intervalSeconds: Long) {
+class AppStatsCollector(applicationId: String, yarnConfig: Configuration, intervalSeconds: Long) {
 
   private val executor = Executors.newScheduledThreadPool(1)
 
@@ -72,12 +79,14 @@ class AppStatsCollector(applicationId: String, yarnConfig: YarnConfig, intervalS
   def addContainers(containerIds: Array[Long]) = {
     // applicationId format: application_1455551433868_0002
     val strippedAppId = applicationId.substring("application_".length)
+    val cgroupsMountPath = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/")
+    val cgroupsHierarchy = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn")
 
     for (containerId <- containerIds) {
       try {
         val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
         val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
-        val cgroup = new Cgroup(yarnConfig.cgroupsMountPath, yarnConfig.cgroupsHierarchy + "/" + fullId)
+        val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
 
         containerCgroups.put(containerId, cgroup)
         containerStats += new ContainerStats(containerId, ticksPassed)

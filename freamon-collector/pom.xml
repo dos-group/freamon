@@ -35,9 +35,16 @@
         </dependency>
 
         <dependency>
-            <groupId>org.scala-lang.modules</groupId>
-            <artifactId>scala-xml_2.11</artifactId>
-            <version>1.0.5</version>
+            <!--TODO: change to yarn-client? -->
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-client</artifactId>
+            <version>2.7.1</version>
+        </dependency>
+        <!--TODO: change to yarn-common? -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.7.1</version>
         </dependency>
     </dependencies>
 

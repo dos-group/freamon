@@ -1,7 +1,10 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{File, IOException}
+import java.io.{File, FileInputStream, IOException}
 import java.util.concurrent.{Executors, TimeUnit}
+
+import org.apache.hadoop.yarn.conf.YarnConfiguration
+import org.apache.hadoop.yarn.conf.YarnConfiguration._
 
 import scala.collection.mutable
 import scala.io.Source
@@ -29,8 +32,11 @@ object Cgroup {
     val seconds = args(1).toInt
     println("Starting for " + seconds + "s with YARN config at " + yarnSitePath)
 
-    val conf = new YarnConfig(yarnSitePath)
-    val yarnCgroup = new Cgroup(conf.cgroupsMountPath, conf.cgroupsHierarchy)
+    val conf = new YarnConfiguration()
+    conf.addResource(new FileInputStream(yarnSitePath), YARN_SITE_CONFIGURATION_FILE)
+    val yarnCgroup = new Cgroup(
+      conf.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/"),
+      conf.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn"))
 
     val cpuValues = new mutable.MutableList[Float]
     val memValues = new mutable.MutableList[Long]

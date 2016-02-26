@@ -1,11 +1,13 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
+import java.io.FileInputStream
 import java.net.InetAddress
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import com.typesafe.config.Config
-import de.tuberlin.cit.freamon.collector.{AppStatsCollector, YarnConfig}
+import de.tuberlin.cit.freamon.collector.AppStatsCollector
+import org.apache.hadoop.yarn.conf.YarnConfiguration
 
 import scala.collection.mutable
 
@@ -17,7 +19,7 @@ class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
   val applications = new mutable.HashMap[String, AppStatsCollector]
-  var yarnConfig: YarnConfig = null
+  var yarnConfig: YarnConfiguration = null
 
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
@@ -27,7 +29,8 @@ class MonitorAgentActor() extends Actor {
 
     val yarnSitePath = hostConfig.getString("freamon.hosts.slaves.yarnsite")
     log.info("Using yarn-site.xml at " + yarnSitePath)
-    yarnConfig = new YarnConfig(yarnSitePath)
+    yarnConfig = new YarnConfiguration()
+    yarnConfig.addResource(new FileInputStream(yarnSitePath), YarnConfiguration.YARN_SITE_CONFIGURATION_FILE)
   }
 
   def getMasterActor(hostConfig: Config): ActorSelection = {

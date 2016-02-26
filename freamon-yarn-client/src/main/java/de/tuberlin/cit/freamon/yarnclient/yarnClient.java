@@ -1,13 +1,14 @@
 package de.tuberlin.cit.freamon.yarnclient;
 
 
-import de.tuberlin.cit.freamon.collector.YarnConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.*;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +26,12 @@ public class yarnClient {
 
     private void initYarnClient(String yarnSitePath) {
         Configuration conf = new YarnConfiguration();
-        YarnConfig yarnConfig = new YarnConfig(yarnSitePath);
-        String hostName = yarnConfig.resourceManagerHostName();
-        conf.set("yarn.resourcemanager.hostname", hostName);
-        System.out.println("Starting Yarn Client for " + hostName);
+        try {
+            conf.addResource(new FileInputStream(yarnSitePath));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Starting Yarn Client for " + conf.get(YarnConfiguration.RM_HOSTNAME));
         yarnClient = YarnClient.createYarnClient();
         yarnClient.init(conf);
         yarnClient.start();
