@@ -2,11 +2,7 @@ package de.tuberlin.cit.freamon.results
 
 import java.sql.{Connection, DriverManager}
 
-import akka.event.LoggingAdapter
-
 object DB {
-
-  var logger: LoggingAdapter = null
 
   // try to load the MonetDB JDBC drivers, which currently lacks an autoload descriptor
   // see https://www.monetdb.org/bugzilla/show_bug.cgi?id=3748 for a proposed fix
@@ -18,11 +14,12 @@ object DB {
     */
   private def loadDriver(className: String): Unit = try {
     Class.forName(className)
+    println("monetdb driver loaded")
   } catch {
-    case _: Throwable => // silently ignore exception
+    case _: Throwable => println("could not load monetdb driver") // silently ignore exception
   }
 
-  /** Creates a database connection using the 'app.db.\$connName.conf' connection data.
+  /** Creates a database connection.
     */
   def getConnection(url: String, user: String, pass: String): Connection = {
     DriverManager.getConnection(url, user, pass)
@@ -32,17 +29,17 @@ object DB {
     *
     * @param conn The DB connection.
     */
-  def dropSchema(silent: Boolean = false)(implicit conn: Connection): Unit = {
-    if (!silent) logger.info(s"Dropping table ${ExperimentEvent.tableName}")
-    ExperimentEvent.dropTable()
+  def dropSchema()(implicit conn: Connection): Unit = {
+    println(s"Dropping table ${EventModel.tableName}")
+    EventModel.dropTable()
   }
 
   /** Initialize the database schema.
     *
     * @param conn The DB connection.
     */
-  def createSchema(silent: Boolean = false)(implicit conn: Connection): Unit = {
-    if (!silent) logger.info(s"Creating table ${ExperimentEvent.tableName}")
-    ExperimentEvent.createTable()
+  def createSchema()(implicit conn: Connection): Unit = {
+    println(s"Creating table ${EventModel.tableName}")
+    EventModel.createTable()
   }
 }
