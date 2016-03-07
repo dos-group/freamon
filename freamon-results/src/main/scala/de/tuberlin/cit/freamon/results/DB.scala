@@ -8,7 +8,7 @@ object DB {
   // see https://www.monetdb.org/bugzilla/show_bug.cgi?id=3748 for a proposed fix
   loadDriver("nl.cwi.monetdb.jdbc.MonetDriver")
 
-  /** Silently tries to load a JDBC driver with the given `className`.
+  /** Tries to load a JDBC driver with the given `className`.
     *
     * @param className The FQName of the driver to be loaded.
     */
@@ -16,11 +16,11 @@ object DB {
     Class.forName(className)
     println("monetdb driver loaded")
   } catch {
-    case _: Throwable => println("could not load monetdb driver") // silently ignore exception
+    case _: Throwable => println("could not load monetdb driver")
   }
 
   def main(args: Array[String]) {
-    implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
+    implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb") // TODO from config
     createSchema()
   }
 

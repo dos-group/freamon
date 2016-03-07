@@ -2,7 +2,7 @@ package de.tuberlin.cit.freamon.results
 
 import java.time.Instant
 
-/** Model class for experiment events extracted from the experiment run logs.
+/** Model class for experiment events collected by the master actor from the agent actors.
   *
   * @param appId The ID of the associated run.
   * @param name The name of the event.
@@ -44,14 +44,14 @@ object EventModel extends PersistedAPI[EventModel] {
 
   override def createTable()(implicit conn: Connection): Unit = if (!tableExists) {
     SQL"""
-      CREATE TABLE experiment_event (
+      CREATE TABLE $tableName (
         id        INTEGER     NOT NULL,
         app_id    INTEGER     NOT NULL,
         name      VARCHAR(63) NOT NULL,
         timestamp TIMESTAMP           ,
         value     DOUBLE              ,
         PRIMARY KEY (id),
-        FOREIGN KEY (app_id) REFERENCES experiment_run(id) ON DELETE CASCADE
+        FOREIGN KEY (app_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""".execute()
   }
 
@@ -59,7 +59,7 @@ object EventModel extends PersistedAPI[EventModel] {
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL"""
-    INSERT INTO experiment_event($fields) VALUES(
+    INSERT INTO $tableName($fields) VALUES(
       ${x.id},
       ${x.appId},
       ${x.name.name},
@@ -72,7 +72,7 @@ object EventModel extends PersistedAPI[EventModel] {
   override def insert(xs: Seq[EventModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
     BatchSql(
       s"""
-      INSERT INTO experiment_event($fields) VALUES(
+      INSERT INTO $tableName($fields) VALUES(
         {id},
         {appId},
         {name},
@@ -91,15 +91,15 @@ object EventModel extends PersistedAPI[EventModel] {
 
   override def delete(x: EventModel)(implicit conn: Connection): Unit = {
     SQL"""
-    DELETE FROM experiment_event WHERE id = ${x.id}
+    DELETE FROM $tableName WHERE id = ${x.id}
     """.execute()
   }
 
   def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
-    'id         -> x.id,
-    'appId      -> x.appId,
-    'name       -> x.name.name,
+    'id        -> x.id,
+    'appId     -> x.appId,
+    'name      -> x.name.name,
     'timestamp -> x.timestamp,
-    'value      -> x.value
+    'value     -> x.value
   )
 }
