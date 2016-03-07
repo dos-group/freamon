@@ -1,6 +1,7 @@
 package de.tuberlin.cit.freamon.results
 
 import java.sql.{Connection, DriverManager}
+import java.time.Instant
 
 object DB {
 
@@ -22,6 +23,12 @@ object DB {
   def main(args: Array[String]) {
     implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb") // TODO from config
     createSchema()
+    val job = JobModel("application_1455193904860_0001", 'Flink, Instant.now(), Instant.now(), 0, 0, 0)
+    JobModel.insert(job)
+    println(JobModel.selectAll().mkString("\n"))
+    EventModel.insert(EventModel(job.id, 'cpu, Instant.now(), 0.42))
+    EventModel.insert(EventModel(job.id, 'mem, Instant.now(), 123123))
+    println(EventModel.selectAll().mkString("\n"))
   }
 
   /** Creates a database connection.
