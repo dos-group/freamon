@@ -19,7 +19,7 @@
 
     <properties>
         <scala.version>2.11.7</scala.version>
-        <scala.tools.version>2.10</scala.tools.version>
+        <scala.tools.version>2.11</scala.tools.version>
         <anorm.version>2.4.0</anorm.version>
         <!-- MonetDB JDBC driver -->
         <monetdb.version>11.19.15</monetdb.version>
@@ -35,6 +35,12 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-compiler</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-reflect</artifactId>
             <version>${scala.version}</version>
         </dependency>
 
@@ -68,6 +74,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>de.tuberlin.cit.freamon.results.DB</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
