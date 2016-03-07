@@ -37,6 +37,8 @@ object DB {
   def dropSchema()(implicit conn: Connection): Unit = {
     println(s"Dropping table ${EventModel.tableName}")
     EventModel.dropTable()
+    println(s"Dropping table ${JobModel.tableName}")
+    JobModel.dropTable()
   }
 
   /** Initialize the database schema.
@@ -44,6 +46,8 @@ object DB {
     * @param conn The DB connection.
     */
   def createSchema()(implicit conn: Connection): Unit = {
+    println(s"Creating table ${JobModel.tableName}")
+    JobModel.createTable()
     println(s"Creating table ${EventModel.tableName}")
     EventModel.createTable()
   }
