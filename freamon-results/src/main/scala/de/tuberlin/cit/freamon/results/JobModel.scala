@@ -46,7 +46,7 @@ object JobModel extends PersistedAPI[JobModel] {
   }
 
   override def createTable()(implicit conn: Connection): Unit = if (!tableExists) {
-    SQL"""
+    SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
         app_id               VARCHAR(63)         ,
@@ -57,7 +57,7 @@ object JobModel extends PersistedAPI[JobModel] {
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
         PRIMARY KEY (id)
-      )""".execute()
+      )""").execute()
   }
 
   private val fields = "id, app_id, framework, start, stop, num_containers, cores_per_container, memory_per_container"

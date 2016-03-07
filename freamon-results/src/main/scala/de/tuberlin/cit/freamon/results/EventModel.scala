@@ -43,7 +43,7 @@ object EventModel extends PersistedAPI[EventModel] {
   }
 
   override def createTable()(implicit conn: Connection): Unit = if (!tableExists) {
-    SQL"""
+    SQL(s"""
       CREATE TABLE $tableName (
         id        INTEGER     NOT NULL,
         job_id    INTEGER     NOT NULL,
@@ -52,7 +52,7 @@ object EventModel extends PersistedAPI[EventModel] {
         value     DOUBLE              ,
         PRIMARY KEY (id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
-      )""".execute()
+      )""").execute()
   }
 
   private val fields = "id, job_id, name, timestamp, value"
