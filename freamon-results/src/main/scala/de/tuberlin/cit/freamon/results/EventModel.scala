@@ -4,13 +4,13 @@ import java.time.Instant
 
 /** Model class for experiment events collected by the master actor from the agent actors.
   *
-  * @param appId The ID of the associated run.
+  * @param jobId The ID of the associated job run.
   * @param name The name of the event.
   * @param timestamp The timestamp for this event.
   * @param value The double value for this event.
   */
 case class EventModel(
-                       appId: Int,
+                       jobId: Int,
                        name: Symbol,
                        timestamp: Instant,
                        value: Double
@@ -30,7 +30,7 @@ object EventModel extends PersistedAPI[EventModel] {
 
   override val rowParser = {
     get[Int]     ("id")        ~
-    get[Int]     ("app_id")    ~
+    get[Int]     ("job_id")    ~
     get[String]  ("name")      ~
     get[Instant] ("timestamp") ~
     get[Double]  ("value")    map {
@@ -46,22 +46,22 @@ object EventModel extends PersistedAPI[EventModel] {
     SQL"""
       CREATE TABLE $tableName (
         id        INTEGER     NOT NULL,
-        app_id    INTEGER     NOT NULL,
+        job_id    INTEGER     NOT NULL,
         name      VARCHAR(63) NOT NULL,
         timestamp TIMESTAMP           ,
         value     DOUBLE              ,
         PRIMARY KEY (id),
-        FOREIGN KEY (app_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
+        FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""".execute()
   }
 
-  private val fields = s"""id, app_id, name, timestamp, value"""
+  private val fields = "id, job_id, name, timestamp, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL"""
     INSERT INTO $tableName($fields) VALUES(
       ${x.id},
-      ${x.appId},
+      ${x.jobId},
       ${x.name.name},
       ${x.timestamp},
       ${x.value}
@@ -74,7 +74,7 @@ object EventModel extends PersistedAPI[EventModel] {
       s"""
       INSERT INTO $tableName($fields) VALUES(
         {id},
-        {appId},
+        {job_id},
         {name},
         {timestamp},
         {value}
@@ -97,7 +97,7 @@ object EventModel extends PersistedAPI[EventModel] {
 
   def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id        -> x.id,
-    'appId     -> x.appId,
+    'job_id    -> x.jobId,
     'name      -> x.name.name,
     'timestamp -> x.timestamp,
     'value     -> x.value
