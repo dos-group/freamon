@@ -4,14 +4,16 @@ import java.time.Instant
 
 /** Model class for job runs. */
 case class JobModel(
-                     id: Int,
                      appId: String,
                      framework: Symbol,
                      start: Instant,
                      stop: Instant,
                      numContainers: Int,
                      coresPerContainer: Int,
-                     memoryPerContainer: Int)
+                     memoryPerContainer: Int
+                     ) {
+  val id = this.##
+}
 
 /** [[JobModel]] companion and storage manager. */
 object JobModel extends PersistedAPI[JobModel] {
@@ -34,7 +36,6 @@ object JobModel extends PersistedAPI[JobModel] {
     get[Int]     ("memory_per_container") map {
       case id ~ appId ~ framework ~ start ~ stop ~ numContainers ~ coresPerContainer ~ memoryPerContainer
       => JobModel(
-        id,
         appId,
         Symbol(framework),
         start,
