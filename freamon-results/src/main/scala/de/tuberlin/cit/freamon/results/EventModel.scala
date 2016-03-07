@@ -1,5 +1,6 @@
 package de.tuberlin.cit.freamon.results
 
+import java.sql.Timestamp
 import java.time.Instant
 
 /** Model class for experiment events collected by the master actor from the agent actors.
@@ -63,7 +64,7 @@ object EventModel extends PersistedAPI[EventModel] {
       '${x.id}',
       '${x.jobId}',
       '${x.kind.name}',
-      '${x.timestamp}',
+      '${Timestamp.from(x.timestamp)}',
       '${x.value}'
     )
     """).executeInsert()

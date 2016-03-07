@@ -1,5 +1,6 @@
 package de.tuberlin.cit.freamon.results
 
+import java.sql.Timestamp
 import java.time.Instant
 
 /** Model class for job runs. */
@@ -69,8 +70,8 @@ object JobModel extends PersistedAPI[JobModel] {
       '${x.id}',
       '${x.appId}',
       '${x.framework.name}',
-      '${x.start}',
-      '${x.stop}',
+      '${Timestamp.from(x.start)}',
+      '${Timestamp.from(x.stop)}',
       '${x.numContainers}',
       '${x.coresPerContainer}',
       '${x.memoryPerContainer}'
@@ -103,8 +104,8 @@ object JobModel extends PersistedAPI[JobModel] {
       id                   = '${x.id}',
       app_id               = '${x.appId}',
       framework            = '${x.framework.name}',
-      start                = '${x.start}',
-      stop                 = '${x.stop}',
+      start                = '${Timestamp.from(x.start)}',
+      stop                 = '${Timestamp.from(x.stop)}',
       num_containers       = '${x.numContainers}',
       cores_per_container  = '${x.coresPerContainer}',
       memory_per_container = '${x.memoryPerContainer}'
