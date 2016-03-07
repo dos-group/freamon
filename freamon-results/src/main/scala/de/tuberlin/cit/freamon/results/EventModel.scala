@@ -5,13 +5,13 @@ import java.time.Instant
 /** Model class for experiment events collected by the master actor from the agent actors.
   *
   * @param jobId The ID of the associated job run.
-  * @param name The name of the event.
+  * @param kind The event type.
   * @param timestamp The timestamp for this event.
   * @param value The double value for this event.
   */
 case class EventModel(
                        jobId: Int,
-                       name: Symbol,
+                       kind: Symbol,
                        timestamp: Instant,
                        value: Double
                        ) {
@@ -31,12 +31,12 @@ object EventModel extends PersistedAPI[EventModel] {
   override val rowParser = {
     get[Int]     ("id")        ~
     get[Int]     ("job_id")    ~
-    get[String]  ("name")      ~
+    get[String]  ("kind")      ~
     get[Instant] ("timestamp") ~
     get[Double]  ("value")    map {
-      case id ~ expRunID ~ name ~ timestamp ~ value => EventModel(
+      case id ~ expRunID ~ kind ~ timestamp ~ value => EventModel(
         expRunID,
-        Symbol(name),
+        Symbol(kind),
         timestamp,
         value)
     }
@@ -47,7 +47,7 @@ object EventModel extends PersistedAPI[EventModel] {
       CREATE TABLE $tableName (
         id        INTEGER     NOT NULL,
         job_id    INTEGER     NOT NULL,
-        name      VARCHAR(63) NOT NULL,
+        kind      VARCHAR(63) NOT NULL,
         timestamp TIMESTAMP           ,
         value     DOUBLE              ,
         PRIMARY KEY (id),
@@ -55,14 +55,14 @@ object EventModel extends PersistedAPI[EventModel] {
       )""").execute()
   }
 
-  private val fields = "id, job_id, name, timestamp, value"
+  private val fields = "id, job_id, kind, timestamp, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL"""
     INSERT INTO $tableName($fields) VALUES(
       ${x.id},
       ${x.jobId},
-      ${x.name.name},
+      ${x.kind.name},
       ${x.timestamp},
       ${x.value}
     )
@@ -75,13 +75,13 @@ object EventModel extends PersistedAPI[EventModel] {
       INSERT INTO $tableName($fields) VALUES(
         {id},
         {job_id},
-        {name},
+        {kind},
         {timestamp},
         {value}
       )
       """,
-      namedParametersFor(xs.head),
-      xs.tail.map(namedParametersFor): _*
+      kinddParametersFor(xs.head),
+      xs.tail.map(kinddParametersFor): _*
     ).execute()
   }
 
@@ -95,10 +95,10 @@ object EventModel extends PersistedAPI[EventModel] {
     """.execute()
   }
 
-  def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
+  def kinddParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id        -> x.id,
     'job_id    -> x.jobId,
-    'name      -> x.name.name,
+    'kind      -> x.kind.name,
     'timestamp -> x.timestamp,
     'value     -> x.value
   )
