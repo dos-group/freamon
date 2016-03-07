@@ -64,32 +64,32 @@ object JobModel extends PersistedAPI[JobModel] {
   private val fields = "id, app_id, framework, start, stop, num_containers, cores_per_container, memory_per_container"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
-    SQL"""
+    SQL(s"""
     INSERT INTO $tableName($fields) VALUES(
-      ${x.id},
-      ${x.appId},
-      ${x.framework.name},
-      ${x.start},
-      ${x.stop},
-      ${x.numContainers},
-      ${x.coresPerContainer},
-      ${x.memoryPerContainer}
+      '${x.id}',
+      '${x.appId}',
+      '${x.framework.name}',
+      '${x.start}',
+      '${x.stop}',
+      '${x.numContainers}',
+      '${x.coresPerContainer}',
+      '${x.memoryPerContainer}'
     )
-    """.executeInsert()
+    """).executeInsert()
   }
 
   override def insert(xs: Seq[JobModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
-        {id},
-        {app_id},
-        {framework},
-        {start},
-        {stop},
-        {num_containers},
-        {cores_per_container},
-        {memory_per_container}
+        '{id}',
+        '{app_id}',
+        '{framework}',
+        '{start}',
+        '{stop}',
+        '{num_containers}',
+        '{cores_per_container}',
+        '{memory_per_container}'
       )
       """,
       namedParametersFor(xs.head),
@@ -98,24 +98,24 @@ object JobModel extends PersistedAPI[JobModel] {
   }
 
   override def update(x: JobModel)(implicit conn: Connection): Unit = {
-    SQL"""
+    SQL(s"""
     UPDATE $tableName SET
-      id                   = ${x.id},
-      app_id               = ${x.appId},
-      framework            = ${x.framework.name},
-      start                = ${x.start},
-      stop                 = ${x.stop},
-      num_containers       = ${x.numContainers},
-      cores_per_container  = ${x.coresPerContainer},
-      memory_per_container = ${x.memoryPerContainer}
+      id                   = '${x.id}',
+      app_id               = '${x.appId}',
+      framework            = '${x.framework.name}',
+      start                = '${x.start}',
+      stop                 = '${x.stop}',
+      num_containers       = '${x.numContainers}',
+      cores_per_container  = '${x.coresPerContainer}',
+      memory_per_container = '${x.memoryPerContainer}'
     WHERE id = ${x.id}
-    """.executeUpdate()
+    """).executeUpdate()
   }
 
   override def delete(x: JobModel)(implicit conn: Connection): Unit = {
-    SQL"""
+    SQL(s"""
     DELETE FROM $tableName WHERE id = ${x.id}
-    """.execute()
+    """).execute()
   }
 
   def namedParametersFor(x: JobModel): Seq[NamedParameter] = Seq[NamedParameter](

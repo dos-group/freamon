@@ -58,26 +58,26 @@ object EventModel extends PersistedAPI[EventModel] {
   private val fields = "id, job_id, kind, timestamp, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
-    SQL"""
+    SQL(s"""
     INSERT INTO $tableName($fields) VALUES(
-      ${x.id},
-      ${x.jobId},
-      ${x.kind.name},
-      ${x.timestamp},
-      ${x.value}
+      '${x.id}',
+      '${x.jobId}',
+      '${x.kind.name}',
+      '${x.timestamp}',
+      '${x.value}'
     )
-    """.executeInsert()
+    """).executeInsert()
   }
 
   override def insert(xs: Seq[EventModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
-        {id},
-        {job_id},
-        {kind},
-        {timestamp},
-        {value}
+        '{id}',
+        '{job_id}',
+        '{kind}',
+        '{timestamp}',
+        '{value}'
       )
       """,
       namedParametersFor(xs.head),
@@ -90,9 +90,9 @@ object EventModel extends PersistedAPI[EventModel] {
   }
 
   override def delete(x: EventModel)(implicit conn: Connection): Unit = {
-    SQL"""
+    SQL(s"""
     DELETE FROM $tableName WHERE id = ${x.id}
-    """.execute()
+    """).execute()
   }
 
   def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
