@@ -80,8 +80,8 @@ object EventModel extends PersistedAPI[EventModel] {
         {value}
       )
       """,
-      kinddParametersFor(xs.head),
-      xs.tail.map(kinddParametersFor): _*
+      namedParametersFor(xs.head),
+      xs.tail.map(namedParametersFor): _*
     ).execute()
   }
 
@@ -95,7 +95,7 @@ object EventModel extends PersistedAPI[EventModel] {
     """.execute()
   }
 
-  def kinddParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
+  def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id        -> x.id,
     'job_id    -> x.jobId,
     'kind      -> x.kind.name,
