@@ -19,6 +19,11 @@ object DB {
     case _: Throwable => println("could not load monetdb driver") // silently ignore exception
   }
 
+  def main(args: Array[String]) {
+    implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
+    createSchema()
+  }
+
   /** Creates a database connection.
     */
   def getConnection(url: String, user: String, pass: String): Connection = {
