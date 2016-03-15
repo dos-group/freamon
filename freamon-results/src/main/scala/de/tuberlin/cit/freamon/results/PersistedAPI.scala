@@ -30,6 +30,10 @@ trait PersistedAPI[A] {
     SQL(s"SELECT * FROM $tableName").as(rowParser *)
   }
 
+  def selectWhere(cond: String)(implicit conn: Connection) = {
+    SQL(s"SELECT * FROM $tableName WHERE " + cond).as(rowParser *)
+  }
+
   def insert(x: A)(implicit conn: Connection): Unit
 
   def insert(xs: Seq[A])(implicit conn: Connection): Unit = singleCommit {

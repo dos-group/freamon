@@ -7,13 +7,13 @@ import java.time.Instant
 case class JobModel(
                      appId: String,
                      framework: Symbol,
-                     start: Instant,
-                     stop: Instant,
                      numContainers: Int,
                      coresPerContainer: Int,
-                     memoryPerContainer: Int
+                     memoryPerContainer: Int,
+                     start: Instant = Instant.now(),
+                     stop: Instant = Instant.ofEpochSecond(0)
                      ) {
-  val id = this.##
+  val id = appId.##
 }
 
 /** [[JobModel]] companion and storage manager. */
@@ -30,20 +30,20 @@ object JobModel extends PersistedAPI[JobModel] {
     get[Int]     ("id")                   ~
     get[String]  ("app_id")               ~
     get[String]  ("framework")            ~
-    get[Instant] ("start")                ~
-    get[Instant] ("stop")                 ~
     get[Int]     ("num_containers")       ~
     get[Int]     ("cores_per_container")  ~
-    get[Int]     ("memory_per_container") map {
-      case id ~ appId ~ framework ~ start ~ stop ~ numContainers ~ coresPerContainer ~ memoryPerContainer
+    get[Int]     ("memory_per_container") ~
+    get[Instant] ("start")                ~
+    get[Instant] ("stop")                 map {
+      case id ~ appId ~ framework ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
       => JobModel(
         appId,
         Symbol(framework),
-        start,
-        stop,
         numContainers,
         coresPerContainer,
-        memoryPerContainer)
+        memoryPerContainer,
+        start,
+        stop)
     }
   }
 
@@ -51,32 +51,34 @@ object JobModel extends PersistedAPI[JobModel] {
     SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
-        app_id               VARCHAR(63)         ,
+        app_id               VARCHAR(63) UNIQUE  ,
         framework            VARCHAR(63)         ,
-        start                TIMESTAMP           ,
-        stop                 TIMESTAMP           ,
         num_containers       INTEGER             ,
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
+        start                TIMESTAMP           ,
+        stop                 TIMESTAMP           ,
         PRIMARY KEY (id)
       )""").execute()
   }
 
-  private val fields = "id, app_id, framework, start, stop, num_containers, cores_per_container, memory_per_container"
+  private val fields = "id, app_id, framework, num_containers, cores_per_container, memory_per_container, start, stop"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
-    SQL(s"""
+    val s: String = s"""
     INSERT INTO $tableName($fields) VALUES(
       '${x.id}',
       '${x.appId}',
       '${x.framework.name}',
-      '${Timestamp.from(x.start)}',
-      '${Timestamp.from(x.stop)}',
       '${x.numContainers}',
       '${x.coresPerContainer}',
-      '${x.memoryPerContainer}'
+      '${x.memoryPerContainer}',
+      '${Timestamp.from(x.start)}',
+      '${Timestamp.from(x.stop)}'
     )
-    """).executeInsert()
+    """
+    println(s)
+    SQL(s).executeInsert()
   }
 
   override def insert(xs: Seq[JobModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
@@ -86,11 +88,11 @@ object JobModel extends PersistedAPI[JobModel] {
         '{id}',
         '{app_id}',
         '{framework}',
-        '{start}',
-        '{stop}',
         '{num_containers}',
         '{cores_per_container}',
-        '{memory_per_container}'
+        '{memory_per_container}',
+        '{start}',
+        '{stop}'
       )
       """,
       namedParametersFor(xs.head),
@@ -104,11 +106,11 @@ object JobModel extends PersistedAPI[JobModel] {
       id                   = '${x.id}',
       app_id               = '${x.appId}',
       framework            = '${x.framework.name}',
-      start                = '${Timestamp.from(x.start)}',
-      stop                 = '${Timestamp.from(x.stop)}',
       num_containers       = '${x.numContainers}',
       cores_per_container  = '${x.coresPerContainer}',
-      memory_per_container = '${x.memoryPerContainer}'
+      memory_per_container = '${x.memoryPerContainer}',
+      start                = '${Timestamp.from(x.start)}',
+      stop                 = '${Timestamp.from(x.stop)}'
     WHERE id = ${x.id}
     """).executeUpdate()
   }
@@ -123,10 +125,10 @@ object JobModel extends PersistedAPI[JobModel] {
     'id                   -> x.id,
     'app_id               -> x.appId,
     'framework            -> x.framework.name,
-    'start                -> x.start,
-    'stop                 -> x.stop,
     'num_containers       -> x.numContainers,
     'cores_per_container  -> x.coresPerContainer,
-    'memory_per_container -> x.memoryPerContainer
+    'memory_per_container -> x.memoryPerContainer,
+    'start                -> x.start,
+    'stop                 -> x.stop
   )
 }

@@ -21,14 +21,20 @@ object DB {
   }
 
   def main(args: Array[String]) {
-    implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb") // TODO from config
+    implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
     createSchema()
-    val job = JobModel("application_1455193904860_0001", 'Flink, Instant.now(), Instant.now(), 0, 0, 0)
+    val applicationId = s"application_${Instant.now().getEpochSecond}_0001"
+    val job = JobModel(applicationId, 'Flink, 0, 0, 0, Instant.now())
     JobModel.insert(job)
     println(JobModel.selectAll().mkString("\n"))
     EventModel.insert(EventModel(job.id, 'cpu, Instant.now(), 0.42))
     EventModel.insert(EventModel(job.id, 'mem, Instant.now(), 123123))
     println(EventModel.selectAll().mkString("\n"))
+
+    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head.copy(stop = Instant.now())
+    println("updating job: " + newJob)
+    JobModel.update(newJob)
+    println(JobModel.selectAll().mkString("\n"))
   }
 
   /** Creates a database connection.
