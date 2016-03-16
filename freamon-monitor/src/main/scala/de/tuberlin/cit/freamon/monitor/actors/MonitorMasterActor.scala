@@ -5,7 +5,7 @@ import java.time.Instant
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.collector.ContainerStats
-import de.tuberlin.cit.freamon.results.{EventModel, JobModel, DB}
+import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
 
 import scala.collection.mutable
 
@@ -51,7 +51,6 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
       JobModel.insert(new JobModel(applicationId, 'Generic, containerIds.length, -1, -1, now))
-      // TODO ContainerModel
     }
 
     case StopMonitoringForApplication(applicationId: String) => {
