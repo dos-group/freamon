@@ -1,9 +1,12 @@
 #!/bin/bash
 
-echo 'Please update the installpath variable!'
-exit 1
+if [[ ! "$1" ]]
+then
+    echo "Usage: $0 </path/to/hadoop-VERSION/>"
+    exit 1
+fi
 
-installpath=/path/to/hadoop-VERSION/
+installpath="$1"
 chmod 755 $installpath/bin/
 
 chown root $installpath/bin/container-executor
