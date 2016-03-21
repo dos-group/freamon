@@ -108,7 +108,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
         for (container <- containerStats) {
           val cgroup = containerCgroups(container.containerId)
 
-          container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, Float.NaN)
+          container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, -1)
           // TODO memory might not be managed using cgroups, fallback to other source
           container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
