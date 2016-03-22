@@ -11,13 +11,11 @@ import java.time.Instant
   * @param value The double value for this event.
   */
 case class EventModel(
+                       containerId: Int,
                        jobId: Int,
                        kind: Symbol,
                        timestamp: Instant,
-                       value: Double
-                       ) {
-  val id = this.##
-}
+                       value: Double)
 
 /** [[EventModel]] companion and storage manager. */
 object EventModel extends PersistedAPI[EventModel] {
@@ -30,13 +28,14 @@ object EventModel extends PersistedAPI[EventModel] {
   override val tableName: String = "experiment_event"
 
   override val rowParser = {
-    get[Int]     ("id")        ~
-    get[Int]     ("job_id")    ~
-    get[String]  ("kind")      ~
-    get[Instant] ("timestamp") ~
-    get[Double]  ("value")    map {
-      case id ~ expRunID ~ kind ~ timestamp ~ value => EventModel(
-        expRunID,
+    get[Int]     ("container_id") ~
+    get[Int]     ("job_id")       ~
+    get[String]  ("kind")         ~
+    get[Instant] ("timestamp")    ~
+    get[Double]  ("value")        map {
+      case containerId ~ jobId ~ kind ~ timestamp ~ value => EventModel(
+        containerId,
+        jobId,
         Symbol(kind),
         timestamp,
         value)
@@ -46,22 +45,22 @@ object EventModel extends PersistedAPI[EventModel] {
   override def createTable()(implicit conn: Connection): Unit = if (!tableExists) {
     SQL(s"""
       CREATE TABLE $tableName (
-        id        INTEGER     NOT NULL,
-        job_id    INTEGER     NOT NULL,
-        kind      VARCHAR(63) NOT NULL,
-        timestamp TIMESTAMP           ,
-        value     DOUBLE              ,
-        PRIMARY KEY (id),
+        container_id INTEGER     NOT NULL,
+        job_id       INTEGER     NOT NULL,
+        kind         VARCHAR(63) NOT NULL,
+        timestamp    TIMESTAMP           ,
+        value        DOUBLE              ,
+        FOREIGN KEY (container_id) REFERENCES ${ContainerModel.tableName}(id) ON DELETE CASCADE,
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "id, job_id, kind, timestamp, value"
+  private val fields = "container_id, job_id, kind, timestamp, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL(s"""
     INSERT INTO $tableName($fields) VALUES(
-      '${x.id}',
+      '${x.containerId}',
       '${x.jobId}',
       '${x.kind.name}',
       '${Timestamp.from(x.timestamp)}',
@@ -74,7 +73,7 @@ object EventModel extends PersistedAPI[EventModel] {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
-        '{id}',
+        '{container_id}',
         '{job_id}',
         '{kind}',
         '{timestamp}',
@@ -91,16 +90,14 @@ object EventModel extends PersistedAPI[EventModel] {
   }
 
   override def delete(x: EventModel)(implicit conn: Connection): Unit = {
-    SQL(s"""
-    DELETE FROM $tableName WHERE id = ${x.id}
-    """).execute()
+    throw new NotImplementedError("EventModel deletion")
   }
 
   def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
-    'id        -> x.id,
-    'job_id    -> x.jobId,
-    'kind      -> x.kind.name,
-    'timestamp -> x.timestamp,
-    'value     -> x.value
+    'container_id -> x.containerId,
+    'job_id       -> x.jobId,
+    'kind         -> x.kind.name,
+    'timestamp    -> x.timestamp,
+    'value        -> x.value
   )
 }

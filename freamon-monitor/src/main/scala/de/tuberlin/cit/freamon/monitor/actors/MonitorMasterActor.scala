@@ -73,10 +73,13 @@ class MonitorMasterActor extends Actor {
       log.info("for container " + container.containerId + " with " + container.cpuUtil.length + " samples:")
       log.info("CPU: " + container.cpuUtil.mkString(", "))
       log.info("Memory: " + container.memUtil.mkString(", "))
-      val job: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      val containerStart: Instant = job.start.plusSeconds(container.startTick)
+      val job = JobModel.selectWhere(s"app_id = '$applicationId'").head
+      val hostname = sender().path.address.hostPort
+      val containerModel = ContainerModel(s"${container.containerId}", job.id, hostname)
+      ContainerModel.insert(containerModel)
+      val containerStart = job.start.plusSeconds(container.startTick)
       for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(job.id, 'cpu, containerStart.plusSeconds(i), cpu))
+        EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart.plusSeconds(i), cpu))
       }
     }
 

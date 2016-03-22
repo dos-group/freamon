@@ -33,8 +33,8 @@ object DB {
     ContainerModel.insert(ContainerModel("2", job.id, "localhost"))
     println(ContainerModel.selectAll().mkString("\n"))
 
-    EventModel.insert(EventModel(job.id, 'cpu, Instant.now(), 0.42))
-    EventModel.insert(EventModel(job.id, 'mem, Instant.now(), 123123))
+    EventModel.insert(EventModel(1, job.id, 'cpu, Instant.now(), 0.42))
+    EventModel.insert(EventModel(1, job.id, 'mem, Instant.now(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 
     val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head.copy(stop = Instant.now())
