@@ -22,7 +22,7 @@
         <!-- Maven Plugins -->
         <scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
         <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.7</build-helper-maven-plugin.version>
+        <build-helper-maven-plugin.version>1.8</build-helper-maven-plugin.version>
         <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
         <!-- Java -->
         <java.version>1.8</java.version>
@@ -46,6 +46,12 @@
         <dependency>
             <groupId>de.tuberlin.cit</groupId>
             <artifactId>freamon-collector</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.tuberlin.cit</groupId>
+            <artifactId>freamon-results</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 

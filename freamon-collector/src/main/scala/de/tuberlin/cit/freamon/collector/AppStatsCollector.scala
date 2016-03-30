@@ -139,9 +139,8 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
   def tryOrElse[T](f: => T, default: T): T = {
     try f
     catch {
-      case e: Throwable =>
+      case e: IOException =>
         println("AppStatsCollector encountered an error during stats collection for " + applicationId)
-        e.printStackTrace()
         default
     }
   }

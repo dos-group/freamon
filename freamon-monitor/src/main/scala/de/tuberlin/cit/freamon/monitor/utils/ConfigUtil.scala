@@ -12,9 +12,9 @@ object ConfigUtil {
     val stream =
       try new InputStreamReader(getClass().getResourceAsStream("/hosts/" + hostName + "/hosts.conf"))
       catch { // not found in jar, try filesystem
-        case _: NullPointerException => new FileReader("/hosts/" + hostName + "/hosts.conf")
+        case _: NullPointerException => new FileReader("hosts/" + hostName + "/hosts.conf")
       }
-    ConfigFactory.parseReader(new BufferedReader(stream)).withFallback(ConfigFactory.load())
+    ConfigFactory.parseReader(new BufferedReader(stream)).withFallback(ConfigFactory.load()).resolve()
   }
 
   def loadHostConfig(args: Array[String]): Config = {
