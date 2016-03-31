@@ -14,5 +14,5 @@ MOUNTPATH=/sys/fs/cgroup
 
 GROUPPATH=${MOUNTPATH}/cpu,cpuacct/${CGROUPSHIERARCHY}
 mkdir ${GROUPPATH}
-chown :${CONTAINERGROUP} ${GROUPPATH}
-chmod g+w ${GROUPPATH}
+chown -R :${CONTAINERGROUP} ${GROUPPATH}
+chmod -R g+w ${GROUPPATH}
