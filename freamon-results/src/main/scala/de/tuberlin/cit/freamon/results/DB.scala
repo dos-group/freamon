@@ -1,7 +1,6 @@
 package de.tuberlin.cit.freamon.results
 
 import java.sql.{Connection, DriverManager}
-import java.time.Instant
 
 object DB {
 
@@ -23,8 +22,8 @@ object DB {
   def main(args: Array[String]) {
     implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
     createSchema()
-    val applicationId = s"application_${Instant.now().getEpochSecond}_0001"
-    val job = JobModel(applicationId, 'Flink, 0, 0, 0, Instant.now())
+    val applicationId = s"application_${(System.currentTimeMillis() / 1000).asInstanceOf[Int]}_0001"
+    val job = JobModel(applicationId, 'Flink, 0, 0, 0, System.currentTimeMillis())
 
     JobModel.insert(job)
     println(JobModel.selectAll().mkString("\n"))
@@ -33,11 +32,11 @@ object DB {
     ContainerModel.insert(ContainerModel("2", job.id, "localhost"))
     println(ContainerModel.selectAll().mkString("\n"))
 
-    EventModel.insert(EventModel(1, job.id, 'cpu, Instant.now(), 0.42))
-    EventModel.insert(EventModel(1, job.id, 'mem, Instant.now(), 123123))
+    EventModel.insert(EventModel(1, job.id, 'cpu, System.currentTimeMillis(), 0.42))
+    EventModel.insert(EventModel(1, job.id, 'mem, System.currentTimeMillis(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 
-    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head.copy(stop = Instant.now())
+    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head.copy(stop = System.currentTimeMillis())
     println("updating job: " + newJob)
     JobModel.update(newJob)
     println(JobModel.selectAll().mkString("\n"))
