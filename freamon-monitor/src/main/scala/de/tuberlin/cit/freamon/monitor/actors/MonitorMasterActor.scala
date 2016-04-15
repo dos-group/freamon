@@ -1,9 +1,12 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
+import Core.modules.Freamon.{OnStart, OnStop}
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.collector.ContainerStats
 import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
+import de.tuberlin.cit.freamon.yarnclient.yarnClient
+import org.apache.hadoop.yarn.api.records.ApplicationId
 
 import scala.collection.mutable
 
@@ -21,6 +24,7 @@ class MonitorMasterActor extends Actor {
   val log = Logging(context.system, this)
   var workers: scala.collection.mutable.ListBuffer[String] = mutable.ListBuffer()
   val hostConfig = context.system.settings.config
+  val yClient: yarnClient = new yarnClient(hostConfig.getString("freamon.hosts.slaves.yarnsite"))
 
   // setup DB connection
   implicit val conn = DB.getConnection(
@@ -42,8 +46,12 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case StartMonitoringForApplication(applicationId: String, containerIds: Array[Long]) => {
-      val now = System.currentTimeMillis()
+    case startMsg: OnStart => {
+      val applicationId = startMsg.jobID
+      val splitAppId = applicationId.split("_")
+      val clusterTimestamp = splitAppId(1).toLong
+      val id = splitAppId(2).toInt
+      val containerIds = yClient.getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
 
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
@@ -55,19 +63,19 @@ class MonitorMasterActor extends Actor {
       val memPerContainer = -1
 
       JobModel.insert(new JobModel(applicationId, 'Flink,
-        containerIds.length, coresPerContainer, memPerContainer, now))
+        containerIds.length, coresPerContainer, memPerContainer,
+        startMsg.startTime))
     }
 
-    case StopMonitoringForApplication(applicationId: String) => {
-      val now = System.currentTimeMillis()
-
+    case stopMsg: OnStop => {
+      val applicationId = stopMsg.jobID
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
       }
 
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      JobModel.update(oldJob.copy(stop = now))
+      JobModel.update(oldJob.copy(stop = stopMsg.stopTime))
     }
 
     case WorkerAnnouncement(workerHostname) => {
