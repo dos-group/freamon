@@ -33,7 +33,9 @@ object DB {
     ContainerModel.insert(ContainerModel("2", job.id, "localhost"))
     println(ContainerModel.selectAll().mkString("\n"))
 
+    EventModel.insert(EventModel(1, job.id, 'blkio, Instant.now(), 1.23))
     EventModel.insert(EventModel(1, job.id, 'cpu, Instant.now(), 0.42))
+    EventModel.insert(EventModel(1, job.id, 'net, Instant.now(), 1.23))
     EventModel.insert(EventModel(1, job.id, 'mem, Instant.now(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 

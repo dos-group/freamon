@@ -54,7 +54,9 @@ class MonitorAgentActor() extends Actor {
       val appStats = applications.getOrElse(applicationId, {
         val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
         appStats.onCollect = container => {
+          log.info(container.containerId + " BlkIO avg: " + container.blkioUtil.last.formatted("%.2f sectors"))
           log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
+          log.info(container.containerId + " Net avg: " + container.netUtil.last.formatted("%.2f bytes"))
           log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
         }
         applications(applicationId) = appStats

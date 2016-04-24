@@ -17,7 +17,9 @@ import scala.collection.mutable.ArrayBuffer
  * @param startTick ticks after application start when this container was started to be monitored
  */
 case class ContainerStats(containerId: Long, startTick: Long) {
+  val blkioUtil = new ArrayBuffer[Float]
   val cpuUtil = new ArrayBuffer[Float]
+  val netUtil = new ArrayBuffer[Float]
   val memUtil = new ArrayBuffer[Int]
 }
 
@@ -42,7 +44,9 @@ object AppStatsCollector {
     val appStats = new AppStatsCollector(appId, yarnConf, 1)
     appStats.addContainers(containerIds)
     appStats.onCollect = container => {
+      println(container.containerId + " BlkIO-avg: " + container.blkioUtil.last + " Sectors")
       println(container.containerId + " CPU-avg: " + container.cpuUtil.last + " cores")
+      println(container.containerId + " Network-avg: " + container.netUtil.last + " Bytes")
       println(container.containerId + " Memory: " + container.memUtil.last + " MB")
     }
 
@@ -51,7 +55,9 @@ object AppStatsCollector {
     val results = appStats.stopRecording()
 
     for (container <- results) {
+      println(container.containerId + " BlkIO history: " + container.blkioUtil.mkString(", "))
       println(container.containerId + " CPU history: " + container.cpuUtil.mkString(", "))
+      println(container.containerId + " Net history: " + container.netUtil.mkString(", "))
       println(container.containerId + " Memory history: " + container.memUtil.mkString(", "))
     }
   }
@@ -108,7 +114,9 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
         for (container <- containerStats) {
           val cgroup = containerCgroups(container.containerId)
 
+          container.blkioUtil += tryOrElse(cgroup.getAvgBlockIOUsage, -1)
           container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, -1)
+          container.netUtil += tryOrElse(cgroup.getAvgNetworkUsage, -1)
           // TODO memory might not be managed using cgroups, fallback to other source
           container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
