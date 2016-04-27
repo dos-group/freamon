@@ -88,7 +88,9 @@ class MonitorMasterActor extends Actor {
       for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
         EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
       }
-      // TODO: memory?
+      for ((mem, i) <- container.memUtil.zipWithIndex) {
+        EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
+      }
     }
 
   }
