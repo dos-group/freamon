@@ -86,33 +86,38 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
     val runnable = new Runnable() {
       def run() {
-        ticksPassed += 1
+        try {
+          ticksPassed += 1
 
-        // try to create previously unavailable container monitors
-        for (containerId <- containerIds) {
-          containerCgroups.getOrElse(containerId, try {
-            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-            val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
-            val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
-            val container: ContainerStats = new ContainerStats(containerId, ticksPassed)
-            println("Recording " + fullId + " after " + (ticksPassed * intervalSeconds) + "s")
-            containerCgroups.put(containerId, cgroup)
-            containerStats += container
+          // try to create previously unavailable container monitors
+          for (containerId <- containerIds) {
+            containerCgroups.getOrElse(containerId, try {
+              val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+              val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
+              val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
+              val container: ContainerStats = new ContainerStats(containerId, ticksPassed)
+              println("Recording " + fullId + " after " + (ticksPassed * intervalSeconds) + "s")
+              containerCgroups.put(containerId, cgroup)
+              containerStats += container
+            }
+            catch {
+              case e: IOException => // skip this container, it is not on this node
+            })
           }
-          catch {
-            case e: IOException => // skip this container, it is not on this node
-          })
+
+          // collect data for available containers
+          for (container <- containerStats) {
+            val cgroup = containerCgroups(container.containerId)
+
+            container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, -1)
+            // TODO memory might not be managed using cgroups, fall back to other source
+            container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
+
+            onCollect(container)
+          }
         }
-
-        // collect data for available containers
-        for (container <- containerStats) {
-          val cgroup = containerCgroups(container.containerId)
-
-          container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, -1)
-          // TODO memory might not be managed using cgroups, fallback to other source
-          container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
-
-          onCollect(container)
+        catch {
+          case e: Throwable => e.printStackTrace()
         }
       }
     }
