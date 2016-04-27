@@ -1,6 +1,6 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{File, FileInputStream, IOException}
+import java.io.{File, FileInputStream, FileNotFoundException, IOException}
 import java.util.concurrent.{Executors, TimeUnit}
 
 import org.apache.hadoop.yarn.conf.YarnConfiguration
@@ -142,12 +142,19 @@ class Cgroup {
 
   private def readParam(controller: String, param: String): String = {
     val path = String.join("/", mountPath, controller, groupId, param)
-    val source = Source.fromFile(path)
-    try source.mkString.trim
+    try {
+      val source = Source.fromFile(path)
+      val paramVal = source.mkString.trim
+      source.close()
+      paramVal
+    }
     catch {
+      case e: FileNotFoundException =>
+        println("Not using cgroups hierarchy for " + path, e)
+        "-1"
+
       case e: IOException =>
         throw new IOException("Could not read cgroups parameter at " + path, e)
     }
-    finally source.close()
   }
 }
