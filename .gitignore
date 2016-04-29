@@ -22,5 +22,7 @@ hs_err_pid*
 # freamon specific files #
 slaves
 logs
-monetdb-farm
-
+monetdb-farm*
+*.png
+*.svg
+*.log
