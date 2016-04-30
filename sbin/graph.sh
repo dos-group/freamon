@@ -5,7 +5,7 @@ app_id="$1"
 event_kind="$2"
 
 tmp_csv_dir="/tmp/tmp_csv"
-img_path="${app_id}_$event_kind.png"
+img_path="${app_id}_$event_kind.svg"
 
 if [[ ! "$event_kind" ]]
 then
@@ -27,7 +27,7 @@ containers=`mclient -d freamon -f csv -s "
 echo "Collecting data for each container..."
 for container in $containers; do
     query="
-        select millis, value
+        select millis * 0.001, value
         from experiment_event
         where container_id='$container'
           and kind='$event_kind'
