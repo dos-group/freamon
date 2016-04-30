@@ -1,8 +1,5 @@
 package de.tuberlin.cit.freamon.results
 
-import java.sql.Timestamp
-import java.time.Instant
-
 /** Model class for job runs. */
 case class JobModel(
                      appId: String,
@@ -10,8 +7,8 @@ case class JobModel(
                      numContainers: Int,
                      coresPerContainer: Int,
                      memoryPerContainer: Int,
-                     start: Instant = Instant.now(),
-                     stop: Instant = Instant.ofEpochSecond(0)
+                     start: Long = System.currentTimeMillis(),
+                     stop: Long = 0
                      ) {
   val id = appId.##
 }
@@ -33,8 +30,8 @@ object JobModel extends PersistedAPI[JobModel] {
     get[Int]     ("num_containers")       ~
     get[Int]     ("cores_per_container")  ~
     get[Int]     ("memory_per_container") ~
-    get[Instant] ("start")                ~
-    get[Instant] ("stop")                 map {
+    get[Long]    ("start")                ~
+    get[Long]    ("stop")                 map {
       case id ~ appId ~ framework ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
       => JobModel(
         appId,
@@ -56,8 +53,8 @@ object JobModel extends PersistedAPI[JobModel] {
         num_containers       INTEGER             ,
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
-        start                TIMESTAMP           ,
-        stop                 TIMESTAMP           ,
+        start                BIGINT              ,
+        stop                 BIGINT              ,
         PRIMARY KEY (id)
       )""").execute()
   }
@@ -73,8 +70,8 @@ object JobModel extends PersistedAPI[JobModel] {
       '${x.numContainers}',
       '${x.coresPerContainer}',
       '${x.memoryPerContainer}',
-      '${Timestamp.from(x.start)}',
-      '${Timestamp.from(x.stop)}'
+      '${x.start}',
+      '${x.stop}'
     )
     """
     println(s)
@@ -109,8 +106,8 @@ object JobModel extends PersistedAPI[JobModel] {
       num_containers       = '${x.numContainers}',
       cores_per_container  = '${x.coresPerContainer}',
       memory_per_container = '${x.memoryPerContainer}',
-      start                = '${Timestamp.from(x.start)}',
-      stop                 = '${Timestamp.from(x.stop)}'
+      start                = '${x.start}',
+      stop                 = '${x.stop}'
     WHERE id = ${x.id}
     """).executeUpdate()
   }

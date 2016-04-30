@@ -1,20 +1,17 @@
 package de.tuberlin.cit.freamon.results
 
-import java.sql.Timestamp
-import java.time.Instant
-
 /** Model class for experiment events collected by the master actor from the agent actors.
   *
   * @param jobId The ID of the associated job run.
   * @param kind The event type.
-  * @param timestamp The timestamp for this event.
+  * @param millis The milliseconds after epoch for this event, as returned from System.currentTimeMillis().
   * @param value The double value for this event.
   */
 case class EventModel(
                        containerId: Int,
                        jobId: Int,
                        kind: Symbol,
-                       timestamp: Instant,
+                       millis: Long,
                        value: Double)
 
 /** [[EventModel]] companion and storage manager. */
@@ -31,13 +28,13 @@ object EventModel extends PersistedAPI[EventModel] {
     get[Int]     ("container_id") ~
     get[Int]     ("job_id")       ~
     get[String]  ("kind")         ~
-    get[Instant] ("timestamp")    ~
+    get[Long] ("millis")    ~
     get[Double]  ("value")        map {
-      case containerId ~ jobId ~ kind ~ timestamp ~ value => EventModel(
+      case containerId ~ jobId ~ kind ~ millis ~ value => EventModel(
         containerId,
         jobId,
         Symbol(kind),
-        timestamp,
+        millis,
         value)
     }
   }
@@ -48,14 +45,14 @@ object EventModel extends PersistedAPI[EventModel] {
         container_id INTEGER     NOT NULL,
         job_id       INTEGER     NOT NULL,
         kind         VARCHAR(63) NOT NULL,
-        timestamp    TIMESTAMP           ,
+        millis       BIGINT              ,
         value        DOUBLE              ,
         FOREIGN KEY (container_id) REFERENCES ${ContainerModel.tableName}(id) ON DELETE CASCADE,
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "container_id, job_id, kind, timestamp, value"
+  private val fields = "container_id, job_id, kind, millis, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL(s"""
@@ -63,7 +60,7 @@ object EventModel extends PersistedAPI[EventModel] {
       '${x.containerId}',
       '${x.jobId}',
       '${x.kind.name}',
-      '${Timestamp.from(x.timestamp)}',
+      '${x.millis}',
       '${x.value}'
     )
     """).executeInsert()
@@ -76,7 +73,7 @@ object EventModel extends PersistedAPI[EventModel] {
         '{container_id}',
         '{job_id}',
         '{kind}',
-        '{timestamp}',
+        '{millis}',
         '{value}'
       )
       """,
@@ -97,7 +94,7 @@ object EventModel extends PersistedAPI[EventModel] {
     'container_id -> x.containerId,
     'job_id       -> x.jobId,
     'kind         -> x.kind.name,
-    'timestamp    -> x.timestamp,
+    'millis       -> x.millis,
     'value        -> x.value
   )
 }
