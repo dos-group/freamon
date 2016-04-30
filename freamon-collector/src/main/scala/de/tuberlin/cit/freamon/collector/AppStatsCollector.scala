@@ -1,6 +1,6 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{FileInputStream, IOException}
+import java.io.{FileInputStream, FileNotFoundException, IOException}
 import java.util.concurrent.{Executors, TimeUnit}
 
 import org.apache.hadoop.conf.Configuration
@@ -64,7 +64,7 @@ object AppStatsCollector {
 }
 
 /**
- * Collects statistics from a single node.
+ * Collects statistics from a single node, only for the specified containers.
  */
 class AppStatsCollector(applicationId: String, yarnConfig: Configuration, intervalSeconds: Long) {
 
@@ -107,7 +107,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
               containerStats += container
             }
             catch {
-              case e: IOException => // skip this container, it is not on this node
+              case e: FileNotFoundException => // skip this container, it is not on this node
             })
           }
 

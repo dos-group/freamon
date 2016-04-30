@@ -8,10 +8,8 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration._
 
 import scala.collection.mutable
 import scala.io.Source
+import scala.util.Try
 
-/**
- * Provides an interface to the raw data of one cgroup.
- */
 object Cgroup {
   val PARAM_BLKIO_SECTORS = "blkio.sectors"
   val PARAM_CPU_USAGE_PER_CORE = "cpuacct.usage_percpu"
@@ -89,6 +87,9 @@ object Cgroup {
   }
 }
 
+/**
+ * Provides an interface to the raw data of one cgroup.
+ */
 class Cgroup {
   private final var mountPath: String = null
   private final var groupId: String = null
@@ -99,16 +100,37 @@ class Cgroup {
   private var lastNetUsage: Long = 0
   private var lastNetUsageTime: Long = 0
 
+  /**
+   * Throws an FileNotFoundException if the cgroup does not exist in any implemented controller.
+   * If only some cgroup params are unavailable, the instance will still be created,
+   * so when they become available later, they can be read.
+   */
   def this(mountPath: String, groupId: String) {
     this()
     this.mountPath = mountPath
     this.groupId = groupId
-    lastBlockIOUsage = getCurrentBlockIOUsage
-    lastBlockIOUsageTime = System.nanoTime
-    lastCpuUsage = readParam(Cgroup.CONTROLLER_CPU, Cgroup.PARAM_CPU_USAGE_TOTAL).toLong
-    lastCpuUsageTime = System.nanoTime
-    lastNetUsage = getCurrentNetworkUsage
-    lastNetUsageTime = System.nanoTime
+
+    val noBlockIO = Try {
+      lastBlockIOUsage = getCurrentBlockIOUsage
+      lastBlockIOUsageTime = System.nanoTime
+    }.isFailure
+
+    val noCpu = Try {
+      lastCpuUsage = readParam(Cgroup.CONTROLLER_CPU, Cgroup.PARAM_CPU_USAGE_TOTAL).toLong
+      lastCpuUsageTime = System.nanoTime
+    }.isFailure
+
+    val noNet = Try {
+      lastNetUsage = getCurrentNetworkUsage
+      lastNetUsageTime = System.nanoTime
+    }.isFailure
+
+    if (noBlockIO && noCpu && noNet
+      && !List(Cgroup.CONTROLLER_MEM, Cgroup.CONTROLLER_BLKIO, Cgroup.CONTROLLER_CPU, Cgroup.CONTROLLER_DEVICE, Cgroup.CONTROLLER_NET)
+        .exists(controller => new java.io.File(String.join("/", mountPath, controller, groupId))
+          .exists)) {
+      throw new FileNotFoundException("Could not open cgroup " + groupId)
+    }
   }
 
   /** Parses and sums up all sector from a sector statistic. */
@@ -235,10 +257,6 @@ class Cgroup {
       paramVal
     }
     catch {
-      case e: FileNotFoundException =>
-        println("Not using cgroups hierarchy for " + path, e)
-        "-1"
-
       case e: IOException =>
         throw new IOException("Could not read cgroups parameter at " + path, e)
     }
