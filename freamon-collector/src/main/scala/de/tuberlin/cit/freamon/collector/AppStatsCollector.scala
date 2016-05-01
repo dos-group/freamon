@@ -153,7 +153,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
     try f
     catch {
       case e: IOException =>
-        println("AppStatsCollector encountered an error during stats collection for " + applicationId)
+        println(s"AppStatsCollector encountered an error during stats collection for ${applicationId}: ${e}")
         default
     }
   }

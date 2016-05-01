@@ -54,10 +54,10 @@ class MonitorAgentActor() extends Actor {
       val appStats = applications.getOrElse(applicationId, {
         val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
         appStats.onCollect = container => {
-          log.info(container.containerId + " BlkIO avg: " + container.blkioUtil.last.formatted("%.2f sectors"))
-          log.info(container.containerId + " CPU avg: " + container.cpuUtil.last.formatted("%.2f  cores"))
-          log.info(container.containerId + " Net avg: " + container.netUtil.last.formatted("%.2f bytes"))
-          log.info(container.containerId + " Memory: " + container.memUtil.last + " MB")
+          log.debug(container.containerId + " BlkIO:  " + container.blkioUtil.last.formatted("%.2f sectors"))
+          log.debug(container.containerId + " CPU:    " + container.cpuUtil.last.formatted("%.2f cores"))
+          log.debug(container.containerId + " Net:    " + container.netUtil.last.formatted("%.2f bytes"))
+          log.debug(container.containerId + " Memory: " + container.memUtil.last + " MB")
         }
         applications(applicationId) = appStats
         appStats.startRecording()
@@ -65,10 +65,9 @@ class MonitorAgentActor() extends Actor {
 
       appStats.addContainers(containerIds)
 
-
     case StopRecording(applicationId: String) =>
       applications.get(applicationId) match {
-        case None => log.info("Monitor Agent has no reports for " + applicationId)
+        case None => log.warning("Monitor Agent has no reports for " + applicationId)
 
         case Some(appStats) =>
           val containers = appStats.stopRecording()

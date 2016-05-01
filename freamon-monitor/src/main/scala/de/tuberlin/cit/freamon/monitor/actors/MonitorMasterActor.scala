@@ -85,15 +85,17 @@ class MonitorMasterActor extends Actor {
 
     case ContainerReport(applicationId, container) => {
       log.info("Received a container report of " + applicationId + " from " + sender)
-      log.info("for container " + container.containerId + " with " + container.cpuUtil.length + " samples:")
-      log.info("BlkIO: " + container.blkioUtil.mkString(", "))
-      log.info("CPU: " + container.cpuUtil.mkString(", "))
-      log.info("Net: " + container.netUtil.mkString(", "))
-      log.info("Memory: " + container.memUtil.mkString(", "))
+      log.info("for container " + container.containerId + " with " + container.cpuUtil.length + " samples")
+      log.debug("BlkIO: " + container.blkioUtil.mkString(", "))
+      log.debug("CPU: " + container.cpuUtil.mkString(", "))
+      log.debug("Net: " + container.netUtil.mkString(", "))
+      log.debug("Memory: " + container.memUtil.mkString(", "))
+
       val job = JobModel.selectWhere(s"app_id = '$applicationId'").head
       val hostname = sender().path.address.hostPort
       val containerModel = ContainerModel(s"${container.containerId}", job.id, hostname)
       ContainerModel.insert(containerModel)
+
       val containerStart = job.start + 1000 * container.startTick
       for ((io, i) <- container.blkioUtil.zipWithIndex) {
         EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
