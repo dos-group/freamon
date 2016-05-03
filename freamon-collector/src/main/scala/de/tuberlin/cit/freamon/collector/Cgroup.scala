@@ -19,11 +19,13 @@ object Cgroup {
   val PARAM_TASKS = "tasks"
   val PARAM_MEM_USAGE = "memory.usage_in_bytes"
   val PARAM_MEM_LIMIT = "memory.limit_in_bytes"
+
   val CONTROLLER_BLKIO = "blkio"
   val CONTROLLER_CPU = "cpu,cpuacct"
   val CONTROLLER_DEVICE = "devices"
-  val CONTROLLER_NET = "net_cls,net_prio"
+  val CONTROLLER_NET = "net_cls"
   val CONTROLLER_MEM = "memory"
+
   val NET_DEV_FILE_PATTERN = "/proc/%d/net/dev"
 
   def main(args: Array[String]) {
@@ -208,7 +210,7 @@ class Cgroup {
 
   /** Retrieves the current network usage in bytes. */
   def getCurrentNetworkUsage: Long = {
-    readParam(Cgroup.CONTROLLER_DEVICE, Cgroup.PARAM_TASKS)
+    readParam(Cgroup.CONTROLLER_CPU, Cgroup.PARAM_TASKS)
       .split("\n")
       .map((task) => getCurrentTaskNetworkUsage(task.toLong))
       .sum
