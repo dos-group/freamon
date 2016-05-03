@@ -46,7 +46,7 @@ def create_gnuplot_dataset(timecode, values, no_plot_key, file)
     if no_plot_key then
       gp_dataset.notitle
     else
-      gp_dataset.title = File.basename file
+      gp_dataset.title = (File.basename file).gsub('_', '\\_')
     end
   end
 end
@@ -275,6 +275,7 @@ def read_options_and_arguments
   if File.directory?(ARGV.last) then
     options[:target_dir] = ARGV.last.chomp("/") # cuts of "/" from the end if present
     files = Dir.glob "#{options[:target_dir]}/*.csv"
+    files = files.sort
   else
     options[:target_dir] = File.dirname ARGV.first
     ARGV.each do |filename|

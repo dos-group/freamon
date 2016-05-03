@@ -5,7 +5,7 @@ app_id="$1"
 event_kind="$2"
 
 tmp_csv_dir="/tmp/tmp_csv"
-img_path="${app_id}_$event_kind.svg"
+img_path="${app_id}_$event_kind.png"
 
 if [[ ! "$event_kind" ]]
 then
@@ -18,22 +18,24 @@ mkdir -p "$tmp_csv_dir"
 
 echo "Finding containers..."
 containers=`mclient -d freamon -f csv -s "
-    select distinct container_id
-    from experiment_event, experiment_job
+    select distinct experiment_container.container_id
+    from experiment_event, experiment_container, experiment_job
     where value > 0
       and app_id = '$app_id'
-      and experiment_job.id = experiment_event.job_id;"`
+      and experiment_job.id = experiment_container.job_id
+      and experiment_container.job_id = experiment_event.job_id;"`
 
 echo "Collecting data for each container..."
 for container in $containers; do
     query="
         select millis * 0.001, value
-        from experiment_event
-        where container_id='$container'
-          and kind='$event_kind'
+        from experiment_event, experiment_container
+        where kind='$event_kind'
+          and experiment_container.container_id='$container'
+          and experiment_container.id = experiment_event.container_id
         order by millis asc"
-    # filename appears in plot
-    csv_path="$tmp_csv_dir/container $container.csv"
+    # this filename appears in the plot
+    csv_path="$tmp_csv_dir/$container.csv"
     mclient -d freamon -f csv -s "$query;" > "$csv_path"
 done
 
