@@ -51,7 +51,13 @@ class MonitorMasterActor extends Actor {
       val splitAppId = applicationId.split("_")
       val clusterTimestamp = splitAppId(1).toLong
       val id = splitAppId(2).toInt
-      val containerIds = yClient.getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
+      val containerIds = yClient
+          .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
+          .map(containerNr => {
+            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+            val strippedAppId = applicationId.substring("application_".length)
+            "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
+          })
 
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
@@ -93,7 +99,7 @@ class MonitorMasterActor extends Actor {
 
       val job = JobModel.selectWhere(s"app_id = '$applicationId'").head
       val hostname = sender().path.address.hostPort
-      val containerModel = ContainerModel(s"${container.containerId}", job.id, hostname)
+      val containerModel = ContainerModel(container.containerId, job.id, hostname)
       ContainerModel.insert(containerModel)
 
       val containerStart = job.start + 1000 * container.startTick

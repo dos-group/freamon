@@ -11,7 +11,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration
 
 import scala.collection.mutable
 
-case class StartRecording(applicationId: String, containerIds: Array[Long])
+case class StartRecording(applicationId: String, containerIds: Array[String])
 
 case class StopRecording(applicationId: String)
 
@@ -46,7 +46,7 @@ class MonitorAgentActor() extends Actor {
 
   def receive = {
 
-    case StartRecording(applicationId: String, containerIds: Array[Long]) =>
+    case StartRecording(applicationId: String, containerIds: Array[String]) =>
       log.info("Monitor Agent starts recording for app " + applicationId)
       log.info("Requested " + containerIds.length
         + " containers: " + containerIds.mkString(", "))

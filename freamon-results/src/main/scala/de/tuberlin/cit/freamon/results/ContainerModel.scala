@@ -36,7 +36,7 @@ object ContainerModel extends PersistedAPI[ContainerModel] {
     SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
-        container_id         VARCHAR(63)         ,
+        container_id         VARCHAR(63) UNIQUE  ,
         job_id               INTEGER     NOT NULL,
         hostname             VARCHAR(63)         ,
         PRIMARY KEY (id),

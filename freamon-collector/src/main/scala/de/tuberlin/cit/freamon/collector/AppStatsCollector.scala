@@ -13,10 +13,10 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * Stores the recorded statistics about one container.
  *
- * @param containerId ID of the monitored container
+ * @param containerId ID of the monitored container: container_1455551433868_0002_01_123456
  * @param startTick ticks after application start when this container was started to be monitored
  */
-case class ContainerStats(containerId: Long, startTick: Long) {
+case class ContainerStats(containerId: String, startTick: Long) {
   val blkioUtil = new ArrayBuffer[Float]
   val cpuUtil = new ArrayBuffer[Float]
   val netUtil = new ArrayBuffer[Float]
@@ -34,7 +34,7 @@ object AppStatsCollector {
     val yarnSitePath = args(0)
     val secondsToRun = args(1).toInt
     val appId = args(2)
-    val containerIds = args.drop(3).map(_.toLong)
+    val containerIds = args.drop(3)
     println("Starting for " + secondsToRun + "s with YARN config at " + yarnSitePath)
     println("Recording " + containerIds.length + " containers: " + containerIds.mkString(" "))
 
@@ -70,20 +70,17 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
   private val executor = Executors.newScheduledThreadPool(1)
 
-  // applicationId format: application_1455551433868_0002
-  val strippedAppId = applicationId.substring("application_".length)
-
   val cgroupsMountPath = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/")
   val cgroupsHierarchy = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn")
 
-  val containerIds = new mutable.HashSet[Long]()
-  val containerCgroups = new mutable.HashMap[Long, Cgroup]()
+  val containerIds = new mutable.HashSet[String]()
+  val containerCgroups = new mutable.HashMap[String, Cgroup]()
   val containerStats = new ArrayBuffer[ContainerStats]()
   var ticksPassed = 0
 
   var onCollect = (container: ContainerStats) => {}
 
-  def addContainers(newContainerIds: Array[Long]) = {
+  def addContainers(newContainerIds: Array[String]) = {
     containerIds ++= newContainerIds
     this
   }
@@ -98,11 +95,9 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
           // try to create previously unavailable container monitors
           for (containerId <- containerIds) {
             containerCgroups.getOrElse(containerId, try {
-              val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-              val fullId = "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerId)
-              val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + fullId)
+              val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + containerId)
               val container: ContainerStats = new ContainerStats(containerId, ticksPassed)
-              println("Recording " + fullId + " after " + (ticksPassed * intervalSeconds) + "s")
+              println("Recording " + containerId + " after " + (ticksPassed * intervalSeconds) + "s")
               containerCgroups.put(containerId, cgroup)
               containerStats += container
             }
