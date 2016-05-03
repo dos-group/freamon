@@ -39,6 +39,6 @@ for container in $containers; do
     mclient -d freamon -f csv -s "$query;" > "$csv_path"
 done
 
-ruby sbin/dstat_plot.rb -l 1 -y 1 "$tmp_csv_dir" -o "$img_path"
+ruby sbin/dstat_plot.rb -l 1 -y 1 "$tmp_csv_dir" -o "$img_path" -t "$event_kind $app_id"
 
 rm -rf "$tmp_csv_dir"

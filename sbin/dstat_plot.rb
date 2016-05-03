@@ -14,7 +14,7 @@ $verbose = false
 def plot(dataset_container, category, field, dry, filename)
   Gnuplot.open do |gp|
     Gnuplot::Plot.new(gp) do |plot|
-      plot.title dataset_container[:plot_title]
+      plot.title dataset_container[:plot_title].gsub('_', '\\\\\\\\_')
       plot.xlabel "Time in seconds"
       plot.ylabel "#{category}: #{field}"
       range_max = dataset_container[:y_range][:max]
@@ -71,7 +71,7 @@ def read_column_from_csv(files, column, no_plot_key, y_range, inversion)
 
   filename = "#{plot_title}.png".sub("/", "_")
 
-  plot_title +=  ' over time \n'
+  plot_title += ' over time\n'
 
   datasets = []
   autoscale = false
@@ -95,10 +95,7 @@ def read_column_from_csv(files, column, no_plot_key, y_range, inversion)
       values.map! { |value| (value.to_f - inversion).abs }
     end
 
-    # XXX put this into the repo - julian
-    # if !y_range[:enforced] # TODO: this makes no sense, fix it
     if values.last.to_f >= y_range[:max] then autoscale = true end
-    # end
 
     dataset = create_gnuplot_dataset(timecode, values, no_plot_key, file)
     datasets.push dataset
@@ -172,9 +169,7 @@ def read_csv(category, field, files, no_plot_key, y_range, inversion)
       until csv_file.eof do
         unless epoch_index.nil? then timecode.push(current_row.at(epoch_index).to_f - time_offset) end
         values.push (current_row.at(field_index).to_f - inversion).abs
-        if !y_range[:enforced]
-          if values.last.to_f >= y_range[:max] then autoscale = true end
-        end
+        if values.last.to_f >= y_range[:max] then autoscale = true end
         current_row = csv_file.shift
       end
 
@@ -221,6 +216,11 @@ def read_options_and_arguments
     options[:output] = nil
     opts.on('-o','--output FILE|DIR', 'File or Directory that plot should be saved to.', 'If a directory is given the filename will be generated.', 'Default is csv file directory.') do |path|
       options[:output] = path
+    end
+
+    options[:title] = nil
+    opts.on('-t','--title TITLE', 'Override the default title of the plot.') do |title|
+      options[:title] = title
     end
 
     options[:y_range] = {:max => 105.0, :enforced => false}
@@ -309,6 +309,10 @@ if __FILE__ == $0
   filename = options[:filename]
   if filename == nil then # if an output file is not explicitly stated
     filename = File.join(options[:target_dir], dataset_container[:filename])
+  end
+
+  if options[:title] != nil then
+    dataset_container[:plot_title] = options[:title]
   end
 
   plot(dataset_container, options[:category], options[:field], options[:dry], filename)
