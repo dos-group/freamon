@@ -26,12 +26,10 @@ object Cgroup {
   val CONTROLLER_BLKIO = "blkio"
   val CONTROLLER_CPU = "cpu,cpuacct"
   val CONTROLLER_DEVICE = "devices"
-  val CONTROLLER_NET = "net_cls"
   val CONTROLLER_MEM = "memory"
 
   val DATA_DIR = "/data" // Directory used in blkio statistics
   val MOUNT_INFO = "/proc/self/mountinfo"
-  val NET_DEV_FILE_PATTERN = "/proc/%d/net/dev"
 
   def main(args: Array[String]) {
     if (args.length < 2) {
@@ -135,7 +133,7 @@ class Cgroup {
     }.isFailure
 
     if (noBlockIO && noCpu && noNet
-      && !List(Cgroup.CONTROLLER_MEM, Cgroup.CONTROLLER_BLKIO, Cgroup.CONTROLLER_CPU, Cgroup.CONTROLLER_DEVICE, Cgroup.CONTROLLER_NET)
+      && !List(Cgroup.CONTROLLER_MEM, Cgroup.CONTROLLER_BLKIO, Cgroup.CONTROLLER_CPU, Cgroup.CONTROLLER_DEVICE)
         .exists(controller => new java.io.File(String.join("/", mountPath, controller, groupId))
           .exists)) {
       throw new FileNotFoundException("Could not open cgroup " + groupId)
@@ -222,36 +220,9 @@ class Cgroup {
     quota.toFloat / period.toFloat
   }
 
-  /**
-    * Parse a task specific network usage statistic (e.g. from /proc/.../net/dev).
-    *
-    * @return rx and tx usage in bytes
-    */
-  def parseNetworkUsage(inputFile: String): Long = {
-    try {
-      var sum = 0l
-      for (line <- Source.fromFile(inputFile).getLines.drop(2)) {
-        val values = line.replace("^ +", "").split(" +")
-        sum += values(2).toLong  // RX
-        sum += values(10).toLong // TX
-      }
-      sum
-    } catch {
-      case e: FileNotFoundException => 0l // task already finished
-    }
-  }
-
-  /** Retrieves the current network usage in bytes of a given task. */
-  def getCurrentTaskNetworkUsage(task: Long): Long = {
-    parseNetworkUsage(Cgroup.NET_DEV_FILE_PATTERN.format(task))
-  }
-
   /** Retrieves the current network usage in bytes. */
   def getCurrentNetworkUsage: Long = {
-    readParam(Cgroup.CONTROLLER_CPU, Cgroup.PARAM_TASKS)
-      .split("\n")
-      .map((task) => getCurrentTaskNetworkUsage(task.toLong))
-      .sum
+    0 // TODO
   }
 
   /** Retrieves the average network usage since the last measurement in bytes. */
