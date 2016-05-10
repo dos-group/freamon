@@ -12,8 +12,12 @@ class CgroupSpec extends FlatSpec with MockFactory {
     testCode(cgroup)
   }
 
-  "getCurrentBlockIOUsage" should "sum up all sectors" in withCgroup { cgroup =>
-    assert(cgroup.getCurrentBlockIOUsage == (2856 + 13224))
+  "getBlockDevice" should "return block device as x:y" in withCgroup { cgroup =>
+    assertResult("253:1")(cgroup.getBlockDevice("/data", getClass.getResource("/proc/self/mountinfo").getPath))
+  }
+
+  "getCurrentBlockIOUsage" should "return total used bytes" in withCgroup { cgroup =>
+    assertResult(104333312)(cgroup.getCurrentBlockIOUsage("253:1"))
   }
 
   "parseNetworkUsage" should "sum up all rx and tx values" in withCgroup { cgroup =>

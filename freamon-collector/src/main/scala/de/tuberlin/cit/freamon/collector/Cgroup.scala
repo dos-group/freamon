@@ -10,8 +10,11 @@ import scala.collection.mutable
 import scala.io.Source
 import scala.util.Try
 
+import sys.process._
+
+
 object Cgroup {
-  val PARAM_BLKIO_SECTORS = "blkio.sectors"
+  val PARAM_BLKIO_THROTTLE_SERVICE = "blkio.throttle.io_service_bytes"
   val PARAM_CPU_USAGE_PER_CORE = "cpuacct.usage_percpu"
   val PARAM_CPU_USAGE_TOTAL = "cpuacct.usage"
   val PARAM_CPU_PERIOD = "cpu.cfs_period_us"
@@ -26,6 +29,8 @@ object Cgroup {
   val CONTROLLER_NET = "net_cls"
   val CONTROLLER_MEM = "memory"
 
+  val DATA_DIR = "/data" // Directory used in blkio statistics
+  val MOUNT_INFO = "/proc/self/mountinfo"
   val NET_DEV_FILE_PATTERN = "/proc/%d/net/dev"
 
   def main(args: Array[String]) {
@@ -102,6 +107,8 @@ class Cgroup {
   private var lastNetUsage: Long = 0
   private var lastNetUsageTime: Long = 0
 
+  private val blockDevice = getBlockDevice(getMountPoint(Cgroup.DATA_DIR), Cgroup.MOUNT_INFO)
+
   /**
    * Throws an FileNotFoundException if the cgroup does not exist in any implemented controller.
    * If only some cgroup params are unavailable, the instance will still be created,
@@ -113,7 +120,7 @@ class Cgroup {
     this.groupId = groupId
 
     val noBlockIO = Try {
-      lastBlockIOUsage = getCurrentBlockIOUsage
+      lastBlockIOUsage = getCurrentBlockIOUsage(blockDevice)
       lastBlockIOUsageTime = System.nanoTime
     }.isFailure
 
@@ -135,21 +142,52 @@ class Cgroup {
     }
   }
 
-  /** Parses and sums up all sector from a sector statistic. */
-  def parseBlockUsage(usage: String): Long = {
-    usage.split('\n').map(_.split(' ').last.toLong).sum
+  /** Retrieves mount point of given directory via stat. */
+  def getMountPoint(dir: String): String = {
+    ("stat -L -c %m " + dir !!).trim
   }
 
-  /** Retrieves the current block IO usage in sectors. */
-  def getCurrentBlockIOUsage: Long = {
-    parseBlockUsage(readParam(Cgroup.CONTROLLER_BLKIO, Cgroup.PARAM_BLKIO_SECTORS))
+  /** Retrieves the block device of given mount point via mountinfo. */
+  def getBlockDevice(mountPoint: String, mountInfo: String): String = {
+    for (line <- Source.fromFile(mountInfo).getLines) {
+      val parts = line.split(' ')
+
+      if (parts(4) == mountPoint) {
+        return parts(2)
+      }
+    }
+
+    throw new IOException("Unable to find block device!")
   }
 
-  /** Retrieves the average block IO usage since the last measurement in sectors. */
+  /**
+    * Parses and returns total usage in bytes from a io throttle service statistic.
+    *
+    * @param field: Read, Write, Sync, Async or Total (Default)
+    */
+  def parseBlockUsage(usage: String, blockDevice: String, field: String = "Total"): Long = {
+    for (line <- usage.split('\n')) {
+      val parts = line.split(' ')
+
+      if (parts(0) == blockDevice && parts(1) == field) {
+        return parts(2).toLong
+      }
+    }
+
+    throw new IOException("Can't find block device in usage statistic.")
+  }
+
+  /** Retrieves the current block IO usage in bytes. */
+  def getCurrentBlockIOUsage(blockDevice: String): Long = {
+    parseBlockUsage(readParam(Cgroup.CONTROLLER_BLKIO, Cgroup.PARAM_BLKIO_THROTTLE_SERVICE), blockDevice)
+  }
+
+  /** Retrieves the average block IO usage since the last measurement in bytes. */
   def getAvgBlockIOUsage: Float = {
-    val usageAbsolute = getCurrentBlockIOUsage
+    val usageAbsolute = getCurrentBlockIOUsage(blockDevice)
     val now = System.nanoTime
-    val usage = (usageAbsolute - lastBlockIOUsage).toFloat / (now - lastBlockIOUsageTime).toFloat
+    val timeDiff = (now - lastBlockIOUsageTime).toFloat * 1000 * 1000 * 1000 // in seconds
+    val usage = (usageAbsolute - lastBlockIOUsage).toFloat / timeDiff
     lastBlockIOUsage = usageAbsolute
     lastBlockIOUsageTime = now
     usage

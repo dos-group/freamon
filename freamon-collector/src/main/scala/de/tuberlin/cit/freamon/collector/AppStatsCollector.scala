@@ -44,7 +44,7 @@ object AppStatsCollector {
     val appStats = new AppStatsCollector(appId, yarnConf, 1)
     appStats.addContainers(containerIds)
     appStats.onCollect = container => {
-      println(container.containerId + " BlkIO-avg: " + container.blkioUtil.last + " Sectors")
+      println(container.containerId + " BlkIO-avg: " + container.blkioUtil.last + " Bytes")
       println(container.containerId + " CPU-avg: " + container.cpuUtil.last + " cores")
       println(container.containerId + " Network-avg: " + container.netUtil.last + " Bytes")
       println(container.containerId + " Memory: " + container.memUtil.last + " MB")
