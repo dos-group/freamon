@@ -108,7 +108,7 @@ class Cgroup {
   private val blockDevice = getBlockDevice(getMountPoint(Cgroup.DATA_DIR), Cgroup.MOUNT_INFO)
 
   /**
-   * Throws an FileNotFoundException if the cgroup does not exist in any implemented controller.
+   * Throws a FileNotFoundException if the cgroup does not exist in any implemented controller.
    * If only some cgroup params are unavailable, the instance will still be created,
    * so when they become available later, they can be read.
    */
