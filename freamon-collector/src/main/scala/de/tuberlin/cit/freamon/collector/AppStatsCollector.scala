@@ -103,6 +103,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
             }
             catch {
               case e: FileNotFoundException => // skip this container, it is not on this node
+                e.printStackTrace()
             })
           }
 
