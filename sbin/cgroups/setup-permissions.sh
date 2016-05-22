@@ -19,5 +19,5 @@ do currentpath=$currentpath$dir/
 done
 
 # YARN cannot create logs/ directory when $HADOOP_PREFIX/ directory is owned by root
-mkdir $HADOOP_PREFIX/logs
+mkdir -p $HADOOP_PREFIX/logs
 chown $USER_NAME:$USER_GROUP $HADOOP_PREFIX/logs
