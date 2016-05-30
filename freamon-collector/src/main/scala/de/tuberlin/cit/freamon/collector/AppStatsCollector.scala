@@ -1,6 +1,6 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{FileInputStream, FileNotFoundException, IOException}
+import java.io.{FileInputStream, IOException}
 import java.util.concurrent.{Executors, TimeUnit}
 
 import org.apache.hadoop.conf.Configuration
@@ -94,16 +94,13 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
           // try to create previously unavailable container monitors
           for (containerId <- containerIds) {
-            containerCgroups.getOrElse(containerId, try {
-              val cgroup = new Cgroup(cgroupsMountPath, cgroupsHierarchy + "/" + containerId)
-              val container: ContainerStats = new ContainerStats(containerId, ticksPassed)
-              println("Recording " + containerId + " after " + (ticksPassed * intervalSeconds) + "s")
-              containerCgroups.put(containerId, cgroup)
-              containerStats += container
-            }
-            catch {
-              case e: FileNotFoundException => // skip this container, it is not on this node
-                e.printStackTrace()
+            containerCgroups.getOrElse(containerId, {
+              Cgroup.tryCreate(cgroupsMountPath, cgroupsHierarchy + "/" + containerId).map(cgroup => {
+                val container = new ContainerStats(containerId, ticksPassed)
+                println("Recording " + containerId + " after " + (ticksPassed * intervalSeconds) + "s")
+                containerCgroups.put(containerId, cgroup)
+                containerStats += container
+              })
             })
           }
 

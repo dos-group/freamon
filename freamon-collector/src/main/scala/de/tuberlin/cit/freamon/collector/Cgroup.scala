@@ -90,6 +90,11 @@ object Cgroup {
     println("Memory history: " + memValues)
     println("All subgroups: " + subgroups)
   }
+
+  def tryCreate(mountPath: String, groupId: String): Option[Cgroup] = {
+    try Some(new Cgroup(mountPath, groupId))
+    catch { case _: FileNotFoundException => None }
+  }
 }
 
 /**
