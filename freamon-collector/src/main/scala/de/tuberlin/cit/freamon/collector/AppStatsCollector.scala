@@ -126,7 +126,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
       }
     }
 
-    executor.scheduleAtFixedRate(runnable, 0, intervalSeconds * 1000, TimeUnit.MILLISECONDS)
+    executor.scheduleAtFixedRate(runnable, 0, intervalSeconds, TimeUnit.SECONDS)
     this
   }
 
@@ -149,7 +149,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
     try f
     catch {
       case e: IOException =>
-        println(s"AppStatsCollector encountered an error during stats collection for ${applicationId}: ${e}")
+        println(s"AppStatsCollector encountered an error during stats collection for $applicationId: $e")
         default
     }
   }
