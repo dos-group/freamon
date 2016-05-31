@@ -17,11 +17,10 @@
 
 HOST_CONFIG=$1
 
-SCRIPT_DIR="$(dirname $BASH_SOURCE)"
-SLAVES_FILE="$PWD/slaves"
-RELATIVE_JAR_PATH="freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
-ABSOLUTE_JAR_PATH="$PWD/$RELATIVE_JAR_PATH"
-LOG_FOLDER="$PWD/logs"
+FREAMON_DIR="$(dirname $BASH_SOURCE)/../"
+SLAVES_FILE="$FREAMON_DIR/slaves"
+ABSOLUTE_JAR_PATH="$FREAMON_DIR/freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
+LOG_FOLDER="$FREAMON_DIR/logs"
 MASTER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorMasterSystem"
 MASTER_LOG_FILE="$LOG_FOLDER/$HOSTNAME-master.out"
 MASTER_ERR_FILE="$LOG_FOLDER/$HOSTNAME-master.err"
