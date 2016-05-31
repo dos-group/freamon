@@ -6,6 +6,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.yarn.conf.YarnConfiguration
 import org.apache.hadoop.yarn.conf.YarnConfiguration._
+import org.hyperic.sigar.SigarException
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -41,7 +42,7 @@ object AppStatsCollector {
     val yarnConf = new YarnConfiguration()
     yarnConf.addResource(new FileInputStream(yarnSitePath), YARN_SITE_CONFIGURATION_FILE)
 
-    val appStats = new AppStatsCollector(appId, yarnConf, 1)
+    val appStats = new AppStatsCollector(appId, 1)
     appStats.addContainers(containerIds)
     appStats.onCollect = container => {
       println(container.containerId + " BlkIO-avg: " + container.blkioUtil.last + " Bytes")
@@ -66,15 +67,12 @@ object AppStatsCollector {
 /**
  * Collects statistics from a single node, only for the specified containers.
  */
-class AppStatsCollector(applicationId: String, yarnConfig: Configuration, intervalSeconds: Long) {
+class AppStatsCollector(applicationId: String, intervalSeconds: Long) {
 
   private val executor = Executors.newScheduledThreadPool(1)
 
-  val cgroupsMountPath = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup/")
-  val cgroupsHierarchy = yarnConfig.get(NM_LINUX_CONTAINER_CGROUPS_HIERARCHY, "/hadoop-yarn")
-
   val containerIds = new mutable.HashSet[String]()
-  val containerCgroups = new mutable.HashMap[String, Cgroup]()
+  val containerProcs = new mutable.HashMap[String, Proc]()
   val containerStats = new ArrayBuffer[ContainerStats]()
   var ticksPassed = 0
 
@@ -94,25 +92,22 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
           // try to create previously unavailable container monitors
           for (containerId <- containerIds) {
-            containerCgroups.getOrElse(containerId, {
-              Cgroup.tryCreate(cgroupsMountPath, cgroupsHierarchy + "/" + containerId).map(cgroup => {
+            containerProcs.getOrElse(containerId,
+              Proc.getForContainer(containerId).map(proc => {
                 val container = new ContainerStats(containerId, ticksPassed)
                 println("Recording " + containerId + " after " + (ticksPassed * intervalSeconds) + "s")
-                containerCgroups.put(containerId, cgroup)
+                containerProcs.put(containerId, proc)
                 containerStats += container
               })
-            })
+            )
           }
 
           // collect data for available containers
           for (container <- containerStats) {
-            val cgroup = containerCgroups(container.containerId)
+            val proc = containerProcs(container.containerId)
 
-            container.blkioUtil += tryOrElse(cgroup.getAvgBlockIOUsage, -1)
-            container.cpuUtil += tryOrElse(cgroup.getCurrentCpuUsage, -1)
-            container.netUtil += tryOrElse(cgroup.getAvgNetworkUsage, -1)
-            // TODO memory might not be managed using cgroups, fall back to other source
-            container.memUtil += tryOrElse((cgroup.getCurrentMemUsage / 1024 / 1024).toInt, -1)
+            container.cpuUtil += tryOrElse(proc.getCurrentCpuUsage.asInstanceOf[Float], -1)
+            container.memUtil += tryOrElse((proc.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
             onCollect(container)
           }
@@ -137,7 +132,7 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
 
     val results = containerStats.toArray
     containerStats.clear()
-    containerCgroups.clear()
+    containerProcs.clear()
 
     results
   }
@@ -146,7 +141,10 @@ class AppStatsCollector(applicationId: String, yarnConfig: Configuration, interv
     try f
     catch {
       case e: IOException =>
-        println(s"AppStatsCollector encountered an error during stats collection for $applicationId: $e")
+        println(s"AppStatsCollector encountered an error during stats collection for $applicationId from cgroups: $e")
+        default
+      case e: SigarException =>
+        println(s"AppStatsCollector encountered an error during stats collection for $applicationId from proc: $e")
         default
     }
   }

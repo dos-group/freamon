@@ -19,18 +19,12 @@ class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
   val applications = new mutable.HashMap[String, AppStatsCollector]
-  var yarnConfig: YarnConfiguration = null
 
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
     val hostConfig = context.system.settings.config
 
     this.getMasterActor(hostConfig) ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
-
-    val yarnSitePath = hostConfig.getString("freamon.hosts.slaves.yarnsite")
-    log.info("Using yarn-site.xml at " + yarnSitePath)
-    yarnConfig = new YarnConfiguration()
-    yarnConfig.addResource(new FileInputStream(yarnSitePath), YarnConfiguration.YARN_SITE_CONFIGURATION_FILE)
   }
 
   def getMasterActor(hostConfig: Config): ActorSelection = {
@@ -52,11 +46,9 @@ class MonitorAgentActor() extends Actor {
         + " containers: " + containerIds.mkString(", "))
 
       val appStats = applications.getOrElse(applicationId, {
-        val appStats = new AppStatsCollector(applicationId, yarnConfig, 1)
+        val appStats = new AppStatsCollector(applicationId, 1)
         appStats.onCollect = container => {
-          log.debug(container.containerId + " BlkIO:  " + container.blkioUtil.last.formatted("%.2f sectors"))
           log.debug(container.containerId + " CPU:    " + container.cpuUtil.last.formatted("%.2f cores"))
-          log.debug(container.containerId + " Net:    " + container.netUtil.last.formatted("%.2f bytes"))
           log.debug(container.containerId + " Memory: " + container.memUtil.last + " MB")
         }
         applications(applicationId) = appStats
