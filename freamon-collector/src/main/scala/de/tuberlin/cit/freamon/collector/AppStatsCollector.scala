@@ -106,6 +106,8 @@ class AppStatsCollector(applicationId: String, intervalSeconds: Long) {
           for (container <- containerStats) {
             val proc = containerProcs(container.containerId)
 
+            //container.blkioUtil += tryOrElse(cgroup.getAvgBlockIOUsage, -1)
+            //container.netUtil += tryOrElse(cgroup.getAvgNetworkUsage, -1)
             container.cpuUtil += tryOrElse(proc.getCurrentCpuUsage.asInstanceOf[Float], -1)
             container.memUtil += tryOrElse((proc.getCurrentMemUsage / 1024 / 1024).toInt, -1)
 
