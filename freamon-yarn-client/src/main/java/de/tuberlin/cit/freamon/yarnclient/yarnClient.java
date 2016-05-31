@@ -18,6 +18,16 @@ public class yarnClient {
     YarnClient yarnClient;
     private ArrayList<ApplicationId> runningApplications = new ArrayList<ApplicationId>();
 
+    public yarnClient() {
+        if (System.getenv("HADOOP_PREFIX") != null) {
+            initYarnClient(System.getenv("HADOOP_PREFIX") + "/etc/hadoop/yarn-site.xml");
+        } else if (System.getenv("YARN_CONF_DIR") != null) {
+            initYarnClient(System.getenv("YARN_CONF_DIR") + "/yarn-site.xml");
+        } else {
+            throw new IllegalArgumentException("Neither HADOOP_PREFIX nor YARN_CONF_DIR are set in the environment");
+        }
+    }
+
     public yarnClient(String yarnSitePath) {
         initYarnClient(yarnSitePath);
     }

@@ -24,7 +24,7 @@ class MonitorMasterActor extends Actor {
   val log = Logging(context.system, this)
   var workers: scala.collection.mutable.ListBuffer[String] = mutable.ListBuffer()
   val hostConfig = context.system.settings.config
-  val yClient: yarnClient = new yarnClient(hostConfig.getString("freamon.hosts.slaves.yarnsite"))
+  val yClient: yarnClient = new yarnClient
 
   // setup DB connection
   implicit val conn = DB.getConnection(
