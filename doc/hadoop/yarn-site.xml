@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <configuration>
+<!--
+  For a more detailed explanation which configuration options to set,
+  consult the documentation at doc/YARN-with-cgroups.md
+-->
 
 <!-- linux container executor (needed for cgroups) -->
   <property>
