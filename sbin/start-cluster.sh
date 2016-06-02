@@ -62,7 +62,7 @@ for SLAVE in $(cat $SLAVES_FILE ) ; do
     WORKER_ERR_FILE="$LOG_FOLDER/$SLAVE-worker.err"
     WORKER_PID_FILE="$LOG_FOLDER/$SLAVE-worker.pid"
 
-    CMD="$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -h $HOST_CONFIG"
+    CMD="$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -c $HOST_CONFIG"
     ssh "$SLAVE" "nohup $CMD >>$WORKER_LOG_FILE 2>>$WORKER_ERR_FILE & echo \$!" >$WORKER_PID_FILE
 
     echo "Started freamon worker system on $SLAVE (PID=$(cat $WORKER_PID_FILE))"

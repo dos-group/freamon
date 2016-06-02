@@ -7,21 +7,14 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 object ConfigUtil {
 
-  def loadHostConfig(hostName: String): Config = {
-    println("Loading host configuration for " + hostName)
-    val stream =
-      try new InputStreamReader(getClass().getResourceAsStream("/hosts/" + hostName + "/hosts.conf"))
-      catch { // not found in jar, try filesystem
-        case _: NullPointerException => new FileReader("hosts/" + hostName + "/hosts.conf")
-      }
-    ConfigFactory.parseReader(new BufferedReader(stream)).withFallback(ConfigFactory.load()).resolve()
-  }
-
   def loadHostConfig(args: Array[String]): Config = {
-    if ((args.length == 2) && (args(0) == "-h")) {
-      loadHostConfig(args(1))
+    if ((args.length == 2) && (args(0) == "-c")) {
+      val path = args(1)
+      println("Loading host configuration at " + path)
+      val reader = new BufferedReader(new FileReader(path))
+      ConfigFactory.parseReader(reader).withFallback(ConfigFactory.load()).resolve()
     } else {
-      loadHostConfig(InetAddress.getLocalHost.getHostName)
+      throw new IllegalArgumentException("No host config specified, use -c /path/to/myCluster.conf")
     }
   }
 
