@@ -34,31 +34,9 @@ Secure Mode requires several files and directories to be set to certain permissi
 > Thus, to change file/directory owner/permissions as root, you have to do that from `wally-master`.
 > The file/directory owner/permissions then get copied to each node via NFS.
 
-Run as root (or use `sbin/cgroups/setup-permissions.sh`):
-```bash
-HADOOP_PREFIX="/path/to/hadoop-VERSION"
-USER_GROUP="ldapusers"
+Run `sbin/cgroups/setup-permissions.sh` as root.
 
-chmod 755 $HADOOP_PREFIX/bin/
-chown root:$USER_GROUP $HADOOP_PREFIX/bin/container-executor
-chmod 6050 $HADOOP_PREFIX/bin/container-executor
-
-chown root:$USER_GROUP $HADOOP_PREFIX/etc/hadoop/container-executor.cfg
-chmod 644 $HADOOP_PREFIX/etc/hadoop/container-executor.cfg
-
-# every directory from $HADOOP_PREFIX/etc/hadoop up to / has to be owned by root
-currentpath=/
-for dir in $(tr / ' ' <<< "$HADOOP_PREFIX/etc/hadoop/")
-do
-    currentpath=$currentpath$dir/
-    chown root:$USER_GROUP $currentpath
-    chmod 755 $currentpath
-done
-
-# YARN cannot create logs/ directory when $HADOOP_PREFIX/ directory is owned by root
-mkdir $HADOOP_PREFIX/logs
-chown bbdc:$USER_GROUP $HADOOP_PREFIX/logs
-```
+This needs to be done only once per hadoop installation.
 
 
 ###Creating the cgroups hierarchies
@@ -69,19 +47,7 @@ Note that Freamon's collector does not support network statistics at this point 
 
 The cgroup subsystems are empty on system startup, so this has to be done again after a reboot.
 
-For every subsystem you want to use, run as root (or use `sbin/cgroups/create-cgroup.sh` or `sbin/cgroups/create-all-cgroups.sh`):
-```bash
-subsystem="cpu,cpuacct" # or memory, blkio, net_cls, ...
-
-CGROUPS_MOUNT="/sys/fs/cgroup"
-CGROUPS_HIERARCHY="hadoop-yarn"
-USER_GROUP="ldapusers"
-
-grouppath="$CGROUPS_MOUNT/$subsystem/$CGROUPS_HIERARCHY"
-mkdir "$grouppath"
-chown -R ":$USER_GROUP" "$grouppath"
-chmod -R g+w "$grouppath"
-```
+For every subsystem you want to use, run `sbin/cgroups/create-cgroup.sh` as root on every slave node, or use `sbin/cgroups/create-all-cgroups.sh` from your master node.
 
 
 ###Configuring YARN
