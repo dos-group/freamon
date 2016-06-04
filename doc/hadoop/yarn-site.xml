@@ -1,9 +1,47 @@
 <?xml version="1.0"?>
 <configuration>
+
+<!---------- optional settings, depending on what should be managed through cgroups ---------->
+
+<!-- if you wish to use the cgroups memory controller, you need to turn off the default physical/virtual memory checkers, see https://issues.apache.org/jira/browse/YARN-1856 -->
 <!--
-  For a more detailed explanation which configuration options to set,
-  consult the documentation at doc/YARN-with-cgroups.md
+  <property>
+    <description>enable memory controlling through cgroups</description>
+    <name>yarn.nodemanager.resource.memory.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.pmem-check-enabled</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <value>false</value>
+  </property>
 -->
+
+<!-- blkio -->
+<!--
+  <property>
+    <name>yarn.nodemanager.resource.disk.enabled</name>
+    <value>true</value>
+  </property>
+-->
+
+<!-- network statistics -->
+<!--
+  <property>
+    <name>yarn.nodemanager.resource.network.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <description>optional, if primary network device isn't eth0</description>
+    <name>yarn.nodemanager.resource.network.interface</name>
+    <value>eno1</value>
+  </property>
+-->
+
+<!---------- mandatory settings if cgroups should be used ---------->
 
 <!-- linux container executor (needed for cgroups) -->
   <property>
@@ -22,12 +60,8 @@
     <name>yarn.nodemanager.linux-container-executor.group</name>
     <value>ldapusers</value>
   </property>
-  <property>
-    <description>This determines which of the two modes that LCE should use on a non-secure cluster. If this value is set to true, then all containers will be launched as the user specified in yarn.nodemanager.linux-container-executor.nonsecure-mode.local-user (default is "nobody"). If this value is set to false, then containers will run as the user who submitted the application.</description>
-    <name>yarn.nodemanager.linux-container-executor.nonsecure-mode.limit-users</name>
-    <value>false</value>
-  </property>
 
+<!-- cgroups specific configuration -->
   <property>
     <description>The cgroups hierarchy under which to place YARN proccesses (cannot contain commas).
     If yarn.nodemanager.linux-container-executor.cgroups.mount is false (that is, if cgroups have
@@ -52,23 +86,13 @@
     <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
     <value>/sys/fs/cgroup</value>
   </property>
-
-<!-- memory control and monitoring -->
   <property>
-    <description>enable memory controlling through cgroups</description>
-    <name>yarn.nodemanager.resource.memory.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>yarn.nodemanager.pmem-check-enabled</name>
-    <value>false</value>
-  </property>
-  <property>
-    <name>yarn.nodemanager.vmem-check-enabled</name>
+    <description>This determines which of the two modes that LCE should use on a non-secure cluster. If this value is set to true, then all containers will be launched as the user specified in yarn.nodemanager.linux-container-executor.nonsecure-mode.local-user (default is "nobody"). If this value is set to false, then containers will run as the user who submitted the application.</description>
+    <name>yarn.nodemanager.linux-container-executor.nonsecure-mode.limit-users</name>
     <value>false</value>
   </property>
 
-<!-- resource allocation -->
+<!-- how many resources to allocate -->
   <property>
     <description>
       Percentage of CPU that can be allocated for containers.
@@ -92,6 +116,8 @@
     <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>
     <value>true</value>
   </property>
+
+<!---------- regular YARN settings ---------->
 
   <property>
     <description>Minimum limit of memory to allocate to each container request at the Resource Manager.</description>
@@ -138,7 +164,7 @@
   <property>
     <description>The hostname of the RM.</description>
     <name>yarn.resourcemanager.hostname</name>
-    <value>wally001.cit.tu-berlin.de</value>
+    <value>master.hadoop.example.com</value>
   </property>
   <property>
       <name>yarn.nodemanager.local-dirs</name>
