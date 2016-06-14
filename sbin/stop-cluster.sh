@@ -1,8 +1,14 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(dirname $BASH_SOURCE)"
-SLAVES_FILE="$SCRIPT_DIR/slaves"
-LOG_FOLDER="$SCRIPT_DIR/logs"
+# Assumptions:
+# - execute this script on the node that runs the master
+# - the script assumes passwordless ssh access to all slaves and this project dir on all workers
+# - the HADOOP_PREFIX environment variable should be set
+
+cd "$(dirname $BASH_SOURCE)/.."
+
+SLAVES_FILE="$HADOOP_PREFIX/etc/hadoop/slaves"
+LOG_FOLDER="$(readlink -f "logs")"
 MASTER_PID_FILE="$LOG_FOLDER/$HOSTNAME-master.pid"
 
 if [ ! -f "$MASTER_PID_FILE" ]
