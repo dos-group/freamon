@@ -7,9 +7,10 @@ import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorAgentSystem extends App {
 
-  val hostConfig = ConfigUtil.loadHostConfig(args)
-  val portConfig = ConfigUtil.setRemotingPort(hostConfig, hostConfig.getInt("freamon.hosts.slaves.port"))
-  val agentConfig = ConfigUtil.setRemotingHost(portConfig, InetAddress.getLocalHost.getHostName)
+  val clusterConfig = ConfigUtil.loadClusterConfig(args)
+  val agentConfig = ConfigUtil.setRemotingHostPort(clusterConfig,
+    InetAddress.getLocalHost.getHostName,
+    clusterConfig.getInt("freamon.hosts.slaves.port"))
 
   val actorSystem = ActorSystem(agentConfig.getString("freamon.actors.systems.slave.name"), agentConfig)
 
