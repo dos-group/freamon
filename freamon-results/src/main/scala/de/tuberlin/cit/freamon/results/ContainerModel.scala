@@ -47,16 +47,14 @@ object ContainerModel extends PersistedAPI[ContainerModel] {
   private val fields = "id, container_id, job_id, hostname"
 
   override def insert(x: ContainerModel)(implicit conn: Connection): Unit = {
-    val s: String = s"""
-    INSERT INTO $tableName($fields) VALUES(
-      '${x.id}',
-      '${x.containerId}',
-      '${x.jobId}',
-      '${x.hostname}'
-    )
-    """
-    println(s)
-    SQL(s).executeInsert()
+    SQL(s"""
+      INSERT INTO $tableName($fields) VALUES(
+        '${x.id}',
+        '${x.containerId}',
+        '${x.jobId}',
+        '${x.hostname}'
+      )
+    """).executeInsert()
   }
 
   override def insert(xs: Seq[ContainerModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
