@@ -37,7 +37,7 @@ This node also needs passwordless SSH access to the nodes where the Yarn contain
 > TODO where to put freamon jar, works as-is because start-cluster.sh looks in target/ which is cloned on every node
 
 ### MonetDB
-On the node where Freamon will run, execute as root:
+On the node that Freamon will run on, execute as root:
 
     curl https://www.monetdb.org/downloads/epel/monetdb.repo > /etc/yum.repos.d/monetdb.repo
     rpm --import https://dev.monetdb.org/downloads/MonetDB-GPG-KEY
@@ -90,6 +90,10 @@ Create a copy of [`doc/freamon/cluster.conf`](https://github.com/citlab/freamon/
 - `freamon.hosts.master.hostname` should be an address that can be resolved from every slave.
 - `freamon.monetdb.name` is the database name you used when [configuring MonetDB](#configuring-monetdb).
 
+### Configuring YARN Workload Runner
+Just set `<notifyFreamon>true</notifyFreamon>` in `config.xml`
+and fill in the other configuration values according to your `cluster.conf`.
+
 
 ## Usage
 Make sure the `JAVA_HOME` and `HADOOP_PREFIX` environment variables are set, they are used by the start script and by Hadoop.
@@ -109,8 +113,10 @@ Note that you can run multiple Freamon instance at the same time.
 
 > TODO what if startup fails (logs, pids)
 
-> TODO triggering with YARN Workload Runner
-
+### Using with YARN Workload Runner
+Start your jobs from YARN Workload Runner as usual.
+Freamon will be notified for all jobs individually
+and collect the resource usage data of each participating container.
 
 ### Stopping
 When you are done running your experiments, stop Freamon:
