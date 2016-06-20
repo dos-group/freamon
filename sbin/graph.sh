@@ -1,6 +1,5 @@
 #!/bin/bash
-wd="$PWD"
-cd "$(dirname $BASH_SOURCE)/.."
+sbin="$(dirname $BASH_SOURCE)"
 
 app_id="$1"
 event_kind="$2"
@@ -11,8 +10,8 @@ then
     exit 1
 fi
 
-tmp_csv_dir="/tmp/tmp_csv"
-img_path="$wd/${app_id}_$event_kind.png"
+tmp_csv_dir="/tmp/freamon-graph-csv"
+img_path="${app_id}_$event_kind.png"
 
 rm -rf "$tmp_csv_dir"
 mkdir -p "$tmp_csv_dir"
@@ -40,6 +39,6 @@ for container in $containers; do
     mclient -d freamon -f csv -s "$query" > "$csv_path"
 done
 
-ruby sbin/dstat_plot.rb -l 1 -y 1 "$tmp_csv_dir" -o "$img_path" -t "$event_kind $app_id"
+ruby "$sbin/dstat_plot.rb" -l 1 -y 1 "$tmp_csv_dir" -o "$img_path" -t "$event_kind $app_id"
 
 rm -rf "$tmp_csv_dir"
