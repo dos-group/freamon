@@ -58,8 +58,8 @@ If you need to manage multiple Freamon/Hadoop instances at the same time,
 you can set them manually each time you run anything.
 
 ### Configuring Hadoop
-If you want to use cgroups, follow [doc/YARN-with-cgroups.md](https://github.com/citlab/freamon/blob/master/doc/YARN-with-cgroups.md).
-Example configuration files for this can be found at [doc/hadoop/](https://github.com/citlab/freamon/tree/dev/doc/hadoop).
+If you want to use cgroups, follow [doc/hadoop/YARN-with-cgroups.md](https://github.com/citlab/freamon/blob/master/doc/hadoop/YARN-with-cgroups.md).
+Example configuration files for this can be found at [doc/hadoop/](https://github.com/citlab/freamon/tree/dev/doc/hadoop) as well.
 
 Otherwise, just setup Hadoop as usual; no special configuration is needed.
 
