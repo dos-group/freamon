@@ -1,16 +1,14 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import java.util.{Timer, TimerTask}
-
 import akka.actor.{ActorSystem, Props}
 import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
-import de.tuberlin.cit.freamon.yarnclient.yarnClient
 
 object MonitorMasterSystem extends App {
 
-  val hostConfig = ConfigUtil.loadHostConfig(args)
-  val portConfig = ConfigUtil.setRemotingPort(hostConfig, hostConfig.getInt("freamon.hosts.master.port"))
-  val masterConfig = ConfigUtil.setRemotingHost(portConfig, hostConfig.getString("freamon.hosts.master.hostname"))
+  val clusterConfig = ConfigUtil.loadClusterConfig(args)
+  val masterConfig = ConfigUtil.setRemotingHostPort(clusterConfig,
+    clusterConfig.getString("freamon.hosts.master.hostname"),
+    clusterConfig.getInt("freamon.hosts.master.port"))
 
   // start master system
   val actorSystem = ActorSystem(masterConfig.getString("freamon.actors.systems.master.name"), masterConfig)

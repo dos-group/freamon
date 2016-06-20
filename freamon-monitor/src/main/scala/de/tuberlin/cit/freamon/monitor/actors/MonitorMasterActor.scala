@@ -1,6 +1,5 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import Core.modules.Freamon.{OnStart, OnStop}
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.collector.ContainerStats
@@ -46,8 +45,8 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case startMsg: OnStart => {
-      val applicationId = startMsg.jobID
+    // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
+    case Array("jobStarted", applicationId: String, startTime: Long) => {
       val splitAppId = applicationId.split("_")
       val clusterTimestamp = splitAppId(1).toLong
       val id = splitAppId(2).toInt
@@ -64,24 +63,26 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
 
+      log.info("Job started: " + applicationId + " at " + startTime)
+
       // TODO get container info
       val coresPerContainer = -1
       val memPerContainer = -1
 
       JobModel.insert(new JobModel(applicationId, 'Flink,
-        containerIds.length, coresPerContainer, memPerContainer,
-        startMsg.startTime))
+        containerIds.length, coresPerContainer, memPerContainer, startTime))
     }
 
-    case stopMsg: OnStop => {
-      val applicationId = stopMsg.jobID
+    case Array("jobStopped", applicationId: String, stopTime: Long) => {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
       }
 
+      log.info("Job stopped: " + applicationId + " at " + stopTime)
+
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      JobModel.update(oldJob.copy(stop = stopMsg.stopTime))
+      JobModel.update(oldJob.copy(stop = stopTime))
     }
 
     case WorkerAnnouncement(workerHostname) => {

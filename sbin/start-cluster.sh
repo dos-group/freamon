@@ -1,32 +1,45 @@
 #!/bin/bash
 
-# usage: ./start-cluster [HOST]
-# - HOST: host-config to use, if no host is given $HOSTNAME is used by default by the actor systems
-#         (see freamon-monitor/src/main/resources/hosts), e.g. ./start-cluster wally
+# Usage: ./start-cluster.sh <CONFIG>
+# - CONFIG: cluster config to use
+# Example: sbin/start-cluster.sh doc/freamon/myCluster.conf
 
-# preparation:
-# 1. provide a slaves file, e.g. by soft-linking Hadoop's slave file or
-#    one from freamon-monitor/src/main/resources/hosts/
-# 2. build system: mvn clean package
+# Preparation:
+# - build system: mvn clean package
 
-# assumptions:
+# Assumptions:
 # - execute this script on the node that runs the master
-# - the script assumes passwordless ssh-access to all slaves and this project dir on all workers
+# - the script assumes passwordless ssh access to all slaves and this project dir on all workers
+# - the HADOOP_PREFIX environment variable should be set, both when running this script and
+#   when executing commands on the slaves via ssh (export it in ~/.bashrc for example)
 
-# TODO: better argument parsing, add -h flag for the host argument
+# TODO: better argument parsing, add -c flag for the config argument
 
-HOST_CONFIG=$1
+cd "$(dirname $BASH_SOURCE)/.."
 
-FREAMON_DIR="$(dirname $BASH_SOURCE)/../"
-SLAVES_FILE="$FREAMON_DIR/slaves"
-ABSOLUTE_JAR_PATH="$FREAMON_DIR/freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
-LOG_FOLDER="$FREAMON_DIR/logs"
+CLUSTER_CONFIG="$(readlink -f "$1")"
+
+SLAVES_FILE="$HADOOP_PREFIX/etc/hadoop/slaves"
+ABSOLUTE_JAR_PATH="$(readlink -f freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar)"
+LOG_FOLDER="$(readlink -f "logs")"
 MASTER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorMasterSystem"
 MASTER_LOG_FILE="$LOG_FOLDER/$HOSTNAME-master.out"
 MASTER_ERR_FILE="$LOG_FOLDER/$HOSTNAME-master.err"
 MASTER_PID_FILE="$LOG_FOLDER/$HOSTNAME-master.pid"
 WORKER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorAgentSystem"
 JAVA_BIN='/usr/lib/jvm/jre-1.8.0/bin/java'
+
+if [ -z "$CLUSTER_CONFIG" ]
+then
+    echo "Usage: $0 <cluster config path>"
+    exit 1
+fi
+
+if [ ! -f "$CLUSTER_CONFIG" ]
+then
+    echo "Cluster config file not found at $CLUSTER_CONFIG"
+    exit 1
+fi
 
 if [ ! -f "$ABSOLUTE_JAR_PATH" ]
 then
@@ -37,12 +50,13 @@ fi
 if [ ! -f "$SLAVES_FILE" ]
 then
     echo "No slaves file $SLAVES_FILE"
+    echo "Did you set HADOOP_PREFIX?"
     exit 1
 fi
 
 if [ -f "$MASTER_PID_FILE" ]
 then
-    echo "System appears to be running, stop it first with ./stop-cluster.sh"
+    echo "System appears to be running, stop it first with sbin/stop-cluster.sh"
     exit 1
 fi
 
@@ -51,7 +65,7 @@ mkdir -p $LOG_FOLDER
 echo "Using $JAVA_BIN"
 
 echo "Starting freamon master system"
-$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -h $HOST_CONFIG >>$MASTER_LOG_FILE 2>>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
+$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -c $CLUSTER_CONFIG >>$MASTER_LOG_FILE 2>>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
 echo "Started freamon master on $HOSTNAME (PID=$(cat $MASTER_PID_FILE))"
 
 for SLAVE in $(cat $SLAVES_FILE ) ; do
@@ -62,7 +76,7 @@ for SLAVE in $(cat $SLAVES_FILE ) ; do
     WORKER_ERR_FILE="$LOG_FOLDER/$SLAVE-worker.err"
     WORKER_PID_FILE="$LOG_FOLDER/$SLAVE-worker.pid"
 
-    CMD="$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $WORKER_CLASS -c $HOST_CONFIG"
+    CMD="$JAVA_BIN -cp '$ABSOLUTE_JAR_PATH' '$WORKER_CLASS' -c '$CLUSTER_CONFIG'"
     ssh "$SLAVE" "nohup $CMD >>$WORKER_LOG_FILE 2>>$WORKER_ERR_FILE & echo \$!" >$WORKER_PID_FILE
 
     echo "Started freamon worker system on $SLAVE (PID=$(cat $WORKER_PID_FILE))"

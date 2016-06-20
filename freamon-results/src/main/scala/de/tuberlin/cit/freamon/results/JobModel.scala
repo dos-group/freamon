@@ -62,20 +62,18 @@ object JobModel extends PersistedAPI[JobModel] {
   private val fields = "id, app_id, framework, num_containers, cores_per_container, memory_per_container, start, stop"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
-    val s: String = s"""
-    INSERT INTO $tableName($fields) VALUES(
-      '${x.id}',
-      '${x.appId}',
-      '${x.framework.name}',
-      '${x.numContainers}',
-      '${x.coresPerContainer}',
-      '${x.memoryPerContainer}',
-      '${x.start}',
-      '${x.stop}'
-    )
-    """
-    println(s)
-    SQL(s).executeInsert()
+    SQL(s"""
+      INSERT INTO $tableName($fields) VALUES(
+        '${x.id}',
+        '${x.appId}',
+        '${x.framework.name}',
+        '${x.numContainers}',
+        '${x.coresPerContainer}',
+        '${x.memoryPerContainer}',
+        '${x.start}',
+        '${x.stop}'
+      )
+    """).executeInsert()
   }
 
   override def insert(xs: Seq[JobModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
