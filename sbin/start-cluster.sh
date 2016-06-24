@@ -2,7 +2,7 @@
 
 # Usage: ./start-cluster.sh <CONFIG>
 # - CONFIG: cluster config to use
-# Example: sbin/start-cluster.sh doc/freamon/myCluster.conf
+# Example: sbin/start-cluster.sh doc/freamon/cluster.conf
 
 # Preparation:
 # - build system: mvn clean package
@@ -11,25 +11,24 @@
 # Assumptions:
 # - execute this script on the node that runs the master
 # - the script assumes passwordless ssh access to all slaves and this project dir on all workers
-# - the HADOOP_PREFIX environment variable should be set, both when running this script and
-#   when executing commands on the slaves via ssh (export it in ~/.bashrc for example)
+# - the JAVA_HOME and HADOOP_PREFIX environment variables should be set
 
 # TODO: better argument parsing, add -c flag for the config argument
 
-cd "$(dirname $BASH_SOURCE)/.."
+freamon="$(readlink -f "$(dirname $BASH_SOURCE)/..")"
 
 CLUSTER_CONFIG="$(readlink -f "$1")"
 
 SLAVES_FILE="$HADOOP_PREFIX/etc/hadoop/slaves"
-ABSOLUTE_JAR_PATH="$(readlink -f freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar)"
-LD_LIBRARY_PATH="$(readlink -f "lib/hyperic-sigar-1.6.4/sigar-bin/lib/")"
-LOG_FOLDER="$(readlink -f "logs")"
+ABSOLUTE_JAR_PATH="$freamon/freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
+LD_LIBRARY_PATH="$freamon/lib/hyperic-sigar-1.6.4/sigar-bin/lib/"
+LOG_FOLDER="$freamon/logs"
 MASTER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorMasterSystem"
 MASTER_LOG_FILE="$LOG_FOLDER/$HOSTNAME-master.out"
 MASTER_ERR_FILE="$LOG_FOLDER/$HOSTNAME-master.err"
 MASTER_PID_FILE="$LOG_FOLDER/$HOSTNAME-master.pid"
 WORKER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorAgentSystem"
-JAVA_BIN='/usr/lib/jvm/jre-1.8.0/bin/java'
+JAVA_BIN="$JAVA_HOME/bin/java"
 
 if [ -z "$CLUSTER_CONFIG" ]
 then
