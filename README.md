@@ -31,8 +31,7 @@ First you need to decide where which system will run.
 The Freamon master and MonetDB need to be on the same node.
 This node also needs passwordless SSH access to the nodes where the Yarn containers will run
 (they are usually listed in `$HADOOP_PREFIX/etc/hadoop/slaves`).
-
-> TODO hadoop master vs freamon master
+The Freamon master does not need to be on the same node as the Hadoop Master.
 
 > TODO where to put freamon jar, works as-is because start-cluster.sh looks in target/ which is cloned on every node
 
@@ -61,7 +60,11 @@ you can set them manually each time you run anything.
 If you want to use cgroups, follow [doc/hadoop/YARN-with-cgroups.md](https://github.com/citlab/freamon/blob/master/doc/hadoop/YARN-with-cgroups.md).
 Example configuration files for this can be found at [doc/hadoop/](https://github.com/citlab/freamon/tree/dev/doc/hadoop) as well.
 
-Otherwise, just setup Hadoop as usual; no special configuration is needed.
+Otherwise, just setup Hadoop as usual; no special configuration is needed:
+
+- configure `core-site.xml`, `hdfs-site.xml`, `yarn-site.xml`, `slaves` (all in `$HADOOP_PREFIX/etc/hadoop/`)
+- set `JAVA_HOME` in `$HADOOP_PREFIX/etc/hadoop/hadoop-env.sh`
+- format namenodes: `pssh -h $HADOOP_PREFIX/etc/hadoop/slaves $HADOOP_PREFIX/bin/hdfs namenode -format`
 
 ### Configuring MonetDB
 > For using the default configuration, just run `sbin/monet-create.sh`.
@@ -99,6 +102,11 @@ and fill in the other configuration values according to your `cluster.conf`.
 Make sure the `JAVA_HOME` and `HADOOP_PREFIX` environment variables are set, they are used by the start script and by Hadoop.
 
 ### Starting
+Start Hadoop as usual, for example run on the Hadoop master node:
+
+    $HADOOP_PREFIX/start-dfs.sh
+    $HADOOP_PREFIX/start-yarn.sh
+
 If MonetDB is not already running, start it:
 
     monetdbd start "$FARMDIR"
@@ -126,6 +134,11 @@ When you are done running your experiments, stop Freamon:
 If you want to stop MonetDB, run:
 
     monetdbd stop "$FARMDIR"
+
+To stop Hadoop, you can run on the Hadoop master node:
+
+    $HADOOP_PREFIX/stop-yarn.sh
+    $HADOOP_PREFIX/stop-dfs.sh
 
 ### Results analysis
 The collected resource usage statistics are now stored in the database.
