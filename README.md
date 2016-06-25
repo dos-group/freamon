@@ -43,7 +43,12 @@ On the node that Freamon will run on, execute as root:
     yum install MonetDB-SQL-server5 MonetDB-client
 
 ### Sigar
-> TODO extract, see LD_LIBRARY_PATH in start-cluster.sh
+[Download `hyperic-sigar-1.6.4.tar.gz`](https://support.hyperic.com/display/SIGAR/Home#Home-download)
+and extract it to `lib/hyperic-sigar-1.6.4/`:
+
+    mkdir lib
+    cd lib
+    tar xzvf /path/to/hyperic-sigar-1.6.4.tar.gz
 
 
 ## Configuration
