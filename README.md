@@ -13,14 +13,18 @@ Monitoring the resource usage of distributed YARN containers
 
 ## Building
 
-You need [monetdb-jdbc-2.19.jar](https://www.monetdb.org/downloads/Java/Jul2015-SP4/monetdb-jdbc-2.19.jar)
-and [YarnWorkloadRunner](https://github.com/citlab/yarn-workload-runner/).
-Install them from source, or download them and run
+You need [monetdb-jdbc-2.19.jar](https://www.monetdb.org/downloads/Java/Jul2015-SP4/monetdb-jdbc-2.19.jar).
+Install it from source, or download it and run
 
     mvn install:install-file -Dfile=/path/to/monetdb-jdbc-2.19.jar -DgroupId=monetdb -DartifactId=monetdb-jdbc -Dversion=2.19 -Dpackaging=jar
-    mvn install:install-file -Dfile=/path/to/YarnWorkloadRunner-1.0-SNAPSHOT.jar -DgroupId=de.tuberlin.cit -DartifactId=YarnWorkloadRunner -Dversion=1.0-SNAPSHOT -Dpackaging=jar
 
-Then you can create the Freamon Jar: `mvn package`
+Then you can compile and package Freamon:
+
+	git clone https://github.com/citlab/freamon.git
+	cd freamon
+	mvn package
+	# or, without running the tests:
+	mvn package -DskipTests=true
 
 If your system has no cgroups (eg. Mac OS X), you cannot run the tests, so you need to disable them with the `-DskipTests=true` option.
 
@@ -33,7 +37,9 @@ This node also needs passwordless SSH access to the nodes where the Yarn contain
 (they are usually listed in `$HADOOP_PREFIX/etc/hadoop/slaves`).
 The Freamon master does not need to be on the same node as the Hadoop Master.
 
-> TODO where to put freamon jar, works as-is because start-cluster.sh looks in target/ which is cloned on every node
+If you did not compile Freamon yourself, you need to put the Jar into `freamon-monitor/target/`
+and name it `freamon-monitor-1.0-SNAPSHOT-allinone.jar`, so the start script can find it.
+The Jar needs to be available under the same path on every node.
 
 ### MonetDB
 On the node that Freamon will run on, execute as root:
@@ -122,9 +128,8 @@ Now you can start Freamon with your cluster configuration. Run this on the maste
 
 This starts Freamon on the master node and all slave nodes.
 You can find the PID and log files at `logs/`.
-Note that you can run multiple Freamon instance at the same time.
-
-> TODO what if startup fails (logs, pids)
+Note that you can run multiple Freamon instance at the same time, as their
+log and PID file names contain the name of the node on which they are running.
 
 ### Using with YARN Workload Runner
 Start your jobs from YARN Workload Runner as usual.
