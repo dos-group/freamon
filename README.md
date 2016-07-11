@@ -1,19 +1,19 @@
 # Freamon
-Monitoring the resource usage of distributed YARN containers
+Lightweight monitoring of the resource usage of containerized YARN applications 
 
 
 ## File structure
 - [`doc`](https://github.com/citlab/freamon/tree/master/doc): documentation including example configurations
 - [`sbin`](https://github.com/citlab/freamon/tree/master/sbin): scripts for installation and usage
 - `freamon-collector`: tools for collecting resource usage statistics
-- `freamon-monitor`: actor system that manages the statistics collection
+- `freamon-monitor`: actor system that manages the distributed statistics collection
 - `freamon-results`: tools for storing the collected statistics in a database
 - `freamon-yarn-client`: tools for communicating with YARN
 
 
 ## Building
 
-You need [monetdb-jdbc-2.19.jar](https://www.monetdb.org/downloads/Java/Jul2015-SP4/monetdb-jdbc-2.19.jar).
+Freamon depends on [monetdb-jdbc-2.19.jar](https://www.monetdb.org/downloads/Java/Jul2015-SP4/monetdb-jdbc-2.19.jar).
 Install it from source, or download it and run
 
     mvn install:install-file -Dfile=/path/to/monetdb-jdbc-2.19.jar -DgroupId=monetdb -DartifactId=monetdb-jdbc -Dversion=2.19 -Dpackaging=jar
@@ -42,7 +42,7 @@ and name it `freamon-monitor-1.0-SNAPSHOT-allinone.jar`, so the start script can
 The Jar needs to be available under the same path on every node.
 
 ### MonetDB
-On the node that Freamon will run on, execute as root:
+On the node that Freamon will run on, MonetDB needs to be installed. To install it execute as root:
 
     curl https://www.monetdb.org/downloads/epel/monetdb.repo > /etc/yum.repos.d/monetdb.repo
     rpm --import https://dev.monetdb.org/downloads/MonetDB-GPG-KEY
@@ -139,7 +139,7 @@ and collect the resource usage data of each participating container.
 ### Stopping
 When you are done running your experiments, stop Freamon:
 
-    sbin/start-cluster.sh myCluster.conf
+    sbin/stop-cluster.sh myCluster.conf
 
 If you want to stop MonetDB, run:
 
@@ -154,8 +154,8 @@ To stop Hadoop, you can run on the Hadoop master node:
 The collected resource usage statistics are now stored in the database.
 
 #### Graphical analysis
-To analyze the usage of a single resource, compared across all nodes,
-you can plot it as a graph using [dstat-tools](https://github.com/citlab/dstat-tools):
+To analyze the usage of a single resource used by each of the containers of a job,
+you can plot it using [dstat-tools](https://github.com/citlab/dstat-tools):
 
     sbin/graph.sh <application_ID> <type>
 
@@ -164,8 +164,8 @@ you can plot it as a graph using [dstat-tools](https://github.com/citlab/dstat-t
 This creates a file named `application_<ID>_<type>.png`.
 
 #### Database format
-You can access the database via SQL to create your own insights.
-The data is distributed across the following tables:
+You can access the database via SQL.
+The data is stored in the following tables:
 
 ##### experiment_jobs
 | id | app_id | start | stop | framework | num_containers | cores_per_container | memory_per_container |
