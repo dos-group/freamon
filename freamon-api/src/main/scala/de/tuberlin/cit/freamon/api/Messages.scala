@@ -2,7 +2,15 @@ package de.tuberlin.cit.freamon.api
 
 import java.lang.Double
 
+case class FindPreviousRuns(signature: String)
+
 case class PreviousRuns(scaleOuts: Array[Integer], runtimes: Array[Double])
+
+case class ApplicationStart(applicationId: String, startTime: Long,
+                            signature: String,
+                            coresPerContainer: Int, memPerContainer: Int)
+
+case class ApplicationStop(applicationId: String, stopTime: Long)
 
 case class StartMonitoringForApplication(applicationId: String, containerIds: Array[Long])
 

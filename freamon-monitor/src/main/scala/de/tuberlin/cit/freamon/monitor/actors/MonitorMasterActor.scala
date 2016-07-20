@@ -39,7 +39,7 @@ class MonitorMasterActor extends Actor {
   def receive = {
 
     // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
-    case Array("jobStarted", applicationId: String, startTime: Long) => {
+    case msg @ ApplicationStart(applicationId, _, _, _, _) => {
       val splitAppId = applicationId.split("_")
       val clusterTimestamp = splitAppId(1).toLong
       val id = splitAppId(2).toInt
@@ -56,29 +56,31 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
 
-      log.info("Job started: " + applicationId + " at " + startTime)
+      log.info("Job started: " + applicationId + " at " + msg.startTime)
 
-      // TODO get container info
-      val coresPerContainer = -1
-      val memPerContainer = -1
-
+      // TODO do not insert if already exists
       JobModel.insert(new JobModel(applicationId, 'Flink,
-        containerIds.length, coresPerContainer, memPerContainer, startTime))
+        containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime))
     }
 
-    case Array("jobStopped", applicationId: String, stopTime: Long) => {
+    case ApplicationStop(applicationId, stopTime) => {
+      // TODO do not stop if already stopped
+
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
       }
 
-      log.info("Job stopped: " + applicationId + " at " + stopTime)
-
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
+      val dt = stopTime - oldJob.start
+
+      log.info("Job stopped: " + applicationId + " at " + stopTime + ", took " + dt)
+
       JobModel.update(oldJob.copy(stop = stopTime))
     }
 
-    case Array("findPreviousRuns", jarWithArgs: String) => {
+    case FindPreviousRuns(signature) => {
+      // TODO query db for previous runs
       sender ! new PreviousRuns(
         (0 to 10).map(x => x.asInstanceOf[Integer]).toArray,
         (0 to 10).map(x => (10.0D / x).asInstanceOf[Double]).toArray
