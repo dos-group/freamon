@@ -20,9 +20,10 @@ hs_err_pid*
 .DS_Store
 
 # freamon specific files #
-slaves
-logs
-monetdb-farm*
+/conf/
+/lib/
+/logs/
+/monetdb-farm*
 *.png
 *.svg
 *.log
