@@ -4,23 +4,12 @@ import java.lang.Double
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
-import de.tuberlin.cit.freamon.collector.ContainerStats
+import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
 
 import scala.collection.mutable
-
-case class StartMonitoringForApplication(applicationId: String, containerIds: Array[Long])
-
-case class StopMonitoringForApplication(applicationId: String)
-
-case class WorkerAnnouncement(workerHostname: String)
-
-case class ContainerReport(applicationId: String, container: ContainerStats)
-
-case class PreviousRuns(scaleOuts: Array[Integer], runtimes: Array[Double])
-
 
 class MonitorMasterActor extends Actor {
 

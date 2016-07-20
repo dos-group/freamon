@@ -1,19 +1,14 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import java.io.FileInputStream
 import java.net.InetAddress
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import com.typesafe.config.Config
+import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.collector.AppStatsCollector
-import org.apache.hadoop.yarn.conf.YarnConfiguration
 
 import scala.collection.mutable
-
-case class StartRecording(applicationId: String, containerIds: Array[String])
-
-case class StopRecording(applicationId: String)
 
 class MonitorAgentActor() extends Actor {
 

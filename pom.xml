@@ -16,6 +16,7 @@
         <module>freamon-yarn-client</module>
         <module>freamon-collector</module>
         <module>freamon-results</module>
+        <module>freamon-api</module>
     </modules>
 
     <properties>
