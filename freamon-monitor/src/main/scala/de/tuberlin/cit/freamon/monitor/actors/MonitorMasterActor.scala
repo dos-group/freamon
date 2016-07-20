@@ -1,5 +1,7 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
+import java.lang.Double
+
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.collector.ContainerStats
@@ -16,6 +18,8 @@ case class StopMonitoringForApplication(applicationId: String)
 case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, container: ContainerStats)
+
+case class PreviousRuns(scaleOuts: Array[Integer], runtimes: Array[Double])
 
 
 class MonitorMasterActor extends Actor {
@@ -83,6 +87,13 @@ class MonitorMasterActor extends Actor {
 
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
       JobModel.update(oldJob.copy(stop = stopTime))
+    }
+
+    case Array("findPreviousRuns", jarWithArgs: String) => {
+      sender ! new PreviousRuns(
+        (0 to 10).map(x => x.asInstanceOf[Integer]).toArray,
+        (0 to 10).map(x => (10.0D / x).asInstanceOf[Double]).toArray
+      )
     }
 
     case WorkerAnnouncement(workerHostname) => {
