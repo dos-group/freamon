@@ -3,7 +3,6 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>de.tuberlin.cit</groupId>
     <artifactId>freamon-monitor</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -17,23 +16,6 @@
         <version>1.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
-
-    <properties>
-        <!-- Maven Plugins -->
-        <scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
-        <maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.8</build-helper-maven-plugin.version>
-        <maven-shade-plugin.version>2.4.3</maven-shade-plugin.version>
-        <!-- Java -->
-        <java.version>1.8</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <!-- Scala -->
-        <scala.version>2.11.7</scala.version>
-        <scala.tools.version>2.10</scala.tools.version>
-        <!-- Akka -->
-        <akka.version>2.4.1</akka.version>
-    </properties>
 
     <dependencies>
 
