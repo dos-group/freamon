@@ -4,6 +4,7 @@ package de.tuberlin.cit.freamon.results
 case class JobModel(
                      appId: String,
                      framework: Symbol,
+                     signature: String,
                      numContainers: Int,
                      coresPerContainer: Int,
                      memoryPerContainer: Int,
@@ -27,15 +28,17 @@ object JobModel extends PersistedAPI[JobModel] {
     get[Int]     ("id")                   ~
     get[String]  ("app_id")               ~
     get[String]  ("framework")            ~
+    get[String]  ("signature")            ~
     get[Int]     ("num_containers")       ~
     get[Int]     ("cores_per_container")  ~
     get[Int]     ("memory_per_container") ~
     get[Long]    ("start")                ~
     get[Long]    ("stop")                 map {
-      case id ~ appId ~ framework ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
+      case id ~ appId ~ framework ~ signature ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
       => JobModel(
         appId,
         Symbol(framework),
+        signature,
         numContainers,
         coresPerContainer,
         memoryPerContainer,
@@ -50,6 +53,7 @@ object JobModel extends PersistedAPI[JobModel] {
         id                   INTEGER     NOT NULL,
         app_id               VARCHAR(63) UNIQUE  ,
         framework            VARCHAR(63)         ,
+        signature            VARCHAR(255)        ,
         num_containers       INTEGER             ,
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
@@ -59,7 +63,7 @@ object JobModel extends PersistedAPI[JobModel] {
       )""").execute()
   }
 
-  private val fields = "id, app_id, framework, num_containers, cores_per_container, memory_per_container, start, stop"
+  private val fields = "id, app_id, framework, signature, num_containers, cores_per_container, memory_per_container, start, stop"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
     SQL(s"""
@@ -67,6 +71,7 @@ object JobModel extends PersistedAPI[JobModel] {
         '${x.id}',
         '${x.appId}',
         '${x.framework.name}',
+        '${x.signature}',
         '${x.numContainers}',
         '${x.coresPerContainer}',
         '${x.memoryPerContainer}',
@@ -83,6 +88,7 @@ object JobModel extends PersistedAPI[JobModel] {
         '{id}',
         '{app_id}',
         '{framework}',
+        '{signature}',
         '{num_containers}',
         '{cores_per_container}',
         '{memory_per_container}',
@@ -101,6 +107,7 @@ object JobModel extends PersistedAPI[JobModel] {
       id                   = '${x.id}',
       app_id               = '${x.appId}',
       framework            = '${x.framework.name}',
+      signature            = '${x.signature}',
       num_containers       = '${x.numContainers}',
       cores_per_container  = '${x.coresPerContainer}',
       memory_per_container = '${x.memoryPerContainer}',
@@ -120,6 +127,7 @@ object JobModel extends PersistedAPI[JobModel] {
     'id                   -> x.id,
     'app_id               -> x.appId,
     'framework            -> x.framework.name,
+    'signature            -> x.signature,
     'num_containers       -> x.numContainers,
     'cores_per_container  -> x.coresPerContainer,
     'memory_per_container -> x.memoryPerContainer,

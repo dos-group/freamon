@@ -59,7 +59,7 @@ class MonitorMasterActor extends Actor {
       log.info("Job started: " + applicationId + " at " + msg.startTime)
 
       // TODO do not insert if already exists
-      JobModel.insert(new JobModel(applicationId, 'Flink,
+      JobModel.insert(new JobModel(applicationId, 'Flink, msg.signature,
         containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime))
     }
 

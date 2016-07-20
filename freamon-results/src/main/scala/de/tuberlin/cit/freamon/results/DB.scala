@@ -23,7 +23,7 @@ object DB {
     implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
     createSchema()
     val applicationId = s"application_${(System.currentTimeMillis() / 1000).asInstanceOf[Int]}_0001"
-    val job = JobModel(applicationId, 'Flink, 0, 0, 0, System.currentTimeMillis())
+    val job = JobModel(applicationId, 'Flink, "test.jar", 0, 0, 0, System.currentTimeMillis())
 
     JobModel.insert(job)
     println(JobModel.selectAll().mkString("\n"))
