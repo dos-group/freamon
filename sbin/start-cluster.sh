@@ -20,7 +20,7 @@ freamon="$(readlink -f "$(dirname $BASH_SOURCE)/..")"
 CLUSTER_CONFIG="$(readlink -f "$1")"
 
 SLAVES_FILE="$HADOOP_PREFIX/etc/hadoop/slaves"
-ABSOLUTE_JAR_PATH="$freamon/freamon-monitor/target/freamon-monitor-1.0-SNAPSHOT-allinone.jar"
+ABSOLUTE_JAR_PATH="$freamon/freamon-monitor/target/freamon-monitor-1.1-SNAPSHOT-allinone.jar"
 LD_LIBRARY_PATH="$freamon/lib/hyperic-sigar-1.6.4/sigar-bin/lib/"
 LOG_FOLDER="$freamon/logs"
 MASTER_CLASS="de.tuberlin.cit.freamon.monitor.actors.MonitorMasterSystem"
