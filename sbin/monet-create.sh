@@ -6,11 +6,13 @@ farmdir="$(dirname $BASH_SOURCE)/../monetdb-farm"
 # same as freamon.monetdb.name in hosts.conf
 dbname="freamon"
 
-# create the data storage
+echo Creating data storage at "$farmdir" ...
 monetdbd create "$farmdir"
+
+echo Starting MonetDB for "$farmdir" ...
 monetdbd start  "$farmdir"
 
-# create the database
+echo Creating database "$dbname" ...
 monetdb create  "$dbname"
 monetdb release "$dbname"
 
