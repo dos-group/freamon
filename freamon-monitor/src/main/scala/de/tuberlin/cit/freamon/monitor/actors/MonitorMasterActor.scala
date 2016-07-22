@@ -15,9 +15,9 @@ import scala.collection.mutable
 class MonitorMasterActor extends Actor {
 
   val log = Logging(context.system, this)
-  var workers: scala.collection.mutable.ListBuffer[String] = mutable.ListBuffer()
+  var workers = mutable.Set[String]()
   val hostConfig = context.system.settings.config
-  val yClient: yarnClient = new yarnClient
+  val yClient = new yarnClient
 
   // setup DB connection
   implicit val conn = DB.getConnection(
