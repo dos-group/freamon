@@ -1,6 +1,7 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
 import java.lang.Double
+import java.sql.SQLException
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
@@ -58,9 +59,13 @@ class MonitorMasterActor extends Actor {
 
       log.info("Job started: " + applicationId + " at " + msg.startTime)
 
-      // TODO do not insert if already exists
-      JobModel.insert(new JobModel(applicationId, 'Flink, msg.signature,
-        containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime))
+      val job = new JobModel(applicationId, 'Flink, msg.signature,
+        containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime)
+      try {
+        JobModel.insert(job)
+      } catch {
+        case e: SQLException => log.error(s"Could not insert job $applicationId: ${e.getMessage}")
+      }
     }
 
     case ApplicationStop(applicationId, stopTime) => {
