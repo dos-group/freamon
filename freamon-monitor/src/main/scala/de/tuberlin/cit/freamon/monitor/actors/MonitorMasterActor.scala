@@ -2,6 +2,7 @@ package de.tuberlin.cit.freamon.monitor.actors
 
 import java.lang.Double
 import java.sql.SQLException
+import java.time.Instant
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
@@ -57,7 +58,7 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
 
-      log.info("Job started: " + applicationId + " at " + startTime)
+      log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(startTime)}")
 
       // TODO get container info
       val coresPerContainer = -1
@@ -78,9 +79,11 @@ class MonitorMasterActor extends Actor {
         agentActor ! StopRecording(applicationId)
       }
 
-      log.info("Job stopped: " + applicationId + " at " + stopTime)
-
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
+
+      val sec = (stopTime - oldJob.start) / 1000f
+      log.info(s"Job stopped: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
+
       JobModel.update(oldJob.copy(stop = stopTime))
     }
 
