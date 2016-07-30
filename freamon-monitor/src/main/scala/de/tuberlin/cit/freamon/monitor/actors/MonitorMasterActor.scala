@@ -9,7 +9,7 @@ import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
-import org.apache.hadoop.yarn.api.records.ApplicationId
+import org.apache.hadoop.yarn.api.records.{ApplicationId, FinalApplicationStatus}
 
 import scala.collection.mutable
 
@@ -31,6 +31,14 @@ class MonitorMasterActor extends Actor {
     log.info("Monitor Master started")
   }
 
+  def makeYarnAppIdInstance(applicationId: String): ApplicationId = {
+    val splitAppId = applicationId.split("_")
+    val clusterTimestamp = splitAppId(1).toLong
+    val id = splitAppId(2).toInt
+    val yarnAppId = ApplicationId.newInstance(clusterTimestamp, id)
+    yarnAppId
+  }
+
   def getAgentActorOnHost(hostname: String): ActorSelection = {
     val agentSystem = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.slave.name"),
       hostname, hostConfig.getInt("freamon.hosts.slaves.port"))
@@ -40,13 +48,9 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
     case msg @ ApplicationStart(applicationId, _, _, _, _) => {
-      val splitAppId = applicationId.split("_")
-      val clusterTimestamp = splitAppId(1).toLong
-      val id = splitAppId(2).toInt
       val containerIds = yClient
-          .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
+          .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
           .map(containerNr => {
             val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
             val strippedAppId = applicationId.substring("application_".length)
@@ -77,12 +81,17 @@ class MonitorMasterActor extends Actor {
         agentActor ! StopRecording(applicationId)
       }
 
+      val status = yClient.yarnClient.getApplicationReport(makeYarnAppIdInstance(applicationId)).getFinalApplicationStatus
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
-
       val sec = (stopTime - oldJob.start) / 1000f
-      log.info(s"Job stopped: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
 
-      JobModel.update(oldJob.copy(stop = stopTime))
+      if (status == FinalApplicationStatus.SUCCEEDED) {
+        log.info(s"Job finished: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
+        JobModel.update(oldJob.copy(stop = stopTime))
+      } else {
+        log.info(s"Job failed: $applicationId at ${Instant.ofEpochMilli(stopTime)} after $sec seconds")
+        JobModel.delete(oldJob)
+      }
     }
 
     case FindPreviousRuns(signature) => {
