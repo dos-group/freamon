@@ -64,7 +64,7 @@ class MonitorMasterActor extends Actor {
 
       log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(msg.startTime)}")
 
-      val job = new JobModel(applicationId, 'Flink, msg.signature,
+      val job = new JobModel(applicationId, 'Flink, msg.signature, 0,
         containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime)
       try {
         JobModel.insert(job)

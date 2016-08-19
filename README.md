@@ -168,11 +168,13 @@ You can access the database via SQL.
 The data is stored in the following tables:
 
 ##### experiment_jobs
-| id | app_id | start | stop | framework | num_containers | cores_per_container | memory_per_container |
-|---|---|---|---|---|---|---|---|
-| 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | 4 | -1 | -1 |
-| 345 | application_1465933590123_0002 | 1465933790123 | 1465933890123 | Flink | 4 | -1 | -1 |
+| id | app_id | start | stop | framework | signature | dataset_size | num_containers | cores_per_container | memory_per_container |
+|---|---|---|---|---|---|---|---|---|---|
+| 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
+| 345 | application_1465933590123_0002 | 1465933790123 | 1465933890123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
 - `start`, `stop`: timestamp when the job was started/stopped, in milliseconds since the Unix epoch
+- `signature`: a unique identifier for the application, for example the jarfile hash
+- `dataset_size`: size in MB of the dataset that was processed
 
 Note that `framework`, `cores_per_container`, and `memory_per_container` are not collected yet,
 so they are always set to `Freamon` and `-1` respectively.
