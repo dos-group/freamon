@@ -48,7 +48,7 @@ class MonitorMasterActor extends Actor {
 
   def receive = {
 
-    case msg @ ApplicationStart(applicationId, _, _, _, _) => {
+    case ApplicationStart(applicationId, startTime) => {
       val containerIds = yClient
           .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
           .map(containerNr => {
@@ -62,10 +62,9 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
 
-      log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(msg.startTime)}")
+      log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(startTime)}")
 
-      val job = new JobModel(applicationId, 'Flink, msg.signature, 0,
-        containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime)
+      val job = new JobModel(applicationId, start = startTime)
       try {
         JobModel.insert(job)
       } catch {
@@ -92,6 +91,18 @@ class MonitorMasterActor extends Actor {
         log.info(s"Job failed: $applicationId at ${Instant.ofEpochMilli(stopTime)} after $sec seconds")
         JobModel.delete(oldJob)
       }
+    }
+
+    case msg @ ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
+      JobModel.selectWhere(s"app_id = '${msg.appId}'").headOption.map(oldJob => {
+        JobModel.update(oldJob.copy(appId,
+          framework = framework,
+          signature = signature,
+          datasetSize = datasetSize,
+          coresPerContainer = coresPC,
+          memoryPerContainer = memPC))
+        Unit
+      })
     }
 
     case FindPreviousRuns(signature) => {

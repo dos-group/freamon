@@ -3,15 +3,15 @@ package de.tuberlin.cit.freamon.results
 /** Model class for job runs. */
 case class JobModel(
                      appId: String,
-                     framework: Symbol,
-                     signature: String,
-                     datasetSize: Int,
-                     numContainers: Int,
-                     coresPerContainer: Int,
-                     memoryPerContainer: Int,
+                     framework: Symbol = Symbol(null),
+                     signature: String = null,
+                     datasetSize: Int = 0,
+                     numContainers: Int = 0,
+                     coresPerContainer: Int = 0,
+                     memoryPerContainer: Int = 0,
                      start: Long = System.currentTimeMillis(),
                      stop: Long = 0
-                     ) {
+                   ) {
   val id = appId.##
 }
 
