@@ -193,3 +193,33 @@ so they are always set to `Freamon` and `-1` respectively.
 
 - `kind`: type of the measurement, one of `cpu`, `mem`, `net`, `blkio`
 - `millis`: timestamp when the measurement occured, in milliseconds since the Unix epoch
+
+## Akka Messages API
+The following messages can be sent to Freamon's Actor System.
+
+##### `FindPreviousRuns(signature: String)`
+Search the DB for previous jobs of applications with the same signature.
+
+Freamon will respond with a `PreviousRuns` message with the following fields:
+- `scaleOuts`: `Array[Integer]`
+- `runtimes`: `Array[Double]`
+
+##### `ApplicationStart(applicationId: String, startTime: Long)`
+Tell Freamon to start monitoring for the provided application.
+The `startTime` (in milliseconds since epoch) will be stored in the DB and is provided because Freamon currently has no method to find out when an application started.
+
+##### `ApplicationStop(applicationId: String, stopTime: Long)`
+Tell Freamon to stop monitoring for the provided application.
+The `stopTime` (in milliseconds since epoch) will be stored in the DB and is provided because Freamon currently has no method to find out when an application stopped.
+
+##### `ApplicationMetadata`
+Provide Freamon with metadata about a job.
+Freamon will store the metadata with the job in the DB for later `FindPreviousRuns` requests.
+
+The message has the following fields:
+- `appId`: `String`, must be set
+- `framework`: `Symbol`, defaults to `Symbol(null)`
+- `signature`: `String`, defaults to `null`
+- `datasetSize`: `Int`, defaults to 0
+- `coresPerContainer`: `Int`, defaults to 0
+- `memoryPerContainer`: `Int`, defaults to 0
