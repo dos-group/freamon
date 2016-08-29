@@ -81,16 +81,16 @@ class MonitorMasterActor extends Actor {
       }
 
       val status = yClient.yarnClient.getApplicationReport(makeYarnAppIdInstance(applicationId)).getFinalApplicationStatus
-      val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      val sec = (stopTime - oldJob.start) / 1000f
 
-      if (status == FinalApplicationStatus.SUCCEEDED) {
+      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(oldJob => {
+        val sec = (stopTime - oldJob.start) / 1000f
         log.info(s"Job finished: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
         JobModel.update(oldJob.copy(stop = stopTime))
-      } else {
-        log.info(s"Job failed: $applicationId at ${Instant.ofEpochMilli(stopTime)} after $sec seconds")
-        JobModel.delete(oldJob)
-      }
+        Unit
+      }).orElse({
+        log.error("No such job in DB: " + applicationId + " (ApplicationStop)")
+        None
+      })
     }
 
     case msg @ ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
@@ -126,24 +126,29 @@ class MonitorMasterActor extends Actor {
       log.debug("Net: " + container.netUtil.mkString(", "))
       log.debug("Memory: " + container.memUtil.mkString(", "))
 
-      val job = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      val hostname = sender().path.address.hostPort
-      val containerModel = ContainerModel(container.containerId, job.id, hostname)
-      ContainerModel.insert(containerModel)
+      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(job => {
+        val hostname = sender().path.address.hostPort
+        val containerModel = ContainerModel(container.containerId, job.id, hostname)
+        ContainerModel.insert(containerModel)
 
-      val containerStart = job.start + 1000 * container.startTick
-      for ((io, i) <- container.blkioUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
-      }
-      for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
-      }
-      for ((net, i) <- container.netUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'net, containerStart + 1000 * i, net))
-      }
-      for ((mem, i) <- container.memUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
-      }
+        val containerStart = job.start + 1000 * container.startTick
+        for ((io, i) <- container.blkioUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
+        }
+        for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
+        }
+        for ((net, i) <- container.netUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'net, containerStart + 1000 * i, net))
+        }
+        for ((mem, i) <- container.memUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
+        }
+        Unit
+      }).orElse({
+        log.error("No such job in DB: " + applicationId + " (ContainerReport)")
+        None
+      })
     }
 
   }
