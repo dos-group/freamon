@@ -26,7 +26,7 @@ case class ApplicationMetadata(
                                 appId: String,
                                 framework: Symbol = Symbol(null),
                                 signature: String = null,
-                                datasetSize: Int = 0,
+                                datasetSize: Double = 0d,
                                 coresPerContainer: Int = 0,
                                 memoryPerContainer: Int = 0
                               )

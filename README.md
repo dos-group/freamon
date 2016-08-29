@@ -220,6 +220,6 @@ The message has the following fields:
 - `appId`: `String`, must be set
 - `framework`: `Symbol`, defaults to `Symbol(null)`
 - `signature`: `String`, defaults to `null`
-- `datasetSize`: `Int`, defaults to 0
+- `datasetSize`: `Double`, defaults to 0
 - `coresPerContainer`: `Int`, defaults to 0
 - `memoryPerContainer`: `Int`, defaults to 0

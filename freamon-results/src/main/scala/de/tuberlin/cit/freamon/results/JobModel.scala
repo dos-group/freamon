@@ -5,7 +5,7 @@ case class JobModel(
                      appId: String,
                      framework: Symbol = Symbol(null),
                      signature: String = null,
-                     datasetSize: Int = 0,
+                     datasetSize: Double = 0d,
                      numContainers: Int = 0,
                      coresPerContainer: Int = 0,
                      memoryPerContainer: Int = 0,
@@ -30,7 +30,7 @@ object JobModel extends PersistedAPI[JobModel] {
     get[String]  ("app_id")               ~
     get[String]  ("framework")            ~
     get[String]  ("signature")            ~
-    get[Int]     ("dataset_size")          ~
+    get[Double]  ("dataset_size")         ~
     get[Int]     ("num_containers")       ~
     get[Int]     ("cores_per_container")  ~
     get[Int]     ("memory_per_container") ~
@@ -57,7 +57,7 @@ object JobModel extends PersistedAPI[JobModel] {
         app_id               VARCHAR(63) UNIQUE  ,
         framework            VARCHAR(63)         ,
         signature            VARCHAR(255)        ,
-        dataset_size         INTEGER             ,
+        dataset_size         DOUBLE              ,
         num_containers       INTEGER             ,
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
