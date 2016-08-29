@@ -4,7 +4,7 @@ import java.lang.Double
 
 case class FindPreviousRuns(signature: String)
 
-case class PreviousRuns(scaleOuts: Array[Integer], runtimes: Array[Double])
+case class PreviousRuns(scaleOuts: Array[Integer], runtimes: Array[Double], datasetSizes: Array[Double])
 
 case class ApplicationStart(applicationId: String, startTime: Long)
 

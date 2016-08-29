@@ -108,8 +108,9 @@ class MonitorMasterActor extends Actor {
     case FindPreviousRuns(signature) => {
       val runs = JobModel.selectWhere(s"signature = '$signature'")
       sender ! PreviousRuns(
-        runs.map(r => r.numContainers.asInstanceOf[Integer]).toArray,
-        runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray
+        runs.map(_.numContainers.asInstanceOf[Integer]).toArray,
+        runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
+        runs.map(_.datasetSize.asInstanceOf[Double]).toArray
       )
     }
 

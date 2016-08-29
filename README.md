@@ -203,6 +203,7 @@ Search the DB for previous jobs of applications with the same signature.
 Freamon will respond with a `PreviousRuns` message with the following fields:
 - `scaleOuts`: `Array[Integer]`
 - `runtimes`: `Array[Double]`
+- `datasetSizes`: `Array[Double]`
 
 ##### `ApplicationStart(applicationId: String, startTime: Long)`
 Tell Freamon to start monitoring for the provided application.
