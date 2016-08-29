@@ -46,9 +46,7 @@ class MonitorMasterActor extends Actor {
     context.system.actorSelection(agentActorPath)
   }
 
-  def receive = {
-
-    case ApplicationStart(applicationId, startTime) => {
+    def startApplication(applicationId: String, startTime: Long) = {
       val containerIds = yClient
           .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
           .map(containerNr => {
@@ -72,7 +70,7 @@ class MonitorMasterActor extends Actor {
       }
     }
 
-    case ApplicationStop(applicationId, stopTime) => {
+  def stopApplication(applicationId: String, stopTime: Long) = {
       // TODO do not stop if already stopped
 
       for (host <- workers) {
@@ -92,6 +90,18 @@ class MonitorMasterActor extends Actor {
         None
       })
     }
+
+  def receive = {
+
+    case ApplicationStart(applicationId, stopTime) =>
+      this.startApplication(applicationId, stopTime)
+    case Array("jobStarted", applicationId: String, stopTime: Long) =>
+      this.startApplication(applicationId, stopTime)
+
+    case ApplicationStop(applicationId, stopTime) =>
+      this.stopApplication(applicationId, stopTime)
+    case Array("jobStopped", applicationId: String, stopTime: Long) =>
+      this.stopApplication(applicationId, stopTime)
 
     case msg @ ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
       JobModel.selectWhere(s"app_id = '${msg.appId}'").headOption.map(oldJob => {
