@@ -4,8 +4,6 @@ import java.io.{BufferedReader, FileReader}
 
 import com.typesafe.config.{Config, ConfigFactory}
 
-import de.tuberlin.cit.freamon.collector.AuditLogCollector
-
 object ConfigUtil {
 
   def loadClusterConfig(args: Array[String]): Config = {
@@ -20,9 +18,7 @@ object ConfigUtil {
   }
 
   def readAuditLog(args: Array[String]): Unit = {
-    if ((args.length==4) && args(2)=="--hdfs-audit"){
-      AuditLogCollector.start(args(3))
-    }
+    AuditLogManager.receiveRequest(args)
   }
 
   def setRemotingHostPort(config: Config, hostName: String, port: Int): Config = {
