@@ -14,12 +14,14 @@ object ConfigUtil {
       println("Loading cluster configuration at " + path)
       val reader = new BufferedReader(new FileReader(path))
       ConfigFactory.parseReader(reader).withFallback(ConfigFactory.load()).resolve()
-    } else if ((args.length == 2) && (args(0) == "--hdfs-log")){
-      AuditLogCollector.start(args(1))
-    }
-
-    else {
+    } else {
       throw new IllegalArgumentException("No cluster config specified, use -c /path/to/myCluster.conf")
+    }
+  }
+
+  def readAuditLog(args: Array[String]): Unit = {
+    if ((args.length==2) && args(0)=="--hdfs-audit"){
+      AuditLogCollector.start(args(1))
     }
   }
 

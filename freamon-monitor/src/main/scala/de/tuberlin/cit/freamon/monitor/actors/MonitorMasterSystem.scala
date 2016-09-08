@@ -5,6 +5,10 @@ import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorMasterSystem extends App {
 
+  if((args.length==2) && (args(0)== "--hdfs-audit")){
+    ConfigUtil.readAuditLog(args)
+  }
+
   val clusterConfig = ConfigUtil.loadClusterConfig(args)
   val masterConfig = ConfigUtil.setRemotingHostPort(clusterConfig,
     clusterConfig.getString("freamon.hosts.master.hostname"),
