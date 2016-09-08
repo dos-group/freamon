@@ -4,6 +4,8 @@ import java.io.{BufferedReader, FileReader}
 
 import com.typesafe.config.{Config, ConfigFactory}
 
+import de.tuberlin.cit.freamon.collector.AuditLogCollector
+
 object ConfigUtil {
 
   def loadClusterConfig(args: Array[String]): Config = {
@@ -12,7 +14,11 @@ object ConfigUtil {
       println("Loading cluster configuration at " + path)
       val reader = new BufferedReader(new FileReader(path))
       ConfigFactory.parseReader(reader).withFallback(ConfigFactory.load()).resolve()
-    } else {
+    } else if ((args.length == 2) && (args(0) == "--hdfs-log")){
+      AuditLogCollector.start(args(1))
+    }
+
+    else {
       throw new IllegalArgumentException("No cluster config specified, use -c /path/to/myCluster.conf")
     }
   }

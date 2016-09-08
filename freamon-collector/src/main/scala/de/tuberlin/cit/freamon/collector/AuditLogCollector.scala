@@ -1,16 +1,15 @@
 package de.tuberlin.cit.freamon.collector
 
 import java.io.{File, InputStream}
-import java.util
 
 object AuditLogCollector {
 
-  def main(args: Array[String]): Unit = {
+  def start(args: String): Unit = {
     import java.io.{File, BufferedReader, InputStreamReader}
-    if (args.length != 1) {
+    /*if (args.length != 1) {
       println("Parameters: <path/to/hdfs-audit.log> <seconds to run>")
       return
-    }
+    }*/
 
     val logFile = new File(args(0))
     val br = new BufferedReader(new InputStreamReader(follow(logFile)))
@@ -72,7 +71,6 @@ class FollowingInputStream(val file: File, val waitForNewInput: () => Unit) exte
   override def close = underlying.close
 
   protected def rotated_? = try { underlying.getChannel.position() > file.length }
-                            finally { false }
 
   protected def closed_? = !underlying.getChannel.isOpen
 

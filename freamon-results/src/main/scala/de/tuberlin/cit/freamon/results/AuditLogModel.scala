@@ -50,7 +50,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
     SQL(
       s"""
        CREATE TABLE $tableName (
-        date    BIGINT    NOT NULL,
+        date    BIGINT    UNIQUE,
         allowed BOOLEAN   NOT NULL,
         ugi     TEXT      NOT NULL,
         ip      TEXT      NOT NULL,
