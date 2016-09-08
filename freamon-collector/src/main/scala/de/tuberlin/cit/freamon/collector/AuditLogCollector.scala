@@ -1,6 +1,6 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{File, InputStream}
+import java.io.{File, FileReader, InputStream}
 
 object AuditLogCollector {
 
@@ -11,7 +11,7 @@ object AuditLogCollector {
       return
     }*/
 
-    val logFile = new File(args(0))
+    val logFile = new File(args)
     val br = new BufferedReader(new InputStreamReader(follow(logFile)))
 
     def read: Unit = {
