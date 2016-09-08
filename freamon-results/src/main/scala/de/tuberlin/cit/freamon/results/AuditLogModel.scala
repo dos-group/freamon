@@ -58,7 +58,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
         src     TEXT              ,
         dest    TEXT              ,
         perm    TEXT              ,
-        proto   TEXT
+        proto   TEXT;
      """).execute()
   }
 

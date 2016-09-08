@@ -13,6 +13,7 @@ object AuditLogCollector {
 
     val logFile = new File(args)
     val br = new BufferedReader(new InputStreamReader(follow(logFile)))
+    //val db = AuditLogModel()
 
     def read: Unit = {
       val l = br.readLine
