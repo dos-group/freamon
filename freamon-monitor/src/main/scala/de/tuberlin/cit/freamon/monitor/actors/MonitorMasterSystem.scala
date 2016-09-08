@@ -5,7 +5,7 @@ import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorMasterSystem extends App {
 
-  if((args.length==2) && (args(0)== "--hdfs-audit")){
+  if((args.length==4) && (args(2)== "--hdfs-audit")){
     ConfigUtil.readAuditLog(args)
   }
 

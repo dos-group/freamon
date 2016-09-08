@@ -19,6 +19,10 @@ freamon="$(readlink -f "$(dirname $BASH_SOURCE)/..")"
 
 CLUSTER_CONFIG="$(readlink -f "$1")"
 
+EXTRA_COMMAND=$2
+
+EXTRA_FILE="$(readlink -f "$3")"
+
 SLAVES_FILE="$HADOOP_PREFIX/etc/hadoop/slaves"
 ABSOLUTE_JAR_PATH="$freamon/freamon-monitor/target/freamon-monitor-1.1-SNAPSHOT-allinone.jar"
 LD_LIBRARY_PATH="$freamon/lib/hyperic-sigar-1.6.4/sigar-bin/lib/"
@@ -66,7 +70,7 @@ mkdir -p $LOG_FOLDER
 echo "Using $JAVA_BIN"
 
 echo "Starting freamon master system"
-$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -c $CLUSTER_CONFIG >>$MASTER_LOG_FILE 2>>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
+$JAVA_BIN -cp $ABSOLUTE_JAR_PATH $MASTER_CLASS -c $CLUSTER_CONFIG $EXTRA_COMMAND $EXTRA_FILE >>$MASTER_LOG_FILE 2>>$MASTER_ERR_FILE & echo $! >$MASTER_PID_FILE
 echo "Started freamon master on $HOSTNAME (PID=$(cat $MASTER_PID_FILE))"
 
 for SLAVE in $(cat $SLAVES_FILE ) ; do

@@ -20,8 +20,8 @@ object ConfigUtil {
   }
 
   def readAuditLog(args: Array[String]): Unit = {
-    if ((args.length==2) && args(0)=="--hdfs-audit"){
-      AuditLogCollector.start(args(1))
+    if ((args.length==4) && args(2)=="--hdfs-audit"){
+      AuditLogCollector.start(args(3))
     }
   }
 
