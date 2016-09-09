@@ -67,7 +67,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
   override def insert(x: AuditLogModel)(implicit conn: Connection): Unit = {
 
     val sql =
-      s"""
+      SQL(s"""
          INSERT INTO $tableName($fields) VALUES(
          '${x.date}',
          '${x.allowed}',
@@ -79,8 +79,8 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '${x.perm}',
          '${x.proto}'
          );
-       """
-    println(sql)
+       """)
+    println(sql.toString())
 
     SQL(
       s"""
