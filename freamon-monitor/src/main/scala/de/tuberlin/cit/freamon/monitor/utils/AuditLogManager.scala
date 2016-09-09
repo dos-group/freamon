@@ -26,11 +26,11 @@ object AuditLogManager {
 
     val date: String = entry.substring(0,23)
     println("Date: "+date)
-    val status = entry.substring(24,27)
+    val status = entry.substring(24,28)
     println("Status: "+status)
-    val reportingClass = entry.substring(29, 48)
+    val reportingClass = entry.substring(29, 47)
     println("Reporting class: "+reportingClass)
-    val report = entry.substring(50)
+    val report = entry.substring(49)
     println("Report: "+report)
 
 
