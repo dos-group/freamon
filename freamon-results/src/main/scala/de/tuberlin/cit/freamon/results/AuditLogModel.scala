@@ -62,7 +62,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
      """).execute()
   }
 
-  private val fields = "date, allowed, ugi, ip, cmd, src, dest, perm, proto"
+  private val fields = "date, allowed, ugi, ip, cmd, src, dst, perm, proto"
 
   override def insert(x: AuditLogModel)(implicit conn: Connection): Unit = {
     SQL(
