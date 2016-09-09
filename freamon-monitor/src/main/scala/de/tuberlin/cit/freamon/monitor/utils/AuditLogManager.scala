@@ -86,6 +86,7 @@ object AuditLogManager {
       if(l != null){
         println(l)
         val alm: AuditLogModel = processEntry(l)
+        implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
         AuditLogModel.insert(alm)
         read
       }
