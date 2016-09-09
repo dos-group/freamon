@@ -77,7 +77,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '${x.dst}',
          '${x.perm}',
          '${x.proto}'
-         )
+         );
        """).executeInsert()
   }
 
@@ -94,7 +94,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '{dst}',
          '{perm}',
          '{proto}'
-         )
+         );
        """,
       namedParametrsFor(xs.head),
       xs.tail.map(namedParametrsFor): _*
