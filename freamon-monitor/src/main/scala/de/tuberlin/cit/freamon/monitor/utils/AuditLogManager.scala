@@ -38,7 +38,7 @@ object AuditLogManager {
       boolAllowed = true
     else if(allowed=="false")
       boolAllowed = false
-    val ugi = splitReport(1).substring(4)+"'"
+    val ugi = splitReport(1).substring(4)
     val ip = splitReport(2).substring(3)
     val cmd = splitReport(3).substring(4)
     val src = splitReport(4).substring(4)
@@ -87,7 +87,7 @@ object AuditLogManager {
         println(l)
         val alm: AuditLogModel = processEntry(l)
         implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
-        AuditLogModel.insert(alm)
+        AuditLogModel.insert2(alm)
         read
       }
     }

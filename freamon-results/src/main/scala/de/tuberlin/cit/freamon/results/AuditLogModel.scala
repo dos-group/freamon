@@ -1,5 +1,7 @@
 package de.tuberlin.cit.freamon.results
 
+import java.sql.PreparedStatement
+
 /**
   * Model class for HDFS Audit logs collected by the master actor from agent actors
   */
@@ -80,7 +82,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '${x.proto}'
          );
        """)
-    println(sql.toString())
+    println(sql)
 
     SQL(
       s"""
@@ -97,6 +99,21 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          );
        """).executeInsert()
 
+  }
+
+  def insert2(x: AuditLogModel)(implicit conn: Connection): Unit = {
+    val sql: String = "INSERT INTO "+tableName+" ("+fields+") VALUES (?,?,?,?,?,?,?,?,?)"
+    val pstmt: PreparedStatement = conn.prepareStatement(sql)
+    pstmt.setLong(1, x.date)
+    pstmt.setBoolean(2, x.allowed)
+    pstmt.setString(3, x.ugi)
+    pstmt.setString(4, x.ip)
+    pstmt.setString(5, x.cmd)
+    pstmt.setString(6, x.src)
+    pstmt.setString(7, x.dst)
+    pstmt.setString(8, x.perm)
+    pstmt.setString(9, x.proto)
+    pstmt.execute()
   }
 
   override def insert(xs: Seq[AuditLogModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit{
