@@ -79,6 +79,21 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '${x.proto}'
          );
        """).executeInsert()
+    val sql = SQL(
+      s"""
+         INSERT INTO $tableName($fields) VALUES(
+         '${x.date}',
+         '${x.allowed}',
+         '${x.ugi},
+         '${x.ip}',
+         '${x.cmd}',
+         '${x.src},
+         '${x.dst}',
+         '${x.perm}',
+         '${x.proto}'
+         );
+       """)
+    println(sql)
   }
 
   override def insert(xs: Seq[AuditLogModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit{
