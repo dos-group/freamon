@@ -10,7 +10,7 @@ case class AuditLogModel(
                           ip: String,
                           cmd: String,
                           src: String,
-                          dest: String,
+                          dst: String,
                           perm: String,
                           proto: String
                         )
@@ -30,17 +30,17 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
       get[String]   ("ip")      ~
       get[String]   ("cmd")     ~
       get[String]   ("src")     ~
-      get[String]   ("dest")    ~
+      get[String]   ("dst")    ~
       get[String]   ("perm")    ~
       get[String]   ("proto")     map{
-      case date ~ allowed ~ ugi ~ ip ~ cmd ~ src ~ dest ~ perm ~ proto => AuditLogModel(
+      case date ~ allowed ~ ugi ~ ip ~ cmd ~ src ~ dst ~ perm ~ proto => AuditLogModel(
         date,
         allowed,
         ugi,
         ip,
         cmd,
         src,
-        dest,
+        dst,
         perm,
         proto)
     }
@@ -56,7 +56,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
         ip      TEXT      NOT NULL,
         cmd     TEXT      NOT NULL,
         src     TEXT              ,
-        dest    TEXT              ,
+        dst    TEXT              ,
         perm    TEXT              ,
         proto   TEXT);
      """).execute()
@@ -74,7 +74,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '${x.ip}',
          '${x.cmd}',
          '${x.src},
-         '${x.dest}',
+         '${x.dst}',
          '${x.perm}',
          '${x.proto}'
          )
@@ -91,7 +91,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
          '{ip}',
          '{cmd}',
          '{src}',
-         '{dest}',
+         '{dst}',
          '{perm}',
          '{proto}'
          )
@@ -117,7 +117,7 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
     'ip -> x.ip,
     'cmd -> x.cmd,
     'src -> x.src,
-    'dest -> x.dest,
+    'dst -> x.dst,
     'perm -> x.perm,
     'proto -> x.proto
   )
