@@ -27,7 +27,7 @@ object AuditLogManager {
     val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
     val date: String = entry.substring(0,23)
-    val parsedDate: Long = sdf.parse(date).getTime()
+    val parsedDate: Long = sdf.parse(date).getTime
     println("Date: "+date+", parsed date: "+parsedDate)
     val report = entry.substring(49)
     println("Report: "+report)
@@ -57,7 +57,7 @@ object AuditLogManager {
 
     val alm: AuditLogModel = AuditLogModel(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto)
 
-    return alm
+    alm
   }
 
   private def loadDriver(className: String): Unit = try {
@@ -81,17 +81,17 @@ object AuditLogManager {
     val logFile = new File(args)
     val br = new BufferedReader(new InputStreamReader(follow(logFile)))
 
-    def read: Unit = {
+    def read(): Unit = {
       val l = br.readLine
       if(l != null){
-        println(l)
+        //println(l)
         val alm: AuditLogModel = processEntry(l)
         implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
-        AuditLogModel.insert2(alm)
-        read
+        AuditLogModel.insert(alm)
+        read()
       }
     }
-    read
+    read()
   }
   def follow(file: File): InputStream = {
     val maxRetries = 3
@@ -140,7 +140,7 @@ class FollowingInputStream(val file: File, val waitForNewInput: () => Unit) exte
 
   override def read(b: Array[Byte], off: Int, len: Int): Int = handle(underlying.read(b, off, len))
 
-  override def close(): Unit = underlying.close
+  override def close(): Unit = underlying.close()
 
   protected def rotated_? = try { underlying.getChannel.position() > file.length }
 

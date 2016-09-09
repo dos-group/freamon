@@ -67,41 +67,6 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
   private val fields = "date, allowed, ugi, ip, cmd, src, dst, perm, proto"
 
   override def insert(x: AuditLogModel)(implicit conn: Connection): Unit = {
-
-    val sql =
-      SQL(s"""
-         INSERT INTO $tableName($fields) VALUES(
-         '${x.date}',
-         '${x.allowed}',
-         '${x.ugi},
-         '${x.ip}',
-         '${x.cmd}',
-         '${x.src},
-         '${x.dst}',
-         '${x.perm}',
-         '${x.proto}'
-         );
-       """)
-    println(sql)
-
-    SQL(
-      s"""
-         INSERT INTO $tableName($fields) VALUES(
-         '${x.date}',
-         '${x.allowed}',
-         '${x.ugi},
-         '${x.ip}',
-         '${x.cmd}',
-         '${x.src},
-         '${x.dst}',
-         '${x.perm}',
-         '${x.proto}'
-         );
-       """).executeInsert()
-
-  }
-
-  def insert2(x: AuditLogModel)(implicit conn: Connection): Unit = {
     val sql: String = "INSERT INTO "+tableName+" ("+fields+") VALUES (?,?,?,?,?,?,?,?,?)"
     val pstmt: PreparedStatement = conn.prepareStatement(sql)
     pstmt.setLong(1, x.date)
