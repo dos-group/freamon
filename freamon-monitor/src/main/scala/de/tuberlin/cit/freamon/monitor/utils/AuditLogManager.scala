@@ -2,6 +2,7 @@ package de.tuberlin.cit.freamon.monitor.utils
 
 import java.io.{File, InputStream}
 import java.sql.{Connection, DriverManager}
+import java.text.SimpleDateFormat
 
 import de.tuberlin.cit.freamon.results.AuditLogModel
 
@@ -24,8 +25,11 @@ object AuditLogManager {
   private def processEntry(entry: String): Unit = {
     //var alm: AuditLogModel = null
 
+    val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
+
     val date: String = entry.substring(0,23)
-    println("Date: "+date)
+    val parsedDate: Long = sdf.parse(date).getTime()
+    println("Date: "+date+", parsed date: "+parsedDate)
     val status = entry.substring(24,28)
     println("Status: "+status)
     val reportingClass = entry.substring(29, 47)
