@@ -22,8 +22,7 @@ object AuditLogManager {
     }
   }
 
-  private def processEntry(entry: String): Unit = {
-    //var alm: AuditLogModel = null
+  private def processEntry(entry: String): AuditLogModel = {
 
     val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
@@ -34,6 +33,11 @@ object AuditLogManager {
     println("Report: "+report)
     val splitReport: Array[String] = report.split("\t")
     val allowed = splitReport(0).substring(8)
+    var boolAllowed: Boolean = true
+    if(allowed=="true")
+      boolAllowed = true
+    else if(allowed=="false")
+      boolAllowed = false
     val ugi = splitReport(1).substring(4)
     val ip = splitReport(2).substring(3)
     val cmd = splitReport(3).substring(4)
@@ -51,7 +55,9 @@ object AuditLogManager {
     println("perm: "+perm)
     println("proto: "+proto)
 
+    val alm: AuditLogModel = AuditLogModel(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto)
 
+    return alm
   }
 
   private def loadDriver(className: String): Unit = try {
@@ -79,7 +85,8 @@ object AuditLogManager {
       val l = br.readLine
       if(l != null){
         println(l)
-        processEntry(l)
+        val alm: AuditLogModel = processEntry(l)
+        AuditLogModel.insert(alm)
         read
       }
     }
