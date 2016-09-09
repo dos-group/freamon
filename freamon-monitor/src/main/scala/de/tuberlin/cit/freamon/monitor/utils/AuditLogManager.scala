@@ -38,11 +38,15 @@ object AuditLogManager {
       boolAllowed = true
     else if(allowed=="false")
       boolAllowed = false
-    val ugi = splitReport(1).substring(4)
+    val ugi = splitReport(1).substring(4)+"'"
     val ip = splitReport(2).substring(3)
     val cmd = splitReport(3).substring(4)
-    val src = splitReport(4).substring(4)
-    val dst = splitReport(5).substring(4)
+    var src = splitReport(4).substring(4)
+    if(src!="null")
+      src += "'"
+    var dst = splitReport(5).substring(4)
+    if(dst != "null")
+      dst += "'"
     val perm = splitReport(6).substring(5)
     val proto = splitReport(7).substring(6)
     println("Report: ")
