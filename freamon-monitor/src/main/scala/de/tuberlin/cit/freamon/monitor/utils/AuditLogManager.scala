@@ -21,6 +21,21 @@ object AuditLogManager {
     }
   }
 
+  private def processEntry(entry: String): Unit = {
+    //var alm: AuditLogModel = null
+
+    val date: String = entry.substring(0,23)
+    println("Date: "+date)
+    val status = entry.substring(24,27)
+    println("Status: "+status)
+    val reportingClass = entry.substring(29, 48)
+    println("Reporting class: "+reportingClass)
+    val report = entry.substring(50)
+    println("Report: "+report)
+
+
+  }
+
   private def loadDriver(className: String): Unit = try {
     Class.forName(className)
     println("monetdb driver loaded")
@@ -46,6 +61,7 @@ object AuditLogManager {
       val l = br.readLine
       if(l != null){
         println(l)
+        processEntry(l)
         read
       }
     }
