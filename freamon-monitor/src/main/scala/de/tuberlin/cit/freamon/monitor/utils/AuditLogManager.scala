@@ -3,6 +3,7 @@ package de.tuberlin.cit.freamon.monitor.utils
 import java.io.{File, InputStream}
 import java.sql.{Connection, DriverManager}
 import java.text.SimpleDateFormat
+import java.util
 
 import de.tuberlin.cit.freamon.results.AuditLogModel
 

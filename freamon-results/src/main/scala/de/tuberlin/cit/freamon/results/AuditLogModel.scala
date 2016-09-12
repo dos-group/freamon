@@ -1,6 +1,7 @@
 package de.tuberlin.cit.freamon.results
 
-import java.sql.PreparedStatement
+import java.sql.{PreparedStatement, ResultSet}
+import java.util
 
 /**
   * Model class for HDFS Audit logs collected by the master actor from agent actors
@@ -52,7 +53,8 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
     SQL(
       s"""
        CREATE TABLE $tableName (
-        date    BIGINT    UNIQUE,
+        id      INT       AUTO_INCREMENT,
+        date    BIGINT    NOT NULL,
         allowed BOOLEAN   NOT NULL,
         ugi     TEXT      NOT NULL,
         ip      TEXT      NOT NULL,
@@ -60,7 +62,8 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
         src     TEXT              ,
         dst    TEXT              ,
         perm    TEXT              ,
-        proto   TEXT);
+        proto   TEXT,
+        PRIMARY KEY(id));
      """).execute()
   }
 
