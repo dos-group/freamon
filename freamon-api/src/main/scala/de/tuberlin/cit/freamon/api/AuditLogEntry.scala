@@ -1,13 +1,13 @@
 package de.tuberlin.cit.freamon.api
 
 case class AuditLogEntry(){
-  val date = new Long
-  val allowed = new Boolean
-  val ugi = new String
-  val ip = new String
-  val cmd = new String
-  val src = new String
-  val dst = new String
-  val perm = new String
-  val proto = new String
+  val date:Long = 1L
+  val allowed:Boolean = false
+  val ugi:String = null
+  val ip:String = null
+  val cmd:String = null
+  val src:String = null
+  val dst:String = null
+  val perm:String = null
+  val proto:String = null
 }
