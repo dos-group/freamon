@@ -1,7 +1,6 @@
 package de.tuberlin.cit.freamon.results
 
-import java.sql.{PreparedStatement, ResultSet}
-import java.util
+import java.sql.PreparedStatement
 
 /**
   * Model class for HDFS Audit logs collected by the master actor from agent actors
@@ -85,23 +84,22 @@ object AuditLogModel extends PersistedAPI[AuditLogModel]{
   }
 
   override def insert(xs: Seq[AuditLogModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit{
-    BatchSql(
-      s"""
-         INSERT INTO $tableName($fields) VALUES(
-         '{date}',
-         '{allowed}',
-         '{ugi}',
-         '{ip}',
-         '{cmd}',
-         '{src}',
-         '{dst}',
-         '{perm}',
-         '{proto}'
-         );
-       """,
-      namedParametrsFor(xs.head),
-      xs.tail.map(namedParametrsFor): _*
-    ).execute()
+    val sql = "INSERT INTO "+tableName+"("+fields+") VALUES (?,?,?,?,?,?,?,?,?)"
+    val pstmt: PreparedStatement = conn.prepareStatement(sql)
+    xs.foreach(i => {
+      pstmt.setLong(1, i.date)
+      pstmt.setBoolean(2, i.allowed)
+      pstmt.setString(3, i.ugi)
+      pstmt.setString(4, i.ip)
+      pstmt.setString(5, i.cmd)
+      pstmt.setString(6, i.src)
+      pstmt.setString(7, i.dst)
+      pstmt.setString(8, i.perm)
+      pstmt.setString(9, i.proto)
+      pstmt.addBatch()
+    }
+    )
+    conn.commit()
   }
 
   override def update(x: AuditLogModel)(implicit conn: Connection): Unit = {

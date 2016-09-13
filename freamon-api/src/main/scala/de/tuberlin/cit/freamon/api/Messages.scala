@@ -23,3 +23,9 @@ case class StopRecording(applicationId: String)
 case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, container: ContainerStats)
+
+case class AuditLogSubmission(entry: AuditLogEntry)
+
+case class StartProcessingAuditLog(path: String)
+
+case class StopProcessingAuditLog(path: String)

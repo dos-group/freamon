@@ -7,9 +7,10 @@ import java.time.Instant
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
-import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
+import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
+import de.tuberlin.cit.freamon.collector.AuditLogCollector
 
 import scala.collection.mutable
 
@@ -19,6 +20,7 @@ class MonitorMasterActor extends Actor {
   var workers = mutable.Set[String]()
   val hostConfig = context.system.settings.config
   val yClient = new yarnClient
+  var processAudit: Boolean = false
 
   // setup DB connection
   implicit val conn = DB.getConnection(
@@ -56,6 +58,7 @@ class MonitorMasterActor extends Actor {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StartRecording(applicationId, containerIds)
+        agentActor ! StartProcessingAuditLog
       }
 
       log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(msg.startTime)}")
@@ -75,6 +78,7 @@ class MonitorMasterActor extends Actor {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
+        agentActor ! StopProcessingAuditLog
       }
 
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
@@ -124,6 +128,29 @@ class MonitorMasterActor extends Actor {
       for ((mem, i) <- container.memUtil.zipWithIndex) {
         EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
       }
+    }
+
+    case AuditLogSubmission(entry) => {
+      log.info("Received an audit log entry from timestamp: "+entry.date)
+      log.debug("Contents: allowed="+entry.allowed+", ugi="+entry.ugi+", ip="+entry.ip+
+        ", cmd="+entry.cmd+", src="+entry.src+", dst="+entry.dst+", perm="+entry.perm+", proto="+entry.proto)
+      AuditLogModel.insert(new AuditLogModel(entry.date, entry.allowed,
+        entry.ugi, entry.ip, entry.cmd, entry.src, entry.dst,
+        entry.perm, entry.proto))
+    }
+
+    case StartProcessingAuditLog => {
+      log.info("Starting to process the audit log...")
+      processAudit = true
+      AuditLogCollector.start("/usr/local/hadoop/logs/hdfs-audit.log")
+      while (processAudit && AuditLogCollector.anyEntryStored){
+        sender() ! AuditLogCollector.getAllEntries
+      }
+    }
+    case StopProcessingAuditLog =>{
+      log.info("Stopping processing the audit log...")
+      processAudit = false
+      log.info("Should be stopped by now!")
     }
 
   }
