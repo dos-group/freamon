@@ -4,31 +4,18 @@ import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.util
 
-
-case class AuditLogEntry(){
-  var date: Long = 1L
-  var allowed: Boolean = false
-  var ugi: String = null
-  var ip: String = null
-  var cmd: String = null
-  var src: String = null
-  var dst: String = null
-  var perm: String = null
-  var proto: String = null
-}
-
 object AuditLogCollector{
-  var entries: util.ArrayList[AuditLogEntry] = new util.ArrayList[AuditLogEntry]()
-  def getEntry: AuditLogEntry = {
+  var entries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
+  def getEntry: de.tuberlin.cit.freamon.api.AuditLogEntry = {
     if (!entries.isEmpty)
       entries.remove(0)
     else
       null
   }
 
-  def getAllEntries: util.ArrayList[AuditLogEntry] = {
+  def getAllEntries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = {
     if(!entries.isEmpty){
-      val result: util.ArrayList[AuditLogEntry] = new util.ArrayList[AuditLogEntry]()
+      val result: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
       for(i <- 0 to entries.size()){
         result.add(entries.remove(0))
       }
@@ -55,7 +42,7 @@ object AuditLogCollector{
         read()
       }
     })
-    t.start()
+    t.start
   }
   def processFile(path: String): Unit = {
     def t = new Thread(new Runnable {
@@ -72,11 +59,11 @@ object AuditLogCollector{
         read()
       }
     })
-    t.start()
+    t.start
   }
 
-  private def processEntry(entry: String): AuditLogEntry = {
-    val auditLog = new AuditLogEntry
+  private def processEntry(entry: String): de.tuberlin.cit.freamon.api.AuditLogEntry = {
+    val auditLog:de.tuberlin.cit.freamon.api.AuditLogEntry = new de.tuberlin.cit.freamon.api.AuditLogEntry
     val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
     val date: String = entry.substring(0,23)

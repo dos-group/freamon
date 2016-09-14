@@ -142,19 +142,19 @@ class MonitorMasterActor extends Actor {
     }
 
     case SerialAuditLogSubmission(entries) =>
-      log.info("Received a series of audit log entries. There are "+entries.length+" of them.")
-      for(i <- 0 to entries.length){
-        AuditLogModel.insert(new AuditLogModel(entries(i).date, entries(i).allowed, entries(i).ugi,
-          entries(i).ip, entries(i).cmd, entries(i).src, entries(i).dst, entries(i).perm, entries(i).proto))
+      log.info("Received a series of audit log entries. There are "+entries.size()+" of them.")
+      for(i <- 0 to entries.size()){
+        AuditLogModel.insert(new AuditLogModel(entries.get(i).date, entries.get(i).allowed, entries.get(i).ugi,
+          entries.get(i).ip, entries.get(i).cmd, entries.get(i).src, entries.get(i).dst, entries.get(i).perm, entries.get(i).proto))
       }
-      log.info("Inserted "+entries.length+" entries to database.")
+      log.info("Inserted "+entries.size+" entries to database.")
 
     case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
       processAudit = true
       AuditLogCollector.start(path)
       while (processAudit && AuditLogCollector.anyEntryStored){
-        sender() ! AuditLogCollector.getAllEntries.toArray
+        sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
       }
     }
 
