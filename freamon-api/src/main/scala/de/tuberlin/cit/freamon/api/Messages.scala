@@ -26,6 +26,8 @@ case class ContainerReport(applicationId: String, container: ContainerStats)
 
 case class AuditLogSubmission(entry: AuditLogEntry)
 
+case class SerialAuditLogSubmission(entries: Array[AuditLogEntry])
+
 case class StartProcessingAuditLog(path: String)
 
 case class StopProcessingAuditLog(path: String)

@@ -18,5 +18,6 @@ object MonitorMasterSystem extends App {
   val actorSystem = ActorSystem(masterConfig.getString("freamon.actors.systems.master.name"), masterConfig)
   val monitorMasterName = masterConfig.getString("freamon.actors.systems.master.actor")
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
+  monitorMaster.tell(StartProcessingAuditLog("/usr/local/hadoop/logs/hdfs-audit.log"), monitorMaster)
 
 }

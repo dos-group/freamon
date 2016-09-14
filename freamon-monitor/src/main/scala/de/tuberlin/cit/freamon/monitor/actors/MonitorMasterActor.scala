@@ -14,6 +14,8 @@ import de.tuberlin.cit.freamon.collector.AuditLogCollector
 
 import scala.collection.mutable
 
+case class StartProcessingAuditLog(path: String)
+
 class MonitorMasterActor extends Actor {
 
   val log = Logging(context.system, this)
@@ -58,7 +60,6 @@ class MonitorMasterActor extends Actor {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StartRecording(applicationId, containerIds)
-        agentActor ! StartProcessingAuditLog
       }
 
       log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(msg.startTime)}")
@@ -80,6 +81,7 @@ class MonitorMasterActor extends Actor {
         agentActor ! StopRecording(applicationId)
         agentActor ! StopProcessingAuditLog
       }
+      processAudit = false
 
       val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
 
@@ -139,18 +141,21 @@ class MonitorMasterActor extends Actor {
         entry.perm, entry.proto))
     }
 
-    case StartProcessingAuditLog => {
+    case SerialAuditLogSubmission(entries) =>
+      log.info("Received a series of audit log entries. There are "+entries.length+" of them.")
+      for(i <- 0 to entries.length){
+        AuditLogModel.insert(new AuditLogModel(entries(i).date, entries(i).allowed, entries(i).ugi,
+          entries(i).ip, entries(i).cmd, entries(i).src, entries(i).dst, entries(i).perm, entries(i).proto))
+      }
+      log.info("Inserted "+entries.length+" entries to database.")
+
+    case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
       processAudit = true
-      AuditLogCollector.start("/usr/local/hadoop/logs/hdfs-audit.log")
+      AuditLogCollector.start(path)
       while (processAudit && AuditLogCollector.anyEntryStored){
-        sender() ! AuditLogCollector.getAllEntries
+        sender() ! AuditLogCollector.getAllEntries.toArray
       }
-    }
-    case StopProcessingAuditLog =>{
-      log.info("Stopping processing the audit log...")
-      processAudit = false
-      log.info("Should be stopped by now!")
     }
 
   }
