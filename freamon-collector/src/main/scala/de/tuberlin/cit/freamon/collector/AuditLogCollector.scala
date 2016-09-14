@@ -60,6 +60,7 @@ object AuditLogCollector{
             var e: AuditLogEntry =  (processEntry(l))
             entries.synchronized{
               entries.add(e)
+              println("There are "+entries.size()+" entries now.")
             }
             e = null
           }
