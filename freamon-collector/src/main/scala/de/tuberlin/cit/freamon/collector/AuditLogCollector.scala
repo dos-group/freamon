@@ -60,7 +60,17 @@ object AuditLogCollector{
 
         def read(): Unit = {
           println("Started executing read..")
-          val l = br.readLine()
+          var l: String = null
+          try {
+            l = br.readLine()
+          }catch {
+            case e: Exception =>{
+              println("Caught an exception: "+e.getCause)
+              e.getStackTrace
+            }
+
+          }
+
           println("Contents of l: "+l)
           if(l != null){
             var e: AuditLogEntry = processEntry(l)
