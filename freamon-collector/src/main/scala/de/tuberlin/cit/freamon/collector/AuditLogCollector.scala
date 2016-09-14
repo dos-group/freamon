@@ -25,9 +25,15 @@ object AuditLogCollector{
     }
   }
 
+  def getNumberOfEntries: Int = {
+    entries.synchronized{
+      entries.size()
+    }
+  }
+
   def getAllEntries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = {
     println("AuditLogCollector: getAllEntries called")
-    println("There are "+entries.size()+" entries.")
+    println("There are "+ getNumberOfEntries +" entries.")
     if(!entries.isEmpty) {
       val result: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
       entries.synchronized {

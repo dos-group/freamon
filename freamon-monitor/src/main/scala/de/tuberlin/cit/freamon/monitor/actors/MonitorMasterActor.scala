@@ -153,9 +153,17 @@ class MonitorMasterActor extends Actor {
       log.info("Starting to process the audit log...")
       processAudit = true
       AuditLogCollector.start(path)
-      while (processAudit && AuditLogCollector.anyEntryStored){
-        log.info("Requesting entries...")
-        sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
+      while (processAudit){
+        log.info("Checking if there are any entries...")
+        if(!AuditLogCollector.anyEntryStored){
+          log.info("Currently there are no entries. Going to wait for a second...")
+          Thread.sleep(1000)
+          log.info("Waked up...")
+        }
+        else {
+          log.info("Requesting entries...")
+          sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
+        }
       }
       log.info("Stopping requesting entries...")
     }
