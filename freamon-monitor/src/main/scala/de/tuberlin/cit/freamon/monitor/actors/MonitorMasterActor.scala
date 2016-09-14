@@ -103,8 +103,8 @@ class MonitorMasterActor extends Actor {
     case Array("jobStopped", applicationId: String, stopTime: Long) =>
       this.stopApplication(applicationId, stopTime)
 
-    case msg @ ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
-      JobModel.selectWhere(s"app_id = '${msg.appId}'").headOption.map(oldJob => {
+    case ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
+      JobModel.selectWhere(s"app_id = '$appId'").headOption.map(oldJob => {
         JobModel.update(oldJob.copy(appId,
           framework = framework,
           signature = signature,
@@ -112,7 +112,7 @@ class MonitorMasterActor extends Actor {
           coresPerContainer = coresPC,
           memoryPerContainer = memPC))
         Unit
-      })
+      }).getOrElse(log.warning("Cannot update application metadata for " + appId))
     }
 
     case FindPreviousRuns(signature) => {
