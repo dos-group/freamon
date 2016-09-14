@@ -154,8 +154,10 @@ class MonitorMasterActor extends Actor {
       processAudit = true
       AuditLogCollector.start(path)
       while (processAudit && AuditLogCollector.anyEntryStored){
+        log.info("Requesting entries...")
         sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
       }
+      log.info("Stopping requesting entries...")
     }
 
   }

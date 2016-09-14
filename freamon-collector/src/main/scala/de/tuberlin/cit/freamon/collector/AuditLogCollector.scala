@@ -14,6 +14,8 @@ object AuditLogCollector{
   }
 
   def getAllEntries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = {
+    println("AuditLogCollector: getAllEntries called")
+    println("There are "+entries.size()+" entries.")
     if(!entries.isEmpty){
       val result: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
       for(i <- 0 to entries.size()){
@@ -25,10 +27,14 @@ object AuditLogCollector{
       null
   }
 
-  def anyEntryStored: Boolean = !entries.isEmpty
+  def anyEntryStored: Boolean = {
+    println("AuditLogCollector: anyEntriesStored called")
+    println("Are there any entries: "+(!entries.isEmpty)+", the size is: "+entries.size())
+    !entries.isEmpty}
 
   def start(path: String) {
     def t() = new Thread(new Runnable {
+      println("Extra thread started")
       override def run(): Unit = {
         val logFile = new File(path)
         val br = new BufferedReader(new InputStreamReader(follow(logFile)))
