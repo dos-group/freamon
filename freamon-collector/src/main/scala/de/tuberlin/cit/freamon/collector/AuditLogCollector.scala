@@ -50,7 +50,7 @@ object AuditLogCollector{
   def anyEntryStored: Boolean = {
     println("AuditLogCollector: anyEntriesStored called")
     println("Are there any entries: "+ checkIfEmpty +", the size is: "+entries.size())
-    checkIfEmpty
+    !checkIfEmpty
   }
 
   def start(path: String) {
