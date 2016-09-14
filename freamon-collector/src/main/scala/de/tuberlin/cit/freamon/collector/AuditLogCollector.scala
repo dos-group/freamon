@@ -58,19 +58,17 @@ object AuditLogCollector{
         println("logFile and br initialised")
         read
 
-        def read(): Unit = {
+        def read: Unit = {
           println("Started executing read..")
           var l: String = null
           try {
-            l = br.readLine()
+            l = br.readLine
           }catch {
             case e: Exception =>{
               println("Caught an exception: "+e.getCause)
               e.getStackTrace
             }
-
           }
-
           println("Contents of l: "+l)
           if(l != null){
             var e: AuditLogEntry = processEntry(l)
@@ -83,7 +81,7 @@ object AuditLogCollector{
             println("After synchronised block")
             e = null
           }
-          read()
+          read
         }
       }
     })
