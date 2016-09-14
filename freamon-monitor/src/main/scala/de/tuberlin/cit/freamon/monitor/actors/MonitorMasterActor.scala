@@ -9,7 +9,7 @@ import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
-import org.apache.hadoop.yarn.api.records.ApplicationId
+import org.apache.hadoop.yarn.api.records.{ApplicationId, FinalApplicationStatus}
 
 import scala.collection.mutable
 
@@ -31,6 +31,14 @@ class MonitorMasterActor extends Actor {
     log.info("Monitor Master started")
   }
 
+  def makeYarnAppIdInstance(applicationId: String): ApplicationId = {
+    val splitAppId = applicationId.split("_")
+    val clusterTimestamp = splitAppId(1).toLong
+    val id = splitAppId(2).toInt
+    val yarnAppId = ApplicationId.newInstance(clusterTimestamp, id)
+    yarnAppId
+  }
+
   def getAgentActorOnHost(hostname: String): ActorSelection = {
     val agentSystem = new Address("akka.tcp", hostConfig.getString("freamon.actors.systems.slave.name"),
       hostname, hostConfig.getInt("freamon.hosts.slaves.port"))
@@ -38,15 +46,9 @@ class MonitorMasterActor extends Actor {
     context.system.actorSelection(agentActorPath)
   }
 
-  def receive = {
-
-    // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
-    case msg @ ApplicationStart(applicationId, _, _, _, _) => {
-      val splitAppId = applicationId.split("_")
-      val clusterTimestamp = splitAppId(1).toLong
-      val id = splitAppId(2).toInt
+    def startApplication(applicationId: String, startTime: Long) = {
       val containerIds = yClient
-          .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
+          .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
           .map(containerNr => {
             val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
             val strippedAppId = applicationId.substring("application_".length)
@@ -58,10 +60,9 @@ class MonitorMasterActor extends Actor {
         agentActor ! StartRecording(applicationId, containerIds)
       }
 
-      log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(msg.startTime)}")
+      log.info(s"Job started: $applicationId at ${Instant.ofEpochMilli(startTime)}")
 
-      val job = new JobModel(applicationId, 'Flink, msg.signature,
-        containerIds.length, msg.coresPerContainer, msg.memPerContainer, msg.startTime)
+      val job = new JobModel(applicationId, start = startTime)
       try {
         JobModel.insert(job)
       } catch {
@@ -69,7 +70,7 @@ class MonitorMasterActor extends Actor {
       }
     }
 
-    case ApplicationStop(applicationId, stopTime) => {
+  def stopApplication(applicationId: String, stopTime: Long) = {
       // TODO do not stop if already stopped
 
       for (host <- workers) {
@@ -77,19 +78,49 @@ class MonitorMasterActor extends Actor {
         agentActor ! StopRecording(applicationId)
       }
 
-      val oldJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
+      val status = yClient.yarnClient.getApplicationReport(makeYarnAppIdInstance(applicationId)).getFinalApplicationStatus
 
-      val sec = (stopTime - oldJob.start) / 1000f
-      log.info(s"Job stopped: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
+      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(oldJob => {
+        val sec = (stopTime - oldJob.start) / 1000f
+        log.info(s"Job finished: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
+        JobModel.update(oldJob.copy(stop = stopTime))
+        Unit
+      }).orElse({
+        log.error("No such job in DB: " + applicationId + " (ApplicationStop)")
+        None
+      })
+    }
 
-      JobModel.update(oldJob.copy(stop = stopTime))
+  def receive = {
+
+    case ApplicationStart(applicationId, stopTime) =>
+      this.startApplication(applicationId, stopTime)
+    case Array("jobStarted", applicationId: String, stopTime: Long) =>
+      this.startApplication(applicationId, stopTime)
+
+    case ApplicationStop(applicationId, stopTime) =>
+      this.stopApplication(applicationId, stopTime)
+    case Array("jobStopped", applicationId: String, stopTime: Long) =>
+      this.stopApplication(applicationId, stopTime)
+
+    case ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
+      JobModel.selectWhere(s"app_id = '$appId'").headOption.map(oldJob => {
+        JobModel.update(oldJob.copy(appId,
+          framework = framework,
+          signature = signature,
+          datasetSize = datasetSize,
+          coresPerContainer = coresPC,
+          memoryPerContainer = memPC))
+        Unit
+      }).getOrElse(log.warning("Cannot update application metadata for " + appId))
     }
 
     case FindPreviousRuns(signature) => {
       val runs = JobModel.selectWhere(s"signature = '$signature'")
       sender ! PreviousRuns(
-        runs.map(r => r.numContainers.asInstanceOf[Integer]).toArray,
-        runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray
+        runs.map(_.numContainers.asInstanceOf[Integer]).toArray,
+        runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
+        runs.map(_.datasetSize.asInstanceOf[Double]).toArray
       )
     }
 
@@ -106,24 +137,29 @@ class MonitorMasterActor extends Actor {
       log.debug("Net: " + container.netUtil.mkString(", "))
       log.debug("Memory: " + container.memUtil.mkString(", "))
 
-      val job = JobModel.selectWhere(s"app_id = '$applicationId'").head
-      val hostname = sender().path.address.hostPort
-      val containerModel = ContainerModel(container.containerId, job.id, hostname)
-      ContainerModel.insert(containerModel)
+      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(job => {
+        val hostname = sender().path.address.hostPort
+        val containerModel = ContainerModel(container.containerId, job.id, hostname)
+        ContainerModel.insert(containerModel)
 
-      val containerStart = job.start + 1000 * container.startTick
-      for ((io, i) <- container.blkioUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
-      }
-      for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
-      }
-      for ((net, i) <- container.netUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'net, containerStart + 1000 * i, net))
-      }
-      for ((mem, i) <- container.memUtil.zipWithIndex) {
-        EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
-      }
+        val containerStart = job.start + 1000 * container.startTick
+        for ((io, i) <- container.blkioUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
+        }
+        for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
+        }
+        for ((net, i) <- container.netUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'net, containerStart + 1000 * i, net))
+        }
+        for ((mem, i) <- container.memUtil.zipWithIndex) {
+          EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
+        }
+        Unit
+      }).orElse({
+        log.error("No such job in DB: " + applicationId + " (ContainerReport)")
+        None
+      })
     }
 
   }

@@ -15,7 +15,7 @@ import java.util.List;
 
 
 public class yarnClient {
-    YarnClient yarnClient;
+    public YarnClient yarnClient;
     private ArrayList<ApplicationId> runningApplications = new ArrayList<ApplicationId>();
 
     public yarnClient() {
@@ -26,10 +26,6 @@ public class yarnClient {
         } else {
             throw new IllegalArgumentException("Neither HADOOP_PREFIX nor YARN_CONF_DIR are set in the environment");
         }
-    }
-
-    public yarnClient(String yarnSitePath) {
-        initYarnClient(yarnSitePath);
     }
 
     private void initYarnClient(String yarnSitePath) {
@@ -105,7 +101,6 @@ public class yarnClient {
                     System.out.print(containerIds[i] + ", ");
                 }
                 System.out.println(")");
-
                 return containerIds;
             } else {
                 System.err.println("Yarn Client: ERROR - could not fetch containerIds, because of too many application attempts ");
