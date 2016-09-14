@@ -3,6 +3,7 @@ package de.tuberlin.cit.freamon.monitor.actors
 import java.lang.Double
 import java.sql.SQLException
 import java.time.Instant
+import java.util
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
@@ -155,12 +156,12 @@ class MonitorMasterActor extends Actor {
       AuditLogCollector.start(path)
       while (processAudit){
         log.info("Checking if there are any entries...")
-        if(!AuditLogCollector.anyEntryStored){
+        if(AuditLogCollector.checkIfEmpty){
           log.info("Currently there are no entries. Going to wait for a second...")
           Thread.sleep(1000)
           log.info("Waked up...")
         }
-        else {
+        else if(!AuditLogCollector.checkIfEmpty){
           log.info("Requesting entries...")
           sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
         }

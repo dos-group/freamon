@@ -1,6 +1,7 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
 import akka.actor.{ActorSystem, Props}
+import de.tuberlin.cit.freamon.api.{AuditLogEntry, AuditLogSubmission}
 import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorMasterSystem extends App {

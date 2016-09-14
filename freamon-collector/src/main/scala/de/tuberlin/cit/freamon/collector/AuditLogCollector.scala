@@ -47,12 +47,6 @@ object AuditLogCollector{
       null
   }
 
-  def anyEntryStored: Boolean = {
-    println("AuditLogCollector: anyEntriesStored called")
-    println("Are there any entries: "+ checkIfEmpty +", the size is: "+entries.size())
-    !checkIfEmpty
-  }
-
   def start(path: String) {
     def t() = new Thread(new Runnable {
       println("Extra thread started")
