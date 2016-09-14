@@ -4,23 +4,37 @@ import java.io.{BufferedReader, File, InputStream, InputStreamReader}
 import java.text.SimpleDateFormat
 import java.util
 
+import de.tuberlin.cit.freamon.api.AuditLogEntry
+
 object AuditLogCollector{
   var entries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
+
   def getEntry: de.tuberlin.cit.freamon.api.AuditLogEntry = {
-    if (!entries.isEmpty)
-      entries.remove(0)
+    if (checkIfEmpty){
+      entries.synchronized {
+        entries.remove(0)
+      }
+    }
     else
       null
+  }
+
+  def checkIfEmpty: Boolean = {
+    entries.synchronized{
+      entries.isEmpty
+    }
   }
 
   def getAllEntries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = {
     println("AuditLogCollector: getAllEntries called")
     println("There are "+entries.size()+" entries.")
-    if(!entries.isEmpty){
+    if(!entries.isEmpty) {
       val result: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
-      for(i <- 0 to entries.size()){
+      entries.synchronized {
+      for (i <- 0 to entries.size()) {
         result.add(entries.remove(0))
       }
+    }
       result
     }
     else
@@ -29,8 +43,9 @@ object AuditLogCollector{
 
   def anyEntryStored: Boolean = {
     println("AuditLogCollector: anyEntriesStored called")
-    println("Are there any entries: "+(!entries.isEmpty)+", the size is: "+entries.size())
-    !entries.isEmpty}
+    println("Are there any entries: "+ checkIfEmpty +", the size is: "+entries.size())
+    checkIfEmpty
+  }
 
   def start(path: String) {
     def t() = new Thread(new Runnable {
@@ -41,8 +56,13 @@ object AuditLogCollector{
 
         def read(): Unit = {
           val l = br.readLine()
-          if(l != null)
-            entries.add(processEntry(l))
+          if(l != null){
+            var e: AuditLogEntry =  (processEntry(l))
+            entries.synchronized{
+              entries.add(e)
+            }
+            e = null
+          }
           read()
         }
         read()
