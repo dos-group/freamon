@@ -51,8 +51,12 @@ object AuditLogCollector{
     def t() = new Thread(new Runnable {
       println("Extra thread started")
       override def run(): Unit = {
+        println("Inside run...")
         val logFile = new File(path)
         val br = new BufferedReader(new InputStreamReader(follow(logFile)))
+        println("logFile and br initialised")
+        read
+        println("read executed")
 
         def read(): Unit = {
           val l = br.readLine()
@@ -69,7 +73,6 @@ object AuditLogCollector{
           }
           read()
         }
-        read()
       }
     })
     t.start
