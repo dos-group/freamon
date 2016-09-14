@@ -54,14 +54,16 @@ object AuditLogCollector{
         println("Inside run...")
         val logFile = new File(path)
         val br = new BufferedReader(new InputStreamReader(follow(logFile)))
+        println("The path is: "+path)
         println("logFile and br initialised")
         read
-        println("read executed")
 
         def read(): Unit = {
+          println("Started executing read..")
           val l = br.readLine()
+          println("Contents of l: "+l)
           if(l != null){
-            var e: AuditLogEntry =  (processEntry(l))
+            var e: AuditLogEntry = processEntry(l)
             println("Before synchronised block")
             println("Current object's date: "+e.date)
             entries.synchronized{
