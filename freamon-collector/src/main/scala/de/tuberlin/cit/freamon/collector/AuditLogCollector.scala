@@ -52,8 +52,8 @@ object AuditLogCollector{
       println("Extra thread started")
       override def run(): Unit = {
         println("Inside run...")
-        val logFile: File = new File(path)
-        val br: BufferedReader = new BufferedReader(new InputStreamReader(follow(logFile)))
+        val logFile = new File(path)
+        val br = new BufferedReader(new InputStreamReader(follow(logFile)))
         println("The path is: "+path)
         println("logFile and br initialised")
         read
