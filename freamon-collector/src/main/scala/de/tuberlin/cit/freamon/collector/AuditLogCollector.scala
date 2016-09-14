@@ -58,10 +58,13 @@ object AuditLogCollector{
           val l = br.readLine()
           if(l != null){
             var e: AuditLogEntry =  (processEntry(l))
+            println("Before synchronised block")
+            println("Current object's date: "+e.date)
             entries.synchronized{
               entries.add(e)
               println("There are "+entries.size()+" entries now.")
             }
+            println("After synchronised block")
             e = null
           }
           read()
