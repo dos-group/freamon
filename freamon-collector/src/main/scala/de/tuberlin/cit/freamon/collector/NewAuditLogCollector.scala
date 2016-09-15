@@ -104,9 +104,9 @@ object NewAuditLogCollector{
       }
     }
 
-    def consume(x: AuditLogEntry)
+    def consume(x: AuditLogEntry): AuditLogEntry
 
-    def checkIfEmpty()
+    def checkIfEmpty(): Boolean
   }
 
   val queue = new LinkedBlockingQueue[AuditLogEntry]()
