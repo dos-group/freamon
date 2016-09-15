@@ -154,6 +154,8 @@ class MonitorMasterActor extends Actor {
       log.info("Starting to process the audit log...")
       NewAuditLogCollector.startProducer(path)
       NewAuditLogCollector.startConsumer
+      log.info("Status of the producer thread: "+NewAuditLogCollector.producerThread.getState)
+      log.info("Status of the consumer thread: "+NewAuditLogCollector.consumerThread.getState)
       while(true) {
         if (NewAuditLogCollector.queue.isEmpty) {
           log.info("Currently no entries. Going to sleep for a second.")

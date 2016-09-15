@@ -32,6 +32,7 @@ object NewAuditLogCollector{
       println("Contents of l: " + l)
       if (l != null) {
         val e: AuditLogEntry = processEntry(l)
+        queue.add(e)
         println("An AuditLogEntry object created with date: " + e.date)
       }
       read()
@@ -110,10 +111,12 @@ object NewAuditLogCollector{
   }
 
   val queue = new LinkedBlockingQueue[AuditLogEntry]()
+  var producerThread: Thread = null
 
   def startProducer(path: String): Unit ={
     val producer = new Producer[AuditLogEntry](path, queue)
-    new Thread(producer).start()
+    producerThread = new Thread(producer)
+    producerThread.start()
   }
 
   var consumer: ForwardingConsumer = null
