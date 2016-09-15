@@ -23,8 +23,11 @@ object NewAuditLogCollector{
 
     def read(): Unit = {
       println("Producer.read called")
-      var l: String = br.readLine()
       println("Read the line!: "+br.readLine())
+      var l: String = br.readLine()
+      if(l==null)
+        println("l is null")
+      else println("l is not null")
       try {
         l = br.readLine()
       }
