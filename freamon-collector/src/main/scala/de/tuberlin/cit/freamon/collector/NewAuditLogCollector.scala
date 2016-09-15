@@ -1,6 +1,6 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{BufferedReader, File, InputStream, InputStreamReader}
+import java.io._
 import java.text.SimpleDateFormat
 import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 
@@ -10,9 +10,11 @@ object NewAuditLogCollector{
 
 
   class Producer[T](path: String, queue: BlockingQueue[AuditLogEntry]) extends Runnable {
+    println("Producer Class")
     var br: BufferedReader = null
 
     def run(): Unit = {
+      println("Producer.run called")
       val logFile = new File(path)
       br = new BufferedReader(new InputStreamReader(follow(logFile)))
       read()
@@ -20,12 +22,13 @@ object NewAuditLogCollector{
     }
 
     def read(): Unit = {
+      println("Producer.read called")
       var l: String = null
       try {
         l = br.readLine()
       }
       catch {
-        case e: Exception =>
+        case e: IOException =>
           println("Caught an exception: " + e.getCause)
           e.getStackTrace
       }
@@ -39,6 +42,7 @@ object NewAuditLogCollector{
     }
 
     def processEntry(entry: String): AuditLogEntry = {
+      println("Producer.processEntry called")
       val auditLog: AuditLogEntry = new AuditLogEntry
 
       val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
@@ -64,6 +68,7 @@ object NewAuditLogCollector{
     }
 
     def follow(file: File): InputStream = {
+      println("Producer.follow called")
       val maxRetries = 3
       val waitToOpen = 1000
       val waitBetweenReads = 100
@@ -75,6 +80,7 @@ object NewAuditLogCollector{
 
     def follow2(file: File, openTries: Int, openSleep: () => Unit, rereadSleep: () => Unit): InputStream = {
       import java.io.SequenceInputStream
+      println("Producer.follow2 called")
 
       val e = new java.util.Enumeration[InputStream] {
         def nextElement = new FollowingInputStream2(file, rereadSleep)
@@ -99,6 +105,7 @@ object NewAuditLogCollector{
 
   abstract class Consumer[AuditLogEntry](queue: BlockingQueue[AuditLogEntry]) extends Runnable {
     def run(): Unit = {
+      println("abstract Consumer.run called")
       while (true) {
         val item = queue.take()
         consume(item)
@@ -137,6 +144,7 @@ object NewAuditLogCollector{
     }
 
     def checkIfEmpty(): Boolean = {
+      println("ForwardingConsumer.checkIfEmpty called. queue is Empty: "+queue.isEmpty+", size: "+queue.size())
       queue.isEmpty
     }
   }

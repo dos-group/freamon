@@ -157,6 +157,7 @@ class MonitorMasterActor extends Actor {
       log.info("Status of the producer thread: "+NewAuditLogCollector.producerThread.getState)
       log.info("Status of the consumer thread: "+NewAuditLogCollector.consumerThread.getState)
       while(true) {
+        log.info("Queue status (empty): "+NewAuditLogCollector.consumer.checkIfEmpty()+", queue directly: "+NewAuditLogCollector.queue.isEmpty+", size: "+NewAuditLogCollector.queue.size())
         if (NewAuditLogCollector.queue.isEmpty) {
           log.info("Currently no entries. Going to sleep for a second.")
           Thread.sleep(1000)
