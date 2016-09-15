@@ -11,7 +11,7 @@ import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
-import de.tuberlin.cit.freamon.collector.AuditLogCollector
+import de.tuberlin.cit.freamon.collector.{AuditLogCollector, NewAuditLogCollector}
 
 import scala.collection.mutable
 
@@ -152,21 +152,21 @@ class MonitorMasterActor extends Actor {
 
     case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
-      processAudit = true
-      AuditLogCollector.start(path)
-      while (processAudit){
-        log.info("Checking if there are any entries...")
-        if(AuditLogCollector.checkIfEmpty){
-          log.info("Currently there are no entries. Going to wait for a second...")
+      NewAuditLogCollector.startProducer(path)
+      NewAuditLogCollector.startConsumer
+      while(true) {
+        if (NewAuditLogCollector.queue.isEmpty) {
+          log.info("Currently no entries. Going to sleep for a second.")
           Thread.sleep(1000)
-          log.info("Waked up...")
+          log.info("Waked up. Trying again...")
         }
-        else if(!AuditLogCollector.checkIfEmpty){
-          log.info("Requesting entries...")
-          sender() ! SerialAuditLogSubmission(AuditLogCollector.getAllEntries)
+        else if (!NewAuditLogCollector.queue.isEmpty){
+          log.info("Apparently an entry is available. Trying to get it...")
+          val ale: AuditLogEntry = NewAuditLogCollector.queue.take()
+          println("Got an entry with date: "+ale.date)
         }
       }
-      log.info("Stopping requesting entries...")
+
     }
 
   }
