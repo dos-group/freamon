@@ -23,7 +23,8 @@ object NewAuditLogCollector{
 
     def read(): Unit = {
       println("Producer.read called")
-      var l: String = null
+      var l: String = br.readLine()
+      println("Read the line!: "+br.readLine())
       try {
         l = br.readLine()
       }
@@ -103,7 +104,7 @@ object NewAuditLogCollector{
 
   }
 
-  abstract class Consumer[AuditLogEntry](queue: BlockingQueue[AuditLogEntry]) extends Runnable {
+  class Consumer[AuditLogEntry](queue: BlockingQueue[AuditLogEntry]) extends Runnable {
     def run(): Unit = {
       println("abstract Consumer.run called")
       while (true) {
@@ -112,9 +113,15 @@ object NewAuditLogCollector{
       }
     }
 
-    def consume(x: AuditLogEntry): AuditLogEntry
+    def consume(entry: AuditLogEntry): AuditLogEntry = {
+      println("Received an AuditLogEntry object forwarding...")
+      entry
+    }
 
-    def checkIfEmpty(): Boolean
+    def checkIfEmpty(): Boolean = {
+      println("ForwardingConsumer.checkIfEmpty called. queue is Empty: "+queue.isEmpty+", size: "+queue.size())
+      queue.isEmpty
+    }
   }
 
   val queue = new LinkedBlockingQueue[AuditLogEntry]()
@@ -126,28 +133,15 @@ object NewAuditLogCollector{
     producerThread.start()
   }
 
-  var consumer: ForwardingConsumer = null
+  var consumer: Consumer[AuditLogEntry] = null
   var consumerThread: Thread = null
 
   def startConsumer(): Unit = {
-    consumer = new ForwardingConsumer(queue)
+    consumer = new Consumer(queue)
     consumerThread = new Thread(consumer)
     consumerThread.start()
   }
 
-
-
-  class ForwardingConsumer(queue: BlockingQueue[AuditLogEntry]) extends Consumer[AuditLogEntry](queue){
-    def consume(entry: AuditLogEntry): AuditLogEntry = {
-      println("Received an AuditLogEntry object forwarding...")
-      entry
-    }
-
-    def checkIfEmpty(): Boolean = {
-      println("ForwardingConsumer.checkIfEmpty called. queue is Empty: "+queue.isEmpty+", size: "+queue.size())
-      queue.isEmpty
-    }
-  }
 
 }
 
