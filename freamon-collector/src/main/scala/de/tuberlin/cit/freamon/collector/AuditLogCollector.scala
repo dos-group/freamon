@@ -1,15 +1,15 @@
 package de.tuberlin.cit.freamon.collector
 
-import java.io.{BufferedReader, File, InputStream, InputStreamReader}
+import java.io.{File, InputStream}
 import java.text.SimpleDateFormat
 import java.util
 
 import de.tuberlin.cit.freamon.api.AuditLogEntry
 
 object AuditLogCollector{
-  var entries: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
+  var entries: util.ArrayList[AuditLogEntry] = new util.ArrayList[AuditLogEntry]()
 
-  def getEntry: de.tuberlin.cit.freamon.api.AuditLogEntry = {
+  def getEntry: AuditLogEntry = {
     if (checkIfEmpty){
       entries.synchronized {
         entries.remove(0)
@@ -35,7 +35,7 @@ object AuditLogCollector{
     println("AuditLogCollector: getAllEntries called")
     println("There are "+ getNumberOfEntries +" entries.")
     if(!entries.isEmpty) {
-      val result: util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry] = new util.ArrayList[de.tuberlin.cit.freamon.api.AuditLogEntry]()
+      val result: util.ArrayList[AuditLogEntry] = new util.ArrayList[AuditLogEntry]()
       entries.synchronized {
       for (i <- 0 to entries.size()) {
         result.add(entries.remove(0))
@@ -86,27 +86,29 @@ object AuditLogCollector{
           }
           read
         }
-        def processEntry(entry: String): de.tuberlin.cit.freamon.api.AuditLogEntry = {
-          val auditLog:de.tuberlin.cit.freamon.api.AuditLogEntry = new de.tuberlin.cit.freamon.api.AuditLogEntry
+        def processEntry(entry: String): AuditLogEntry = {
+
           val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
           val date: String = entry.substring(0,23)
-          auditLog.date = sdf.parse(date).getTime
+          val parsedDate = sdf.parse(date).getTime
           val report = entry.substring(49)
           val splitReport: Array[String] = report.split("\t")
           val allowed = splitReport(0).substring(8)
+          var boolAllowed: Boolean = false
           if(allowed=="true")
-            auditLog.allowed = true
+            boolAllowed = true
           else if (allowed=="false")
-            auditLog.allowed = false
-          auditLog.ugi = splitReport(1).substring(4)
-          auditLog.ip = splitReport(2).substring(3)
-          auditLog.cmd = splitReport(3).substring(4)
-          auditLog.src =splitReport(4).substring(4)
-          auditLog.dst = splitReport(5).substring(4)
-          auditLog.perm = splitReport(6).substring(5)
-          auditLog.proto = splitReport(7).substring(6)
+            boolAllowed = false
+          val ugi = splitReport(1).substring(4)
+          val ip = splitReport(2).substring(3)
+          val cmd = splitReport(3).substring(4)
+          val src =splitReport(4).substring(4)
+          val dst = splitReport(5).substring(4)
+          val perm = splitReport(6).substring(5)
+          val proto = splitReport(7).substring(6)
 
+          val auditLog:AuditLogEntry = new AuditLogEntry(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto)
           auditLog
 
         }
@@ -164,26 +166,27 @@ object AuditLogCollector{
   }*/
 
   private def processEntry(entry: String): de.tuberlin.cit.freamon.api.AuditLogEntry = {
-    val auditLog:de.tuberlin.cit.freamon.api.AuditLogEntry = new de.tuberlin.cit.freamon.api.AuditLogEntry
     val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
     val date: String = entry.substring(0,23)
-    auditLog.date = sdf.parse(date).getTime
+    val parsedDate = sdf.parse(date).getTime
     val report = entry.substring(49)
     val splitReport: Array[String] = report.split("\t")
     val allowed = splitReport(0).substring(8)
+    var boolAllowed: Boolean = false
     if(allowed=="true")
-      auditLog.allowed = true
+      boolAllowed = true
     else if (allowed=="false")
-      auditLog.allowed = false
-    auditLog.ugi = splitReport(1).substring(4)
-    auditLog.ip = splitReport(2).substring(3)
-    auditLog.cmd = splitReport(3).substring(4)
-    auditLog.src =splitReport(4).substring(4)
-    auditLog.dst = splitReport(5).substring(4)
-    auditLog.perm = splitReport(6).substring(5)
-    auditLog.proto = splitReport(7).substring(6)
+      boolAllowed = false
+    val ugi = splitReport(1).substring(4)
+    val ip = splitReport(2).substring(3)
+    val cmd = splitReport(3).substring(4)
+    val src =splitReport(4).substring(4)
+    val dst = splitReport(5).substring(4)
+    val perm = splitReport(6).substring(5)
+    val proto = splitReport(7).substring(6)
 
+    val auditLog:AuditLogEntry = new AuditLogEntry(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto)
     auditLog
 
   }

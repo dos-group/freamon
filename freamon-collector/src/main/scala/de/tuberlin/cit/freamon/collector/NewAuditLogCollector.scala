@@ -7,21 +7,13 @@ import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 import de.tuberlin.cit.freamon.api.AuditLogEntry
 
 object NewAuditLogCollector{
-  try {
-    val br:BufferedReader = new BufferedReader(new InputStreamReader(follow(logFile)))
-    var line: String = null
-    if((line = br.readLine())!= null){
-      println(line)
-    }
-  }
-
-
+  
   class Producer[T](path: String, queue: BlockingQueue[AuditLogEntry]) extends Runnable {
     println("Producer Class")
 
-    //var br: BufferedReader = null
+    var br: BufferedReader = null
     val logFile = new File(path)
-    //br = new BufferedReader(new InputStreamReader(follow(logFile)))
+    br = new BufferedReader(new InputStreamReader(follow(logFile)))
 
     def run(): Unit = {
       println("Producer.run called")
@@ -56,27 +48,27 @@ object NewAuditLogCollector{
 
     def processEntry(entry: String): AuditLogEntry = {
       println("Producer.processEntry called")
-      val auditLog: AuditLogEntry = new AuditLogEntry
-
       val sdf: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS")
 
-      val date: String = entry.substring(0, 23)
-      auditLog.date = sdf.parse(date).getTime
-      val report: String = entry.substring(49)
+      val date: String = entry.substring(0,23)
+      val parsedDate = sdf.parse(date).getTime
+      val report = entry.substring(49)
       val splitReport: Array[String] = report.split("\t")
       val allowed = splitReport(0).substring(8)
-      if (allowed == "true")
-        auditLog.allowed = true
-      else if (allowed == "false")
-        auditLog.allowed = false
-      auditLog.ugi = splitReport(1).substring(4)
-      auditLog.ip = splitReport(2).substring(3)
-      auditLog.cmd = splitReport(3).substring(4)
-      auditLog.src = splitReport(4).substring(4)
-      auditLog.dst = splitReport(5).substring(4)
-      auditLog.perm = splitReport(6).substring(5)
-      auditLog.proto = splitReport(7).substring(6)
+      var boolAllowed: Boolean = false
+      if(allowed=="true")
+        boolAllowed = true
+      else if (allowed=="false")
+        boolAllowed = false
+      val ugi = splitReport(1).substring(4)
+      val ip = splitReport(2).substring(3)
+      val cmd = splitReport(3).substring(4)
+      val src =splitReport(4).substring(4)
+      val dst = splitReport(5).substring(4)
+      val perm = splitReport(6).substring(5)
+      val proto = splitReport(7).substring(6)
 
+      val auditLog:AuditLogEntry = new AuditLogEntry(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto)
       auditLog
     }
 
