@@ -22,6 +22,11 @@ case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, container: ContainerStats)
 
+<<<<<<< HEAD
+case class StartProcessingAuditLog(path: String)
+
+case class StopProcessingAuditLog(path: String)
+=======
 case class ApplicationMetadata(
                                 appId: String,
                                 framework: Symbol = Symbol(null),
@@ -30,3 +35,4 @@ case class ApplicationMetadata(
                                 coresPerContainer: Int = 0,
                                 memoryPerContainer: Int = 0
                               )
+>>>>>>> master

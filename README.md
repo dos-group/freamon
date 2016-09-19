@@ -168,11 +168,13 @@ You can access the database via SQL.
 The data is stored in the following tables:
 
 ##### experiment_jobs
-| id | app_id | start | stop | framework | num_containers | cores_per_container | memory_per_container |
-|---|---|---|---|---|---|---|---|
-| 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | 4 | -1 | -1 |
-| 345 | application_1465933590123_0002 | 1465933790123 | 1465933890123 | Flink | 4 | -1 | -1 |
+| id | app_id | start | stop | framework | signature | dataset_size | num_containers | cores_per_container | memory_per_container |
+|---|---|---|---|---|---|---|---|---|---|
+| 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
+| 345 | application_1465933590123_0002 | 1465933790123 | 1465933890123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
 - `start`, `stop`: timestamp when the job was started/stopped, in milliseconds since the Unix epoch
+- `signature`: a unique identifier for the application, for example the jarfile hash
+- `dataset_size`: size in MB of the dataset that was processed
 
 Note that `framework`, `cores_per_container`, and `memory_per_container` are not collected yet,
 so they are always set to `Freamon` and `-1` respectively.
@@ -191,3 +193,34 @@ so they are always set to `Freamon` and `-1` respectively.
 
 - `kind`: type of the measurement, one of `cpu`, `mem`, `net`, `blkio`
 - `millis`: timestamp when the measurement occured, in milliseconds since the Unix epoch
+
+## Akka Messages API
+The following messages can be sent to Freamon's Actor System.
+
+##### `FindPreviousRuns(signature: String)`
+Search the DB for previous jobs of applications with the same signature.
+
+Freamon will respond with a `PreviousRuns` message with the following fields:
+- `scaleOuts`: `Array[Integer]`
+- `runtimes`: `Array[Double]`
+- `datasetSizes`: `Array[Double]`
+
+##### `ApplicationStart(applicationId: String, startTime: Long)`
+Tell Freamon to start monitoring for the provided application.
+The `startTime` (in milliseconds since epoch) will be stored in the DB and is provided because Freamon currently has no method to find out when an application started.
+
+##### `ApplicationStop(applicationId: String, stopTime: Long)`
+Tell Freamon to stop monitoring for the provided application.
+The `stopTime` (in milliseconds since epoch) will be stored in the DB and is provided because Freamon currently has no method to find out when an application stopped.
+
+##### `ApplicationMetadata`
+Provide Freamon with metadata about a job.
+Freamon will store the metadata with the job in the DB for later `FindPreviousRuns` requests.
+
+The message has the following fields:
+- `appId`: `String`, must be set
+- `framework`: `Symbol`, defaults to `Symbol(null)`
+- `signature`: `String`, defaults to `null`
+- `datasetSize`: `Double`, defaults to 0
+- `coresPerContainer`: `Int`, defaults to 0
+- `memoryPerContainer`: `Int`, defaults to 0

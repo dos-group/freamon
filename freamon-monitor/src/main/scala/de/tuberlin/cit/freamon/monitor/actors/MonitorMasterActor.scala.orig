@@ -10,8 +10,12 @@ import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
-import org.apache.hadoop.yarn.api.records.{ApplicationId, FinalApplicationStatus}
+<<<<<<< HEAD
+import org.apache.hadoop.yarn.api.records.ApplicationId
 import de.tuberlin.cit.freamon.collector.AuditLogProducer
+=======
+import org.apache.hadoop.yarn.api.records.{ApplicationId, FinalApplicationStatus}
+>>>>>>> master
 
 import scala.collection.mutable
 
@@ -52,14 +56,31 @@ class MonitorMasterActor extends Actor {
     context.system.actorSelection(agentActorPath)
   }
 
-    def startApplication(applicationId: String, startTime: Long) = {
+<<<<<<< HEAD
+  def receive = {
+
+    // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
+    case msg@ApplicationStart(applicationId, _, _, _, _) => {
+      val splitAppId = applicationId.split("_")
+      val clusterTimestamp = splitAppId(1).toLong
+      val id = splitAppId(2).toInt
       val containerIds = yClient
-          .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
+        .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
         .map(containerNr => {
           val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
           val strippedAppId = applicationId.substring("application_".length)
           "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
         })
+=======
+    def startApplication(applicationId: String, startTime: Long) = {
+      val containerIds = yClient
+          .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
+          .map(containerNr => {
+            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+            val strippedAppId = applicationId.substring("application_".length)
+            "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
+          })
+>>>>>>> master
 
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
