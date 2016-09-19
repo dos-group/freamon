@@ -172,6 +172,7 @@ class MonitorMasterActor extends Actor {
 
         }
       }
+
       catch {
         case ex: InterruptedException => {
           log.debug("Caught an InterruptedException: "+ex)
@@ -179,6 +180,9 @@ class MonitorMasterActor extends Actor {
         }
       }
 
+    }
+    case _ =>{
+      log.info("Received an unknown request.")
     }
   }
 }

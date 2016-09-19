@@ -23,6 +23,7 @@ object MonitorMasterSystem extends App {
 
   def tellMasterMonitor(msg: Any): Unit ={
     monitorMaster.tell(msg, monitorMaster)
+    println("told MasterMonitorActor")
   }
 
 }
