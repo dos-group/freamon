@@ -153,6 +153,11 @@ class MonitorMasterActor extends Actor {
             println("Queue is not empty. Trying to take an entry...")
             val ale = queue.take()
             println("Received an entry with date: "+ale.date)
+            log.debug("Contents: allowed=" + ale.allowed + ", ugi=" + ale.ugi + ", ip=" + ale.ip +
+              ", cmd=" + ale.cmd + ", src=" + ale.src + ", dst=" + ale.dst + ", perm=" + ale.perm + ", proto=" + ale.proto)
+            AuditLogModel.insert(new AuditLogModel(ale.date, ale.allowed,
+              ale.ugi, ale.ip, ale.cmd, ale.src, ale.dst,
+              ale.perm, ale.proto))
             println("Succeeded!")
           }
           else if (queue.isEmpty){
