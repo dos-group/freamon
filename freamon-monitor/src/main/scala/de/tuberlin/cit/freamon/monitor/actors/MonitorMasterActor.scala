@@ -134,15 +134,6 @@ class MonitorMasterActor extends Actor {
       }
     }
 
-    case AuditLogSubmission(entry) => {
-      log.info("Received an audit log entry from timestamp: " + entry.date)
-      log.debug("Contents: allowed=" + entry.allowed + ", ugi=" + entry.ugi + ", ip=" + entry.ip +
-        ", cmd=" + entry.cmd + ", src=" + entry.src + ", dst=" + entry.dst + ", perm=" + entry.perm + ", proto=" + entry.proto)
-      AuditLogModel.insert(new AuditLogModel(entry.date, entry.allowed,
-        entry.ugi, entry.ip, entry.cmd, entry.src, entry.dst,
-        entry.perm, entry.proto))
-    }
-
     case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
       val producer: AuditLogProducer = new AuditLogProducer(queue, path)
@@ -175,10 +166,5 @@ class MonitorMasterActor extends Actor {
           ex.printStackTrace()
         }
       }
-
-    }
-    case _ =>{
-      log.info("Received an unknown request.")
-    }
   }
 }
