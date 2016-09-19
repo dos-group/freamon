@@ -11,7 +11,7 @@ import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
-import de.tuberlin.cit.freamon.collector.{AuditLogProducer, NewAuditLogCollector}
+import de.tuberlin.cit.freamon.collector.AuditLogProducer
 
 import scala.collection.mutable
 
