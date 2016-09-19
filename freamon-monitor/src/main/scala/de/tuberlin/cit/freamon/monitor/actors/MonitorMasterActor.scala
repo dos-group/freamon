@@ -143,14 +143,6 @@ class MonitorMasterActor extends Actor {
         entry.perm, entry.proto))
     }
 
-    case SerialAuditLogSubmission(entries) =>
-      log.info("Received a series of audit log entries. There are " + entries.size() + " of them.")
-      for (i <- 0 to entries.size()) {
-        AuditLogModel.insert(new AuditLogModel(entries.get(i).date, entries.get(i).allowed, entries.get(i).ugi,
-          entries.get(i).ip, entries.get(i).cmd, entries.get(i).src, entries.get(i).dst, entries.get(i).perm, entries.get(i).proto))
-      }
-      log.info("Inserted " + entries.size + " entries to database.")
-
     case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
       val producer: AuditLogProducer = new AuditLogProducer(queue, path)
@@ -161,7 +153,6 @@ class MonitorMasterActor extends Actor {
             println("Queue is not empty. Trying to take an entry...")
             val ale = queue.take()
             println("Received an entry with date: "+ale.date)
-            MonitorMasterSystem.tellMasterMonitor(new AuditLogSubmission(ale))
             println("Succeeded!")
           }
           else if (queue.isEmpty){

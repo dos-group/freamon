@@ -1,7 +1,6 @@
 package de.tuberlin.cit.freamon.api
 
 import java.lang.Double
-import java.util
 
 case class FindPreviousRuns(signature: String)
 
@@ -26,8 +25,6 @@ case class WorkerAnnouncement(workerHostname: String)
 case class ContainerReport(applicationId: String, container: ContainerStats)
 
 case class AuditLogSubmission(entry: AuditLogEntry)
-
-case class SerialAuditLogSubmission(entries: util.ArrayList[AuditLogEntry])
 
 case class StartProcessingAuditLog(path: String)
 

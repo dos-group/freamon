@@ -1,7 +1,6 @@
 package de.tuberlin.cit.freamon.monitor.actors
 
-import akka.actor.{ActorRef, ActorSystem, Props}
-import de.tuberlin.cit.freamon.api.{AuditLogEntry, AuditLogSubmission}
+import akka.actor.{ActorSystem, Props}
 import de.tuberlin.cit.freamon.monitor.utils.ConfigUtil
 
 object MonitorMasterSystem extends App {
@@ -15,11 +14,6 @@ object MonitorMasterSystem extends App {
   val actorSystem = ActorSystem(masterConfig.getString("freamon.actors.systems.master.name"), masterConfig)
   val monitorMasterName = masterConfig.getString("freamon.actors.systems.master.actor")
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
-  monitorMaster.tell(StartProcessingAuditLog("/usr/local/hadoop/logs/hdfs-audit.log"), monitorMaster)
-
-  def tellMasterMonitor(msg: Any): Unit ={
-    monitorMaster.tell(msg, monitorMaster)
-    println("told MasterMonitorActor")
-  }
+  monitorMaster.tell(StartProcessingAuditLog(clusterConfig.getString("freamon.hosts.master.pathToAuditLog")), monitorMaster)
 
 }
