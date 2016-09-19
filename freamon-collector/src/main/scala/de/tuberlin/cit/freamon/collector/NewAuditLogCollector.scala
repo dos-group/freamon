@@ -7,16 +7,25 @@ import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 import de.tuberlin.cit.freamon.api.AuditLogEntry
 
 object NewAuditLogCollector{
+  try {
+    val br:BufferedReader = new BufferedReader(new InputStreamReader(follow(logFile)))
+    var line: String = null
+    if((line = br.readLine())!= null){
+      println(line)
+    }
+  }
 
 
   class Producer[T](path: String, queue: BlockingQueue[AuditLogEntry]) extends Runnable {
     println("Producer Class")
-    var br: BufferedReader = null
+
+    //var br: BufferedReader = null
+    val logFile = new File(path)
+    //br = new BufferedReader(new InputStreamReader(follow(logFile)))
 
     def run(): Unit = {
       println("Producer.run called")
-      val logFile = new File(path)
-      br = new BufferedReader(new InputStreamReader(follow(logFile)))
+
       read()
 
     }

@@ -3,7 +3,7 @@ package de.tuberlin.cit.freamon.monitor.actors
 import java.lang.Double
 import java.sql.SQLException
 import java.time.Instant
-import java.util
+import java.util.concurrent.LinkedBlockingQueue
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
@@ -11,7 +11,7 @@ import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
-import de.tuberlin.cit.freamon.collector.{AuditLogCollector, NewAuditLogCollector}
+import de.tuberlin.cit.freamon.collector.{AuditLogProducer, NewAuditLogCollector}
 
 import scala.collection.mutable
 
@@ -24,6 +24,7 @@ class MonitorMasterActor extends Actor {
   val hostConfig = context.system.settings.config
   val yClient = new yarnClient
   var processAudit: Boolean = false
+  var queue: LinkedBlockingQueue[AuditLogEntry] = new LinkedBlockingQueue[AuditLogEntry]()
 
   // setup DB connection
   implicit val conn = DB.getConnection(
@@ -46,17 +47,17 @@ class MonitorMasterActor extends Actor {
   def receive = {
 
     // we use arrays of Serializable so Freamon does not depend on yarn-workload-runner
-    case msg @ ApplicationStart(applicationId, _, _, _, _) => {
+    case msg@ApplicationStart(applicationId, _, _, _, _) => {
       val splitAppId = applicationId.split("_")
       val clusterTimestamp = splitAppId(1).toLong
       val id = splitAppId(2).toInt
       val containerIds = yClient
-          .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
-          .map(containerNr => {
-            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-            val strippedAppId = applicationId.substring("application_".length)
-            "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
-          })
+        .getApplicationContainerIds(ApplicationId.newInstance(clusterTimestamp, id))
+        .map(containerNr => {
+          val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+          val strippedAppId = applicationId.substring("application_".length)
+          "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
+        })
 
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
@@ -134,43 +135,38 @@ class MonitorMasterActor extends Actor {
     }
 
     case AuditLogSubmission(entry) => {
-      log.info("Received an audit log entry from timestamp: "+entry.date)
-      log.debug("Contents: allowed="+entry.allowed+", ugi="+entry.ugi+", ip="+entry.ip+
-        ", cmd="+entry.cmd+", src="+entry.src+", dst="+entry.dst+", perm="+entry.perm+", proto="+entry.proto)
+      log.info("Received an audit log entry from timestamp: " + entry.date)
+      log.debug("Contents: allowed=" + entry.allowed + ", ugi=" + entry.ugi + ", ip=" + entry.ip +
+        ", cmd=" + entry.cmd + ", src=" + entry.src + ", dst=" + entry.dst + ", perm=" + entry.perm + ", proto=" + entry.proto)
       AuditLogModel.insert(new AuditLogModel(entry.date, entry.allowed,
         entry.ugi, entry.ip, entry.cmd, entry.src, entry.dst,
         entry.perm, entry.proto))
     }
 
     case SerialAuditLogSubmission(entries) =>
-      log.info("Received a series of audit log entries. There are "+entries.size()+" of them.")
-      for(i <- 0 to entries.size()){
+      log.info("Received a series of audit log entries. There are " + entries.size() + " of them.")
+      for (i <- 0 to entries.size()) {
         AuditLogModel.insert(new AuditLogModel(entries.get(i).date, entries.get(i).allowed, entries.get(i).ugi,
           entries.get(i).ip, entries.get(i).cmd, entries.get(i).src, entries.get(i).dst, entries.get(i).perm, entries.get(i).proto))
       }
-      log.info("Inserted "+entries.size+" entries to database.")
+      log.info("Inserted " + entries.size + " entries to database.")
 
     case StartProcessingAuditLog(path) => {
       log.info("Starting to process the audit log...")
-      NewAuditLogCollector.startProducer(path)
-      NewAuditLogCollector.startConsumer
-      log.info("Status of the producer thread: "+NewAuditLogCollector.producerThread.getState)
-      log.info("Status of the consumer thread: "+NewAuditLogCollector.consumerThread.getState)
-      while(true) {
-        log.info("Queue status (empty): "+NewAuditLogCollector.consumer.checkIfEmpty()+", queue directly: "+NewAuditLogCollector.queue.isEmpty+", size: "+NewAuditLogCollector.queue.size())
-        if (NewAuditLogCollector.queue.isEmpty) {
-          log.info("Currently no entries. Going to sleep for a second.")
-          Thread.sleep(1000)
-          log.info("Waked up. Trying again...")
+      val producer: AuditLogProducer = new AuditLogProducer(queue, path)
+      new Thread(producer).start()
+      try {
+        while (true){
+          sender ! AuditLogSubmission(queue.take())
         }
-        else if (!NewAuditLogCollector.queue.isEmpty){
-          log.info("Apparently an entry is available. Trying to get it...")
-          val ale: AuditLogEntry = NewAuditLogCollector.queue.take()
-          println("Got an entry with date: "+ale.date)
+      }
+      catch {
+        case ex: InterruptedException => {
+          log.debug("Caught an InterruptedException: "+ex)
+          ex.printStackTrace()
         }
       }
 
     }
-
   }
 }
