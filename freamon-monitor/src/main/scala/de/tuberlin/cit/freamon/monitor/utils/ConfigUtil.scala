@@ -17,10 +17,6 @@ object ConfigUtil {
     }
   }
 
-  def readAuditLog(args: Array[String]): Unit = {
-    AuditLogManager.receiveRequest(args)
-  }
-
   def setRemotingHostPort(config: Config, hostName: String, port: Int): Config = {
     ConfigFactory.parseString(
       "akka.remote.netty.tcp.hostname=" + hostName
