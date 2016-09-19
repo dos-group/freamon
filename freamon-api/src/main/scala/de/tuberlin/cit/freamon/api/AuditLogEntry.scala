@@ -12,4 +12,4 @@ package de.tuberlin.cit.freamon.api
   var proto:String = null
 }*/
 
-case class AuditLogEntry(date: Long, allowed: Boolean, ugi: String, ip: String, cmd: String, src: String, dst: String, perm: String, proto: String)
+case class AuditLogEntry(var date: Long, var allowed: Boolean, var ugi: String, var ip: String, var cmd: String, var src: String, var dst: String, var perm: String, var proto: String)
