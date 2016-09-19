@@ -82,7 +82,6 @@ class MonitorMasterActor extends Actor {
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
-        agentActor ! StopProcessingAuditLog
       }
       processAudit = false
 
