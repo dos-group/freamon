@@ -159,7 +159,9 @@ class MonitorMasterActor extends Actor {
         while (true){
           if(!queue.isEmpty){
             println("Queue is not empty. Trying to take an entry...")
-            sender ! AuditLogSubmission(queue.take())
+            val ale = queue.take()
+            println("Received an entry with date: "+ale.date)
+            sender().tell(AuditLogSubmission(ale), sender())
             println("Succeeded!")
           }
           else if (queue.isEmpty){
