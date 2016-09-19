@@ -20,23 +20,26 @@ public class AuditLogProducer implements Runnable{
         this.path = path;
     }
     public void run(){
+        System.out.println("Producer started...");
         try {
             while (true){
-                queue.put(null);
+                startReading();
             }
         }
-        catch (InterruptedException ex){
-            System.err.println("Caught Interrupted Exception: "+ex);
+        catch (Exception ex){
+            System.err.println("Caught an Exception: "+ex);
             ex.printStackTrace();
         }
     }
 
     public void startReading(){
+        System.out.println("startReading called");
         String line;
         try{
             LineNumberReader lnr = new LineNumberReader(new FileReader(path));
             while (true){
                 line = lnr.readLine();
+                System.out.println("Line read: "+line);
                 if(line == null){
                     System.err.println("Waiting 3 seconds");
                     Thread.sleep(3000);
@@ -60,6 +63,7 @@ public class AuditLogProducer implements Runnable{
     }
 
     private AuditLogEntry processEntry(String entry){
+        System.out.println("processEntry called");
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 
         String date = entry.substring(0,23);
@@ -86,6 +90,7 @@ public class AuditLogProducer implements Runnable{
         String proto = splitReport[7].substring(6);
 
         AuditLogEntry ale = new AuditLogEntry(parsedDate, boolAllowed, ugi, ip, cmd, src, dst, perm, proto);
+        System.out.println("An AuditLogEntry object created with date: "+ale.date());
 
         return ale;
     }

@@ -157,7 +157,17 @@ class MonitorMasterActor extends Actor {
       new Thread(producer).start()
       try {
         while (true){
-          sender ! AuditLogSubmission(queue.take())
+          if(!queue.isEmpty){
+            println("Queue is not empty. Trying to take an entry...")
+            sender ! AuditLogSubmission(queue.take())
+            println("Succeeded!")
+          }
+          else if (queue.isEmpty){
+            log.info("Currently no entries. Sleeping for a second")
+            Thread.sleep(1000)
+            log.info("Waked up. Trying again...")
+          }
+
         }
       }
       catch {
