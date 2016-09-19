@@ -15,7 +15,7 @@ public class AuditLogProducer implements Runnable{
     private final BlockingQueue queue;
     private String path;
 
-    AuditLogProducer(BlockingQueue q, String path){
+    public AuditLogProducer(BlockingQueue q, String path){
         queue = q;
         this.path = path;
     }
