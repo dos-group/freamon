@@ -3,7 +3,6 @@ package de.tuberlin.cit.freamon.collector;
 
 import de.tuberlin.cit.freamon.api.AuditLogEntry;
 
-import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.concurrent.BlockingQueue;

@@ -7,7 +7,7 @@ import java.util.concurrent.{BlockingQueue, LinkedBlockingQueue}
 import de.tuberlin.cit.freamon.api.AuditLogEntry
 
 object NewAuditLogCollector{
-  
+
   class Producer[T](path: String, queue: BlockingQueue[AuditLogEntry]) extends Runnable {
     println("Producer Class")
 
