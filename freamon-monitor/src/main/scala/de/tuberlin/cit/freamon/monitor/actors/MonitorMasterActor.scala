@@ -139,11 +139,11 @@ class MonitorMasterActor extends Actor {
       val producer: AuditLogProducer = new AuditLogProducer(queue, path)
       new Thread(producer).start()
       try {
-        while (true){
-          if(!queue.isEmpty){
+        while (true) {
+          if (!queue.isEmpty) {
             println("Queue is not empty. Trying to take an entry...")
             val ale = queue.take()
-            println("Received an entry with date: "+ale.date)
+            println("Received an entry with date: " + ale.date)
             log.debug("Contents: allowed=" + ale.allowed + ", ugi=" + ale.ugi + ", ip=" + ale.ip +
               ", cmd=" + ale.cmd + ", src=" + ale.src + ", dst=" + ale.dst + ", perm=" + ale.perm + ", proto=" + ale.proto)
             AuditLogModel.insert(new AuditLogModel(ale.date, ale.allowed,
@@ -151,7 +151,7 @@ class MonitorMasterActor extends Actor {
               ale.perm, ale.proto))
             println("Succeeded!")
           }
-          else if (queue.isEmpty){
+          else if (queue.isEmpty) {
             log.info("Currently no entries. Sleeping for a second")
             Thread.sleep(1000)
             log.info("Waked up. Trying again...")
@@ -162,9 +162,11 @@ class MonitorMasterActor extends Actor {
 
       catch {
         case ex: InterruptedException => {
-          log.debug("Caught an InterruptedException: "+ex)
+          log.debug("Caught an InterruptedException: " + ex)
           ex.printStackTrace()
         }
       }
+    }
   }
+
 }
