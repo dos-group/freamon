@@ -161,17 +161,7 @@ class MonitorMasterActor extends Actor {
             println("Queue is not empty. Trying to take an entry...")
             val ale = queue.take()
             println("Received an entry with date: "+ale.date)
-            val alpe = new AuditLogProperEntry
-            alpe.allowed = ale.allowed
-            alpe.cmd = ale.cmd
-            alpe.date = ale.date
-            alpe.dst = ale.dst
-            alpe.ip = ale.ip
-            alpe.perm = ale.perm
-            alpe.proto = ale.proto
-            alpe.src = ale.src
-            alpe.ugi = ale.ugi
-            MonitorMasterSystem.tellMasterMonitor(alpe)
+            MonitorMasterSystem.tellMasterMonitor(new AuditLogSubmission(ale))
             println("Succeeded!")
           }
           else if (queue.isEmpty){
