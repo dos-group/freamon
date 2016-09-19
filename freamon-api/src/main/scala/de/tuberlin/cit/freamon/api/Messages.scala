@@ -25,7 +25,7 @@ case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, container: ContainerStats)
 
-case class AuditLogSubmission(entry: AuditLogEntry)
+case class AuditLogSubmission(entry: AuditLogProperEntry)
 
 case class SerialAuditLogSubmission(entries: util.ArrayList[AuditLogEntry])
 
