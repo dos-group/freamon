@@ -101,7 +101,7 @@ If you do not want it to run for now, you can stop it:
 ### Configuring Freamon
 Create a copy of [`doc/freamon/cluster.conf`](https://github.com/citlab/freamon/blob/master/doc/freamon/cluster.conf) and configure it according to your setup.
 
-- `freamon.hosts.master.hostname` should be an address that can be resolved from every slave.
+- `freamon.hosts.master.hostname` should be an address that can be resolved from every slave. (Note: On some systems, localhost as value is not working)
 - `freamon.monetdb.name` is the database name you used when [configuring MonetDB](#configuring-monetdb).
 
 ### Configuring YARN Workload Runner
