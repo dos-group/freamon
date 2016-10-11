@@ -9,7 +9,7 @@ import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
 import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
-import org.apache.hadoop.yarn.api.records.{ApplicationId, FinalApplicationStatus}
+import org.apache.hadoop.yarn.api.records.ApplicationId
 
 import scala.collection.mutable
 
@@ -78,8 +78,6 @@ class MonitorMasterActor extends Actor {
         agentActor ! StopRecording(applicationId)
       }
 
-      val status = yClient.yarnClient.getApplicationReport(makeYarnAppIdInstance(applicationId)).getFinalApplicationStatus
-
       JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(oldJob => {
         val sec = (stopTime - oldJob.start) / 1000f
         log.info(s"Job finished: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
@@ -129,38 +127,21 @@ class MonitorMasterActor extends Actor {
       workers += workerHostname
     }
 
-    case ContainerReport(applicationId, container) => {
-      log.info("Received a container report of " + applicationId + " from " + sender)
-      log.info("for container " + container.containerId + " with " + container.cpuUtil.length + " samples")
-      log.debug("BlkIO: " + container.blkioUtil.mkString(", "))
-      log.debug("CPU: " + container.cpuUtil.mkString(", "))
-      log.debug("Net: " + container.netUtil.mkString(", "))
-      log.debug("Memory: " + container.memUtil.mkString(", "))
+    case ContainerReport(applicationId, containerId, samples) =>
+      log.info(s"Received a container report for $containerId from $sender")
+      log.debug("with " + samples.length + " samples: " + samples.mkString(", "))
 
-      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(job => {
-        val hostname = sender().path.address.hostPort
-        val containerModel = ContainerModel(container.containerId, job.id, hostname)
-        ContainerModel.insert(containerModel)
+      JobModel.selectWhere(s"app_id = '$applicationId'").headOption match {
+        case Some(job) =>
+          val hostname = sender().path.address.hostPort
+          val containerModel = ContainerModel(containerId, job.id, hostname)
+          ContainerModel.insert(containerModel)
 
-        val containerStart = job.start + 1000 * container.startTick
-        for ((io, i) <- container.blkioUtil.zipWithIndex) {
-          EventModel.insert(new EventModel(containerModel.id, job.id, 'blkio, containerStart + 1000 * i, io))
-        }
-        for ((cpu, i) <- container.cpuUtil.zipWithIndex) {
-          EventModel.insert(new EventModel(containerModel.id, job.id, 'cpu, containerStart + 1000 * i, cpu))
-        }
-        for ((net, i) <- container.netUtil.zipWithIndex) {
-          EventModel.insert(new EventModel(containerModel.id, job.id, 'net, containerStart + 1000 * i, net))
-        }
-        for ((mem, i) <- container.memUtil.zipWithIndex) {
-          EventModel.insert(new EventModel(containerModel.id, job.id, 'mem, containerStart + 1000 * i, mem))
-        }
-        Unit
-      }).orElse({
-        log.error("No such job in DB: " + applicationId + " (ContainerReport)")
-        None
-      })
-    }
+          for (foo <- samples) {
+             EventModel.insert(new EventModel(containerModel.id, job.id, foo.kind, foo.millis, foo.value))
+          }
+        case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
+      }
 
   }
 }

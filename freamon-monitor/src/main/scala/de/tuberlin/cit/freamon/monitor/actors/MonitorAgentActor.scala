@@ -6,18 +6,37 @@ import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import com.typesafe.config.Config
 import de.tuberlin.cit.freamon.api._
-import de.tuberlin.cit.freamon.collector.AppStatsCollector
+import de.tuberlin.cit.freamon.collector.{NetHogsMonitor, NetUsageSample, ProcPoll}
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
-  val applications = new mutable.HashMap[String, AppStatsCollector]
+  val hostConfig = context.system.settings.config
+
+  // appId -> containerId
+  val containersPerApp = new mutable.HashMap[String, ArrayBuffer[String]]
+
+  // containerId -> [sample]
+  val containerStats = new mutable.HashMap[String, ArrayBuffer[StatSample]]
+
+  // required to find the container's pid once a container starts
+  val procPoll = new ProcPoll(1, self ! _).startRecording()
+
+  val netHogsMonitor = {
+    val netHogsCommandConfigKey = "freamon.hosts.slaves.nethogsCommand"
+    if (hostConfig.hasPath(netHogsCommandConfigKey) && !hostConfig.getIsNull(netHogsCommandConfigKey)) {
+      val nethogsCommand = hostConfig.getString(netHogsCommandConfigKey)
+      Some(new NetHogsMonitor(nethogsCommand, self ! _))
+    } else {
+      None
+    }
+  }
 
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
-    val hostConfig = context.system.settings.config
 
     this.getMasterActor(hostConfig) ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
   }
@@ -40,30 +59,48 @@ class MonitorAgentActor() extends Actor {
       log.info("Requested " + containerIds.length
         + " containers: " + containerIds.mkString(", "))
 
-      val appStats = applications.getOrElse(applicationId, {
-        val appStats = new AppStatsCollector(applicationId, 1)
-        appStats.onCollect = container => {
-          //log.debug(container.containerId + " BlkIO:  " + container.blkioUtil.last.formatted("%.2f sectors"))
-          //log.debug(container.containerId + " Net:    " + container.netUtil.last.formatted("%.2f bytes"))
-          log.debug(container.containerId + " CPU:    " + container.cpuUtil.last.formatted("%.2f cores"))
-          log.debug(container.containerId + " Memory: " + container.memUtil.last + " MB")
-        }
-        applications(applicationId) = appStats
-        appStats.startRecording()
-      })
+      containersPerApp.get(applicationId) match {
+        case Some(appContainers) => appContainers ++= containerIds
+        case None =>
+          val appContainers = new ArrayBuffer[String]()
+          containersPerApp.put(applicationId, appContainers)
+          appContainers ++= containerIds
+          for (containerId <- containerIds) {
+            containerStats.put(containerId, new ArrayBuffer[StatSample]())
+          }
+      }
 
-      appStats.addContainers(containerIds)
+      procPoll.addContainers(containerIds)
 
     case StopRecording(applicationId: String) =>
-      applications.get(applicationId) match {
+      containersPerApp.remove(applicationId) match {
         case None => log.warning("Monitor Agent has no reports for " + applicationId)
+        case Some(appContainers) =>
+          log.info(s"Monitor Agent sends reports for $applicationId")
+          for (containerId <- appContainers) {
+            containerStats.remove(containerId) foreach { samples =>
+              log.debug(s"${samples.length} samples for $containerId")
+              if (samples.nonEmpty)
+                sender ! ContainerReport(applicationId, containerId, samples.toArray)
+            }
+          }
+      }
 
-        case Some(appStats) =>
-          val containers = appStats.stopRecording()
-          log.info("Monitor Agent sends " + containers.length + " reports for " + applicationId)
-          for (container <- containers) {
-            log.info(container.containerId + ": " + container.cpuUtil.length + " samples")
-            sender ! new ContainerReport(applicationId, container)
+    case sample: StatSample =>
+      containerStats get sample.containerId foreach { samples =>
+        log.debug(s"Recording sample $sample")
+        samples += sample
+      }
+
+    case sample: NetUsageSample =>
+      // store sample if pid is being recorded (is key in hashmap)
+      procPoll.containersByPid.get(sample.pid) match {
+        case None => // ignored pid
+        case Some(containerId) =>
+          containerStats get containerId map { stats =>
+            log.debug(s"Recording net sample $sample")
+            stats += StatSample(containerId, 'netUp, sample.time, sample.up.asInstanceOf)
+            stats += StatSample(containerId, 'netDown, sample.time, sample.down.asInstanceOf)
           }
       }
 
