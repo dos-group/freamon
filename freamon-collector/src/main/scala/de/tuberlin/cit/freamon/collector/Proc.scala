@@ -7,14 +7,17 @@ object Proc {
   val sigar = new Sigar()
 
   def getForContainer(container: String): Option[Proc] = {
-    // maybe additionally filter for org.apache.flink.yarn.YarnTaskManagerRunner
+    findContainerPid(container).map(new Proc(_))
+  }
+
+  def findContainerPid(container: String): Option[Long] = {
     val searchPattern = s"State.Name.eq=java,Args.*.ct=$container"
     val pids: Array[Long] = ProcessFinder.find(Proc.sigar, searchPattern)
     if (pids.length < 1) return None
     if (pids.length > 1)
       throw new IllegalStateException(s"Search pattern is incomplete, found too many (${pids.length}) matching processes")
 
-    Some(new Proc(pids(0)))
+    Some(pids(0))
   }
 }
 
