@@ -35,10 +35,14 @@ First you need to decide where which system will run.
 The Freamon master and MonetDB need to be on the same node.
 This node also needs passwordless SSH access to the nodes where the Yarn containers will run
 (they are usually listed in `$HADOOP_PREFIX/etc/hadoop/slaves`).
-The Freamon master does not need to be on the same node as the Hadoop Master.
+The Freamon master does not need to be on the same node as the Hadoop master.
+
+The Freamon agents will run on the Hadoop nodes.
+If you want to measure network usage of the containers, [NetHogs](https://github.com/raboof/nethogs) must be installed on the worker nodes
+and has to be runnable without root rights (for example using the setuid or capabilities methods [explained below](#nethogs)).
 
 If you did not compile Freamon yourself, you need to put the Jar into `freamon-monitor/target/`
-and name it `freamon-monitor-1.0-SNAPSHOT-allinone.jar`, so the start script can find it.
+and name it `freamon-monitor-1.1-SNAPSHOT-allinone.jar`, so the start script can find it.
 The Jar needs to be available under the same path on every node.
 
 ### MonetDB
@@ -55,6 +59,15 @@ and extract it to `lib/hyperic-sigar-1.6.4/`:
     mkdir lib
     cd lib
     tar xzvf /path/to/hyperic-sigar-1.6.4.tar.gz
+
+### NetHogs
+Freamon uses [NetHogs](https://github.com/raboof/nethogs) to capture network utilization data.
+Install it as described on its readme, then add the following capabilities of the binary to allow non-root users to run it:
+
+    sudo setcap cap_net_admin,cap_net_raw=+eip /usr/bin/nethogs
+
+    # or, if your system does not support capabilities
+    #sudo chmod +s /usr/bin/nethogs
 
 
 ## Configuration
