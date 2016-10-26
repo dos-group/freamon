@@ -15,4 +15,7 @@ object MonitorMasterSystem extends App {
   val monitorMasterName = masterConfig.getString("freamon.actors.systems.master.actor")
   val monitorMaster = actorSystem.actorOf(Props[MonitorMasterActor], name = monitorMasterName)
 
+  if (clusterConfig.hasPath("freamon.hosts.master.pathToAuditLog"))
+    monitorMaster.tell(StartProcessingAuditLog(clusterConfig.getString("freamon.hosts.master.pathToAuditLog")), monitorMaster)
+
 }

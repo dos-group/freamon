@@ -22,6 +22,10 @@ case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, containerId: String, samples: Array[StatSample])
 
+case class ForwardAuditLogEntries()
+
+case class ForwardedAuditLogEntry(entry: AuditLogEntry)
+
 case class ApplicationMetadata(
                                 appId: String,
                                 framework: Symbol = Symbol(null),

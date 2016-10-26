@@ -2,6 +2,7 @@
 
 # a directory with this name will be created/used
 farmdir="$(dirname $BASH_SOURCE)/../monetdb-farm"
+export FARMDIR=$farmdir
 
 # same as freamon.monetdb.name in hosts.conf
 dbname="freamon"

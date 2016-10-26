@@ -3,15 +3,21 @@ package de.tuberlin.cit.freamon.monitor.actors
 import java.lang.Double
 import java.sql.SQLException
 import java.time.Instant
+import java.util.concurrent.LinkedBlockingQueue
 
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
-import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
+import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
+import de.tuberlin.cit.freamon.collector.AuditLogProducer
+import de.tuberlin.cit.freamon
+import de.tuberlin.cit.freamon.monitor.utils.AuditLogForwarder
 
 import scala.collection.mutable
+
+case class StartProcessingAuditLog(path: String)
 
 class MonitorMasterActor extends Actor {
 
@@ -19,6 +25,9 @@ class MonitorMasterActor extends Actor {
   var workers = mutable.Set[String]()
   val hostConfig = context.system.settings.config
   val yClient = new yarnClient
+  var processAudit: Boolean = false
+  var queue: LinkedBlockingQueue[AuditLogEntry] = new LinkedBlockingQueue[AuditLogEntry]()
+  var outwardQueue: LinkedBlockingQueue[AuditLogEntry] = new LinkedBlockingQueue[AuditLogEntry]()
 
   // setup DB connection
   implicit val conn = DB.getConnection(
@@ -49,11 +58,11 @@ class MonitorMasterActor extends Actor {
     def startApplication(applicationId: String, startTime: Long) = {
       val containerIds = yClient
           .getApplicationContainerIds(makeYarnAppIdInstance(applicationId))
-          .map(containerNr => {
-            val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
-            val strippedAppId = applicationId.substring("application_".length)
-            "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
-          })
+        .map(containerNr => {
+          val attemptNr = 1 // TODO get from yarn, yarnClient assumes this to be 1
+          val strippedAppId = applicationId.substring("application_".length)
+          "container_%s_%02d_%06d".format(strippedAppId, attemptNr, containerNr)
+        })
 
       for (host <- workers) {
         val agentActor = this.getAgentActorOnHost(host)
@@ -77,6 +86,8 @@ class MonitorMasterActor extends Actor {
         val agentActor = this.getAgentActorOnHost(host)
         agentActor ! StopRecording(applicationId)
       }
+      processAudit = false
+
 
       JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(oldJob => {
         val sec = (stopTime - oldJob.start) / 1000f
@@ -143,5 +154,38 @@ class MonitorMasterActor extends Actor {
         case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
       }
 
+    case StartProcessingAuditLog(path) => {
+      log.debug("Starting to process the audit log...")
+      val producer: AuditLogProducer = new AuditLogProducer(queue, path)
+      new Thread(producer).start()
+      val forwarder: AuditLogForwarder = new AuditLogForwarder(queue, outwardQueue, conn)
+      new Thread(forwarder).start()
+    }
+
+    case ForwardAuditLogEntries() => {
+      log.debug("ForwardAuditLogEntries: Received a request for forwarding the AuditLogEntry objects to an external entity.")
+      while (true){
+        if(!outwardQueue.isEmpty){
+          log.debug("ForwardAuditLogEntries: Outward queue not empty. Trying to forward an object")
+          val ale: AuditLogEntry = outwardQueue.take()
+
+          sender ! ForwardedAuditLogEntry(ale)
+          log.debug("ForwardAuditLogEntries: Sent.")
+        }
+        else if (outwardQueue.isEmpty){
+          log.debug("ForwardAuditLogEntries: Currently no new entries. Going to sleep for a second...")
+          Thread.sleep(1000)
+          log.debug("ForwardAuditLogEntries: Waked up. Trying again...")
+        }
+      }
+    }
+    case _ => {
+      log.error("Received an unrecognised message")
+    }
   }
+
+  override def unhandled(message: Any): Unit={
+      log.error("Caught an unknown message: "+message.toString)
+  }
+
 }

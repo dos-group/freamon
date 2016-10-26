@@ -61,6 +61,8 @@ object DB {
     ContainerModel.dropTable()
     println(s"Dropping table ${JobModel.tableName}")
     JobModel.dropTable()
+    println(s"Dropping table ${AuditLogModel.tableName}")
+    AuditLogModel.dropTable()
   }
 
   /** Initialize the database schema.
@@ -74,5 +76,7 @@ object DB {
     ContainerModel.createTable()
     println(s"Creating table ${EventModel.tableName}")
     EventModel.createTable()
+    println(s"Creating table ${AuditLogModel.tableName}")
+    AuditLogModel.createTable()
   }
 }

@@ -237,3 +237,15 @@ The message has the following fields:
 - `datasetSize`: `Double`, defaults to 0
 - `coresPerContainer`: `Int`, defaults to 0
 - `memoryPerContainer`: `Int`, defaults to 0
+
+
+## HDFS Audit Log
+Freamon also offers functionality to process audit logs from HDFS (that means entries can be stored in the database and be forwarded to StorageAssistant).
+
+### Enabling the HDFS Audit Logging
+To be able to use the feature, it is necessary to enable audit logging in HDFS first. In order to achieve this, please head to the installation folder of your HDFS instance (this should your master node). In the `etc/hadoop/` folder you should find the `hadoop-env.sh` file. In the line starting with `export HADOOP_NAMENODE_OPTS` set the `-Dhdfs.audit.logger` option to `${HDFS_AUDIT_LOGGER:-INFO,RFAAUDIT}`. If HDFS is already running, it is necessary to restart it, in order for the changes to occur.
+
+### Preparing Freamon for processing the audit log
+To tell Fremon where the audit log is being stored, please open your configuration file for Freamon and in the `freamon.hosts.master` section add the `pathToAuditLog` variable and set it to the path of the log. It is recommended to use absolte paths. If your HDFS installation folder is `/usr/local/hadoop/`, then the path to the audit log would be `/usr/local/hadoop/logs/hdfs-audit.log`. 
+
+**Note:** If you are using Freamon with Storage Assistant, then Freamon must be started first.
