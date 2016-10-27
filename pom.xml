@@ -17,6 +17,7 @@
         <module>freamon-collector</module>
         <module>freamon-results</module>
         <module>freamon-api</module>
+        <module>freamon-importer</module>
     </modules>
 
     <repositories>
