@@ -249,3 +249,29 @@ To be able to use the feature, it is necessary to enable audit logging in HDFS f
 To tell Fremon where the audit log is being stored, please open your configuration file for Freamon and in the `freamon.hosts.master` section add the `pathToAuditLog` variable and set it to the path of the log. It is recommended to use absolte paths. If your HDFS installation folder is `/usr/local/hadoop/`, then the path to the audit log would be `/usr/local/hadoop/logs/hdfs-audit.log`. 
 
 **Note:** If you are using Freamon with Storage Assistant, then Freamon must be started first.
+
+### Data Model
+The Data Model of the Audit Logging has the following schema:
+
+```sql
+CREATE TABLE audit_log_entry (
+        id      INT       AUTO_INCREMENT,
+        date    BIGINT    NOT NULL,
+        allowed BOOLEAN   NOT NULL,
+        ugi     TEXT      NOT NULL,
+        ip      TEXT      NOT NULL,
+        cmd     TEXT      NOT NULL,
+        src     TEXT              ,
+        dst     TEXT              ,
+        perm    TEXT              ,
+        proto   TEXT              ,
+        PRIMARY KEY(id));
+```
+
+An example entry looks as follows:
+
+
+| id | date | allowed | ugi | ip | cmd | src | dst | perm | proto |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1473097334564 | true | hduser (auth:SIMPLE) | /127.0.0.1 | getfileinfo | /user/hduser/gutenberg | null | null | rpc |
+
