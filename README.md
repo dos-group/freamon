@@ -193,10 +193,10 @@ Note that `framework`, `cores_per_container`, and `memory_per_container` are not
 so they are always set to `Freamon` and `-1` respectively.
 
 ##### workers
-| id | job_id | hostname | container_id |
-|---|---|---|---|
-| 123 | `monitorSystem@node1.example.com:4321` | 234 | container_1465933590123_0001_01_000001 |
-| 124 | `monitorSystem@node2.example.com:4321` | 234 | container_1465933590123_0001_01_000002 |
+| id | job_id | hostname | isYarn | container_id |
+|---|---|---|---|---|
+| 123 | `monitorSystem@node1.example.com:4321` | 234 | true | container_1465933590123_0001_01_000001 |
+| 124 | `monitorSystem@node2.example.com:4321` | 234 | false | `null` |
 
 ##### events
 | container_id | job_id | kind | millis | value |

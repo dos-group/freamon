@@ -28,8 +28,8 @@ object DB {
     JobModel.insert(job)
     println(JobModel.selectAll().mkString("\n"))
 
-    WorkerModel.insert(WorkerModel(job.id, "localhost", "1"))
-    WorkerModel.insert(WorkerModel(job.id, "localhost", "2"))
+    WorkerModel.insert(WorkerModel(job.id, "localhost", isYarn = true, "1"))
+    WorkerModel.insert(WorkerModel(job.id, "localhost", isYarn = true, "2"))
     println(WorkerModel.selectAll().mkString("\n"))
 
     EventModel.insert(EventModel(1, job.id, 'blkio, System.currentTimeMillis(), 1.23))

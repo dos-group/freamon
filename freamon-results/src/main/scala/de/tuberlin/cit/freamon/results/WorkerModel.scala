@@ -4,6 +4,7 @@ package de.tuberlin.cit.freamon.results
 case class WorkerModel(
                         jobId: Int,
                         hostname: String,
+                        isYarn: Boolean,
                         containerId: String = null
                       ) {
   val id = this.##
@@ -23,11 +24,13 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     get[Int]    ("id")           ~
     get[Int]    ("job_id")       ~
     get[String] ("hostname")     ~
+    get[Boolean] ("isYarn")      ~
     get[String] ("container_id") map {
-      case id ~ jobId ~ hostname ~ containerId
+      case id ~ jobId ~ hostname ~ isYarn ~ containerId
       => WorkerModel(
         jobId,
         hostname,
+        isYarn,
         containerId
       )
     }
@@ -39,6 +42,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         id                   INTEGER     NOT NULL,
         job_id               INTEGER     NOT NULL,
         hostname             VARCHAR(63)         ,
+        isYarn               BOOLEAN             ,
         container_id         VARCHAR(63)         ,
         PRIMARY KEY (id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
@@ -53,6 +57,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         '${x.id}',
         '${x.jobId}',
         '${x.hostname}',
+        '${x.isYarn}',
         '${x.containerId}'
       )
     """).executeInsert()
@@ -65,6 +70,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         '{id}',
         '{job_id}',
         '{hostname}',
+        '{isYarn}',
         '{container_id}'
       )
       """,
@@ -87,6 +93,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     'id           -> x.id,
     'job_id       -> x.jobId,
     'hostname     -> x.hostname,
+    'isYarn       -> x.isYarn,
     'container_id -> x.containerId
   )
 }

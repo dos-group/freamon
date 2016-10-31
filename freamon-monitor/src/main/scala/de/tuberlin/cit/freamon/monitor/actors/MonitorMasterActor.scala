@@ -134,7 +134,7 @@ class MonitorMasterActor extends Actor {
       JobModel.selectWhere(s"app_id = '$applicationId'").headOption match {
         case Some(job) =>
           val hostname = sender().path.address.hostPort
-          val containerModel = WorkerModel(job.id, hostname, containerId)
+          val containerModel = WorkerModel(job.id, hostname, isYarn = true, containerId)
           WorkerModel.insert(containerModel)
 
           for (foo <- samples) {
