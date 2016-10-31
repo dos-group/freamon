@@ -1,34 +1,35 @@
 package de.tuberlin.cit.freamon.results
 
 /** Model class for the containers on which a job runs. */
-case class ContainerModel(
-                           containerId: String,
-                           jobId: Int,
-                           hostname: String
-                           ) {
+case class WorkerModel(
+                        jobId: Int,
+                        hostname: String,
+                        containerId: String = null
+                      ) {
   val id = this.##
 }
 
-/** [[ContainerModel]] companion and storage manager. */
-object ContainerModel extends PersistedAPI[ContainerModel] {
+/** [[WorkerModel]] companion and storage manager. */
+object WorkerModel extends PersistedAPI[WorkerModel] {
 
   import java.sql.Connection
 
   import anorm.SqlParser._
   import anorm._
 
-  override val tableName: String = "experiment_container"
+  override val tableName: String = "worker"
 
   override val rowParser = {
     get[Int]    ("id")           ~
-    get[String] ("container_id") ~
     get[Int]    ("job_id")       ~
-    get[String] ("hostname")     map {
-      case id ~ containerId ~ jobId ~ hostname
-      => ContainerModel(
-        containerId,
+    get[String] ("hostname")     ~
+    get[String] ("container_id") map {
+      case id ~ jobId ~ hostname ~ containerId
+      => WorkerModel(
         jobId,
-        hostname)
+        hostname,
+        containerId
+      )
     }
   }
 
@@ -36,35 +37,35 @@ object ContainerModel extends PersistedAPI[ContainerModel] {
     SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
-        container_id         VARCHAR(63) UNIQUE  ,
         job_id               INTEGER     NOT NULL,
         hostname             VARCHAR(63)         ,
+        container_id         VARCHAR(63)         ,
         PRIMARY KEY (id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "id, container_id, job_id, hostname"
+  private val fields = "id, job_id, hostname, container_id"
 
-  override def insert(x: ContainerModel)(implicit conn: Connection): Unit = {
+  override def insert(x: WorkerModel)(implicit conn: Connection): Unit = {
     SQL(s"""
       INSERT INTO $tableName($fields) VALUES(
         '${x.id}',
-        '${x.containerId}',
         '${x.jobId}',
-        '${x.hostname}'
+        '${x.hostname}',
+        '${x.containerId}'
       )
     """).executeInsert()
   }
 
-  override def insert(xs: Seq[ContainerModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
+  override def insert(xs: Seq[WorkerModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
         '{id}',
-        '{container_id}',
         '{job_id}',
-        '{hostname}'
+        '{hostname}',
+        '{container_id}'
       )
       """,
       namedParametersFor(xs.head),
@@ -72,20 +73,20 @@ object ContainerModel extends PersistedAPI[ContainerModel] {
     ).execute()
   }
 
-  override def update(x: ContainerModel)(implicit conn: Connection): Unit = {
+  override def update(x: WorkerModel)(implicit conn: Connection): Unit = {
     throw new NotImplementedError("ContainerModel objects are immutable, update is not supported")
   }
 
-  override def delete(x: ContainerModel)(implicit conn: Connection): Unit = {
+  override def delete(x: WorkerModel)(implicit conn: Connection): Unit = {
     SQL(s"""
     DELETE FROM $tableName WHERE id = ${x.id}
     """).execute()
   }
 
-  def namedParametersFor(x: ContainerModel): Seq[NamedParameter] = Seq[NamedParameter](
+  def namedParametersFor(x: WorkerModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id           -> x.id,
-    'container_id -> x.containerId,
     'job_id       -> x.jobId,
-    'hostname     -> x.hostname
+    'hostname     -> x.hostname,
+    'container_id -> x.containerId
   )
 }

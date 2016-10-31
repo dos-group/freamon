@@ -99,8 +99,8 @@ class MonitorAgentActor() extends Actor {
         case Some(containerId) =>
           containerStats get containerId map { stats =>
             log.debug(s"Recording net sample $sample")
-            stats += StatSample(containerId, 'netUp, sample.time, sample.up.asInstanceOf)
-            stats += StatSample(containerId, 'netDown, sample.time, sample.down.asInstanceOf)
+            stats += StatSample(containerId, 'netTx, sample.time, sample.transmit.asInstanceOf)
+            stats += StatSample(containerId, 'netRx, sample.time, sample.receive.asInstanceOf)
           }
       }
 

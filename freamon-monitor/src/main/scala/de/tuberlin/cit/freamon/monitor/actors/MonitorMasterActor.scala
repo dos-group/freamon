@@ -7,7 +7,7 @@ import java.time.Instant
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
-import de.tuberlin.cit.freamon.results.{ContainerModel, DB, EventModel, JobModel}
+import de.tuberlin.cit.freamon.results.{WorkerModel, DB, EventModel, JobModel}
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
 
@@ -134,8 +134,8 @@ class MonitorMasterActor extends Actor {
       JobModel.selectWhere(s"app_id = '$applicationId'").headOption match {
         case Some(job) =>
           val hostname = sender().path.address.hostPort
-          val containerModel = ContainerModel(containerId, job.id, hostname)
-          ContainerModel.insert(containerModel)
+          val containerModel = WorkerModel(job.id, hostname, containerId)
+          WorkerModel.insert(containerModel)
 
           for (foo <- samples) {
              EventModel.insert(new EventModel(containerModel.id, job.id, foo.kind, foo.millis, foo.value))

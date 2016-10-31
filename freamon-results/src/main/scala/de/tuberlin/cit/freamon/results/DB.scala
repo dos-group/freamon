@@ -28,13 +28,14 @@ object DB {
     JobModel.insert(job)
     println(JobModel.selectAll().mkString("\n"))
 
-    ContainerModel.insert(ContainerModel("1", job.id, "localhost"))
-    ContainerModel.insert(ContainerModel("2", job.id, "localhost"))
-    println(ContainerModel.selectAll().mkString("\n"))
+    WorkerModel.insert(WorkerModel(job.id, "localhost", "1"))
+    WorkerModel.insert(WorkerModel(job.id, "localhost", "2"))
+    println(WorkerModel.selectAll().mkString("\n"))
 
     EventModel.insert(EventModel(1, job.id, 'blkio, System.currentTimeMillis(), 1.23))
     EventModel.insert(EventModel(1, job.id, 'cpu, System.currentTimeMillis(), 0.42))
-    EventModel.insert(EventModel(1, job.id, 'net, System.currentTimeMillis(), 1.23))
+    EventModel.insert(EventModel(1, job.id, 'netRx, System.currentTimeMillis(), 1.23))
+    EventModel.insert(EventModel(1, job.id, 'netTx, System.currentTimeMillis(), 1.98))
     EventModel.insert(EventModel(1, job.id, 'mem, System.currentTimeMillis(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 
@@ -57,8 +58,8 @@ object DB {
   def dropSchema()(implicit conn: Connection): Unit = {
     println(s"Dropping table ${EventModel.tableName}")
     EventModel.dropTable()
-    println(s"Dropping table ${ContainerModel.tableName}")
-    ContainerModel.dropTable()
+    println(s"Dropping table ${WorkerModel.tableName}")
+    WorkerModel.dropTable()
     println(s"Dropping table ${JobModel.tableName}")
     JobModel.dropTable()
   }
@@ -70,8 +71,8 @@ object DB {
   def createSchema()(implicit conn: Connection): Unit = {
     println(s"Creating table ${JobModel.tableName}")
     JobModel.createTable()
-    println(s"Creating table ${ContainerModel.tableName}")
-    ContainerModel.createTable()
+    println(s"Creating table ${WorkerModel.tableName}")
+    WorkerModel.createTable()
     println(s"Creating table ${EventModel.tableName}")
     EventModel.createTable()
   }

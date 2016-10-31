@@ -23,7 +23,7 @@ object JobModel extends PersistedAPI[JobModel] {
   import anorm.SqlParser._
   import anorm._
 
-  override val tableName: String = "experiment_job"
+  override val tableName: String = "job"
 
   override val rowParser = {
     get[Int]     ("id")                   ~

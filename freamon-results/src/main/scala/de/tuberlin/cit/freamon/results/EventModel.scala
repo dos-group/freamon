@@ -8,7 +8,7 @@ package de.tuberlin.cit.freamon.results
   * @param value The double value for this event.
   */
 case class EventModel(
-                       containerId: Int,
+                       workerId: Int,
                        jobId: Int,
                        kind: Symbol,
                        millis: Long,
@@ -22,16 +22,16 @@ object EventModel extends PersistedAPI[EventModel] {
   import anorm.SqlParser._
   import anorm._
 
-  override val tableName: String = "experiment_event"
+  override val tableName: String = "event"
 
   override val rowParser = {
-    get[Int]     ("container_id") ~
+    get[Int]     ("worker_id")    ~
     get[Int]     ("job_id")       ~
     get[String]  ("kind")         ~
-    get[Long] ("millis")    ~
+    get[Long]    ("millis")       ~
     get[Double]  ("value")        map {
-      case containerId ~ jobId ~ kind ~ millis ~ value => EventModel(
-        containerId,
+      case workerId ~ jobId ~ kind ~ millis ~ value => EventModel(
+        workerId,
         jobId,
         Symbol(kind),
         millis,
@@ -42,22 +42,22 @@ object EventModel extends PersistedAPI[EventModel] {
   override def createTable()(implicit conn: Connection): Unit = if (!tableExists) {
     SQL(s"""
       CREATE TABLE $tableName (
-        container_id INTEGER     NOT NULL,
+        worker_id    INTEGER     NOT NULL,
         job_id       INTEGER     NOT NULL,
         kind         VARCHAR(63) NOT NULL,
         millis       BIGINT              ,
         value        DOUBLE              ,
-        FOREIGN KEY (container_id) REFERENCES ${ContainerModel.tableName}(id) ON DELETE CASCADE,
+        FOREIGN KEY (worker_id) REFERENCES ${WorkerModel.tableName}(id) ON DELETE CASCADE,
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "container_id, job_id, kind, millis, value"
+  private val fields = "worker_id, job_id, kind, millis, value"
 
   override def insert(x: EventModel)(implicit conn: Connection): Unit = {
     SQL(s"""
     INSERT INTO $tableName($fields) VALUES(
-      '${x.containerId}',
+      '${x.workerId}',
       '${x.jobId}',
       '${x.kind.name}',
       '${x.millis}',
@@ -70,7 +70,7 @@ object EventModel extends PersistedAPI[EventModel] {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
-        '{container_id}',
+        '{worker_id}',
         '{job_id}',
         '{kind}',
         '{millis}',
@@ -91,7 +91,7 @@ object EventModel extends PersistedAPI[EventModel] {
   }
 
   def namedParametersFor(x: EventModel): Seq[NamedParameter] = Seq[NamedParameter](
-    'container_id -> x.containerId,
+    'worker_id    -> x.workerId,
     'job_id       -> x.jobId,
     'kind         -> x.kind.name,
     'millis       -> x.millis,

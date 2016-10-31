@@ -1,5 +1,5 @@
 # Freamon
-Lightweight monitoring of the resource usage of containerized YARN applications 
+Lightweight monitoring of the resource usage of containerized YARN applications
 
 
 ## File structure
@@ -172,7 +172,7 @@ you can plot it using [dstat-tools](https://github.com/citlab/dstat-tools):
 
     sbin/graph.sh <application_ID> <type>
 
-`type` is one of `cpu`, `mem`, `net`, `blkio`.
+`type` is one of the values for `events.kind`, see [events table format](#events).
 
 This creates a file named `application_<ID>_<type>.png`.
 
@@ -180,7 +180,7 @@ This creates a file named `application_<ID>_<type>.png`.
 You can access the database via SQL.
 The data is stored in the following tables:
 
-##### experiment_jobs
+##### jobs
 | id | app_id | start | stop | framework | signature | dataset_size | num_containers | cores_per_container | memory_per_container |
 |---|---|---|---|---|---|---|---|---|---|
 | 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
@@ -192,20 +192,20 @@ The data is stored in the following tables:
 Note that `framework`, `cores_per_container`, and `memory_per_container` are not collected yet,
 so they are always set to `Freamon` and `-1` respectively.
 
-##### experiment_containers
-| id | container_id | job_id | hostname |
+##### workers
+| id | job_id | hostname | container_id |
 |---|---|---|---|
-| 123 | container_1465933590123_0001_01_000001 | 234 | `monitorSystem@node1.example.com:4321` |
-| 124 | container_1465933590123_0001_01_000002 | 234 | `monitorSystem@node2.example.com:4321` |
+| 123 | `monitorSystem@node1.example.com:4321` | 234 | container_1465933590123_0001_01_000001 |
+| 124 | `monitorSystem@node2.example.com:4321` | 234 | container_1465933590123_0001_01_000002 |
 
-##### experiment_events
+##### events
 | container_id | job_id | kind | millis | value |
 |---|---|---|---|---|
 | 987 | 234 | cpu | 1465933592209 | 1.234 |
 | 876 | 234 | mem | 1465933592209 | 4321 |
 
-- `kind`: type of the measurement, one of `cpu`, `mem`, `net`, `blkio`
-- `millis`: timestamp when the measurement occured, in milliseconds since the Unix epoch
+- `kind`: type of the measurement, one of `cpu`, `mem`, `netRx`, `netTx`, `blkio`
+- `millis`: timestamp when the measurement occurred, in milliseconds since the Unix epoch
 
 ## Akka Messages API
 The following messages can be sent to Freamon's Actor System.

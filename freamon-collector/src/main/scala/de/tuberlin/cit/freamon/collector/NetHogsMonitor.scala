@@ -2,12 +2,12 @@ package de.tuberlin.cit.freamon.collector
 
 import scala.sys.process.{Process, ProcessLogger}
 
-case class NetUsageSample(time: Long, pid: Long, up: Float, down: Float)
+case class NetUsageSample(time: Long, pid: Long, transmit: Float, receive: Float)
 
 object NetHogsMonitor {
   def main(args: Array[String]): Unit = {
     new NetHogsMonitor("nethogs", r =>
-      printf("proc %s up %s down %s at %s%n", r.pid, r.up, r.down, r.time)
+      printf("proc %s tx %s rx %s at %s%n", r.pid, r.transmit, r.receive, r.time)
     )
   }
 
@@ -23,9 +23,9 @@ object NetHogsMonitor {
       val Array(procStr, upStr, downStr) = line.split("\t")
       val procSplit = procStr.split("/")
       val pid = java.lang.Long.parseLong(procSplit(procSplit.length - 2))
-      val up = java.lang.Float.parseFloat(upStr)
-      val down = java.lang.Float.parseFloat(downStr)
-      Some(NetUsageSample(now, pid, up, down))
+      val tx = java.lang.Float.parseFloat(upStr)
+      val rx = java.lang.Float.parseFloat(downStr)
+      Some(NetUsageSample(now, pid, tx, rx))
     } catch {
       case e: Throwable =>
         println(s"NetHogs failed processing line '$line': $e")
