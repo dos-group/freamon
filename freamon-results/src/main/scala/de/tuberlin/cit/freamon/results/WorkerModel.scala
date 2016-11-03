@@ -44,7 +44,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         hostname             VARCHAR(63)         ,
         is_yarn              BOOLEAN             ,
         container_id         VARCHAR(63)         ,
-        PRIMARY KEY (id),
+        PRIMARY KEY (id, job_id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
