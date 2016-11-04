@@ -49,7 +49,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
       )""").execute()
   }
 
-  private val fields = "id, job_id, hostname, container_id"
+  private val fields = "id, job_id, hostname, is_yarn, container_id"
 
   override def insert(x: WorkerModel)(implicit conn: Connection): Unit = {
     SQL(s"""
