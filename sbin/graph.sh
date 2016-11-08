@@ -16,26 +16,26 @@ img_path="${app_id}_$event_kind.png"
 rm -rf "$tmp_csv_dir"
 mkdir -p "$tmp_csv_dir"
 
-echo "Finding containers..."
-containers="`mclient -d freamon -f csv -s "
-    select distinct experiment_container.container_id
-    from experiment_event, experiment_container, experiment_job
+echo "Finding workers..."
+workers="`mclient -d freamon -f csv -s "
+    select distinct worker.container_id
+    from event, worker, job
     where value > 0
       and app_id = '$app_id'
-      and experiment_job.id = experiment_container.job_id
-      and experiment_container.job_id = experiment_event.job_id;"`"
+      and job.id = worker.job_id
+      and worker.id = event.worker_id;"`"
 
-echo "Collecting data for each container..."
-for container in $containers; do
+echo "Collecting data for each worker..."
+for worker in $workers; do
     query="
         select millis * 0.001, value
-        from experiment_event, experiment_container
+        from event, worker
         where kind='$event_kind'
-          and experiment_container.container_id='$container'
-          and experiment_container.id = experiment_event.container_id
+          and worker.container_id='$worker'
+          and worker.id = event.worker_id
         order by millis asc;"
     # this filename appears in the plot
-    csv_path="$tmp_csv_dir/$container.csv"
+    csv_path="$tmp_csv_dir/$worker.csv"
     mclient -d freamon -f csv -s "$query" > "$csv_path"
 done
 
