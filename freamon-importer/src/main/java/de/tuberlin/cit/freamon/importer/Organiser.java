@@ -52,6 +52,10 @@ public class Organiser {
             processedMasters.add(m_AfterSlavesProcessed);
         }
         log.debug("There are "+processedMasters.size()+" processed master entries.");
+
+        EventGenerator eventGenerator = new EventGenerator();
+
+        processedMasters.forEach(eventGenerator::generateEntries);
     }
 
     private void populateSubfolders(){

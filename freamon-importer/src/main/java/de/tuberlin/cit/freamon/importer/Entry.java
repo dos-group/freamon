@@ -3,9 +3,10 @@ package de.tuberlin.cit.freamon.importer;
 
 public class Entry {
 
-    private double epoch, usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cache, mem_free, net_recv, net_send, dsk_read, dsk_writ;
+    private double usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cache, mem_free, net_recv, net_send, dsk_read, dsk_writ;
+    private long epoch;
 
-    Entry(double epoch, double usr, double sys, double idl, double wai, double hiq, double siq, double mem_used, double mem_buff, double mem_cache, double mem_free,
+    Entry(long epoch, double usr, double sys, double idl, double wai, double hiq, double siq, double mem_used, double mem_buff, double mem_cache, double mem_free,
           double net_recv, double net_send, double dsk_read, double dsk_writ){
         this.epoch = epoch;
         this.usr = usr;
@@ -24,7 +25,7 @@ public class Entry {
         this.dsk_writ = dsk_writ;
     }
 
-    double getEpoch() {
+    long getEpoch() {
         return epoch;
     }
 

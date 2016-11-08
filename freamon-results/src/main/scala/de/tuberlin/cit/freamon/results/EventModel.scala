@@ -47,7 +47,7 @@ object EventModel extends PersistedAPI[EventModel] {
         kind         VARCHAR(63) NOT NULL,
         millis       BIGINT              ,
         value        DOUBLE              ,
-        FOREIGN KEY (worker_id) REFERENCES ${WorkerModel.tableName}(id) ON DELETE CASCADE,
+        FOREIGN KEY (worker_id, job_id) REFERENCES ${WorkerModel.tableName}(id, job_id) ON DELETE CASCADE,
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }

@@ -25,7 +25,7 @@ class CSVParser {
         this.currentFile = currentFile;
     }
 
-    void readFileToStringBuilder(){
+    private void readFileToStringBuilder(){
         BufferedReader br = null;
         try {
             String currentLine;
@@ -48,15 +48,18 @@ class CSVParser {
 
 
     List<Entry> parseStringToEntry(){
+        this.readFileToStringBuilder();
         List<Entry> results = new ArrayList<>();
         String[] lines = builder.toString().split("\n");
         for (int i=0;i<lines.length;i++){
             log.debug("raw: "+lines[i]);
             if (i>=firstLine) {
                 String[] line = lines[i].split(",");
-                double epoch = new Date().getTime();
-                if (Organiser.epoch != -1)
-                    epoch = Double.parseDouble(line[Organiser.epoch].replaceAll("\"", ""));
+                long epoch = new Date().getTime();
+                if (Organiser.epoch != -1){
+                    double temp_epoch = Double.parseDouble(line[Organiser.epoch].replaceAll("\"", "")) * 1000;
+                    epoch = (long) temp_epoch;
+                }
                 double usr, sys, idl, wai;
                 usr = sys = idl = wai = -1;
                 if (Organiser.usr != -1)
