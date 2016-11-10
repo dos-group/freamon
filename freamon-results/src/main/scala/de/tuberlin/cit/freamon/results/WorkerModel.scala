@@ -5,7 +5,8 @@ case class WorkerModel(
                         jobId: Int,
                         hostname: String,
                         isYarn: Boolean,
-                        containerId: String = null
+                        containerId: String = null,
+                        isMaster: Boolean = false
                       ) {
   val id = this.##
 }
@@ -25,13 +26,15 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     get[Int]    ("job_id")       ~
     get[String] ("hostname")     ~
     get[Boolean] ("is_yarn")     ~
+    get[Boolean] ("is_master")   ~
     get[String] ("container_id") map {
-      case id ~ jobId ~ hostname ~ isYarn ~ containerId
+      case id ~ jobId ~ hostname ~ isYarn ~ isMaster ~ containerId
       => WorkerModel(
         jobId,
         hostname,
         isYarn,
-        containerId
+        containerId,
+        isMaster
       )
     }
   }
@@ -43,13 +46,14 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         job_id               INTEGER     NOT NULL,
         hostname             VARCHAR(63)         ,
         is_yarn              BOOLEAN             ,
+        is_master            BOOLEAN             ,
         container_id         VARCHAR(63)         ,
         PRIMARY KEY (id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "id, job_id, hostname, is_yarn, container_id"
+  private val fields = "id, job_id, hostname, is_yarn, is_master, container_id"
 
   override def insert(x: WorkerModel)(implicit conn: Connection): Unit = {
     SQL(s"""
@@ -58,6 +62,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         '${x.jobId}',
         '${x.hostname}',
         '${x.isYarn}',
+        '${x.isMaster}',
         '${x.containerId}'
       )
     """).executeInsert()
@@ -71,6 +76,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
         '{job_id}',
         '{hostname}',
         '{is_yarn}',
+        '{is_master}',
         '{container_id}'
       )
       """,
@@ -94,6 +100,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     'job_id       -> x.jobId,
     'hostname     -> x.hostname,
     'is_yarn      -> x.isYarn,
+    'is_master    -> x.isMaster,
     'container_id -> x.containerId
   )
 }
