@@ -1,8 +1,10 @@
 package de.tuberlin.cit.freamon.results
 
+import java.util.UUID
+
 /** Model class for job runs. */
 case class JobModel(
-                     appId: String,
+                     appId: String = null,
                      framework: Symbol = Symbol(null),
                      signature: String = null,
                      datasetSize: Double = 0d,
@@ -10,9 +12,9 @@ case class JobModel(
                      coresPerContainer: Int = 0,
                      memoryPerContainer: Int = 0,
                      start: Long = System.currentTimeMillis(),
-                     stop: Long = 0
+                     stop: Long = 0,
+                     id: Int = UUID.randomUUID().hashCode()
                    ) {
-  val id = appId.##
 }
 
 /** [[JobModel]] companion and storage manager. */
@@ -37,16 +39,18 @@ object JobModel extends PersistedAPI[JobModel] {
     get[Long]    ("start")                ~
     get[Long]    ("stop")                 map {
       case id ~ appId ~ framework ~ signature ~ datasetSize ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
-      => JobModel(
-        appId,
-        Symbol(framework),
-        signature,
-        datasetSize,
-        numContainers,
-        coresPerContainer,
-        memoryPerContainer,
-        start,
-        stop)
+      =>
+        JobModel(
+          appId,
+          Symbol(framework),
+          signature,
+          datasetSize,
+          numContainers,
+          coresPerContainer,
+          memoryPerContainer,
+          start,
+          stop,
+          id)
     }
   }
 
@@ -54,7 +58,7 @@ object JobModel extends PersistedAPI[JobModel] {
     SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
-        app_id               VARCHAR(63) UNIQUE  ,
+        app_id               VARCHAR(63)         ,
         framework            VARCHAR(63)         ,
         signature            VARCHAR(255)        ,
         dataset_size         DOUBLE              ,
