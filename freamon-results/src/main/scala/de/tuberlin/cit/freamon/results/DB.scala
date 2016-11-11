@@ -29,8 +29,8 @@ object DB {
     JobModel.insert(JobModel())
     println(JobModel.selectAll().mkString("\n"))
 
-    val eu1 = ExecutionUnitModel(job.id, "localhost", isYarn = true, "1")
-    val eu2 = ExecutionUnitModel(job.id, "localhost", isYarn = true, "2")
+    val eu1 = ExecutionUnitModel(job.id, "localhost", isYarnContainer = true, "1")
+    val eu2 = ExecutionUnitModel(job.id, "localhost", isYarnContainer = true, "2")
     println(s"execUnit ids: ${eu1.id} ${eu2.id}")
     ExecutionUnitModel.insert(eu1)
     ExecutionUnitModel.insert(eu2)
@@ -43,13 +43,12 @@ object DB {
     EventModel.insert(EventModel(eu1.id, job.id, 'cpu, System.currentTimeMillis(), 1))
     EventModel.insert(EventModel(eu2.id, job.id, 'cpu, System.currentTimeMillis(), 0))
 
-    EventModel.insert(EventModel(eu1.id, job.id, 'blkio, System.currentTimeMillis(), 1.23))
+    EventModel.insert(EventModel(eu1.id, job.id, 'mem, System.currentTimeMillis(), 123123))
     EventModel.insert(EventModel(eu1.id, job.id, 'netRx, System.currentTimeMillis(), 1.23))
     EventModel.insert(EventModel(eu1.id, job.id, 'netTx, System.currentTimeMillis(), 1.98))
-    EventModel.insert(EventModel(eu1.id, job.id, 'mem, System.currentTimeMillis(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 
-    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
+    val newJob: JobModel = JobModel.selectWhere(s"yarn_application_id = '$applicationId'").head
       .copy(stop = System.currentTimeMillis())
     println(s"updating job: $newJob with id ${newJob.id}")
     JobModel.update(newJob)

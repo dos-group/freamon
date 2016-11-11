@@ -183,10 +183,10 @@ The data is stored in the following tables:
 ##### job
 ```sql
 id                   INTEGER     NOT NULL,
-app_id               VARCHAR(63)         ,
+yarn_application_id  VARCHAR(63)         ,
 framework            VARCHAR(63)         ,
 signature            VARCHAR(255)        ,
-dataset_size         DOUBLE              ,
+input_size           DOUBLE              ,
 num_containers       INTEGER             ,
 cores_per_container  INTEGER             ,
 memory_per_container INTEGER             ,
@@ -197,21 +197,21 @@ PRIMARY KEY (id)
 
 - `start`, `stop`: timestamp when the job was started/stopped, in milliseconds since the Unix epoch
 - `signature`: a unique identifier for the application, for example the jarfile hash
-- `dataset_size`: size in MB of the dataset that was processed
+- `input_size`: size in MB of the input dataset that was processed
 
 ##### execution_unit
 ```sql
 id                   INTEGER     NOT NULL,
 job_id               INTEGER     NOT NULL,
 hostname             VARCHAR(63)         ,
-is_yarn              BOOLEAN             ,
+is_yarn_container    BOOLEAN             ,
 is_master            BOOLEAN             ,
 container_id         VARCHAR(63)         ,
 PRIMARY KEY (id),
 FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
 ```
 
-- `is_yarn`: the entry represents a YARN container, `container_id` is set
+- `is_yarn_container`: the entry represents a YARN container, `container_id` is set
 - `is_master`: e.g. Flink master, can be used for excluding on plots
 
 ##### event
@@ -225,7 +225,7 @@ FOREIGN KEY (execution_unit_id) REFERENCES execution_unit(id) ON DELETE CASCADE,
 FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
 ```
 
-- `kind`: type of the measurement, one of `cpu`, `mem`, `netRx`, `netTx`, `blkio`
+- `kind`: type of the measurement, one of `cpu`, `mem`, `netRx`, `netTx`, `diskRead`, `diskWrite`
 - `millis`: timestamp when the measurement occurred, in milliseconds since the Unix epoch
 
 ## Akka Messages API
