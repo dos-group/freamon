@@ -180,29 +180,50 @@ This creates a file named `application_<ID>_<type>.png`.
 You can access the database via SQL.
 The data is stored in the following tables:
 
-##### jobs
-| id | app_id | start | stop | framework | signature | dataset_size | num_containers | cores_per_container | memory_per_container |
-|---|---|---|---|---|---|---|---|---|---|
-| 234 | application_1465933590123_0001 | 1465933591111 | 1465933690123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
-| 345 | application_1465933590123_0002 | 1465933790123 | 1465933890123 | Flink | `cafebabe` | 9001 | 4 | -1 | -1 |
+##### job
+```sql
+id                   INTEGER     NOT NULL,
+app_id               VARCHAR(63)         ,
+framework            VARCHAR(63)         ,
+signature            VARCHAR(255)        ,
+dataset_size         DOUBLE              ,
+num_containers       INTEGER             ,
+cores_per_container  INTEGER             ,
+memory_per_container INTEGER             ,
+start                BIGINT              ,
+stop                 BIGINT              ,
+PRIMARY KEY (id)
+```
+
 - `start`, `stop`: timestamp when the job was started/stopped, in milliseconds since the Unix epoch
 - `signature`: a unique identifier for the application, for example the jarfile hash
 - `dataset_size`: size in MB of the dataset that was processed
 
-Note that `framework`, `cores_per_container`, and `memory_per_container` are not collected yet,
-so they are always set to `Freamon` and `-1` respectively.
+##### execution_unit
+```sql
+id                   INTEGER     NOT NULL,
+job_id               INTEGER     NOT NULL,
+hostname             VARCHAR(63)         ,
+is_yarn              BOOLEAN             ,
+is_master            BOOLEAN             ,
+container_id         VARCHAR(63)         ,
+PRIMARY KEY (id),
+FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+```
 
-##### workers
-| id | job_id | hostname | is_yarn | container_id |
-|---|---|---|---|---|
-| 123 | 234 | `monitorSystem@node1.example.com:4321` | true | container_1465933590123_0001_01_000001 |
-| 124 | 234 | `monitorSystem@node2.example.com:4321` | false | `null` |
+- `is_yarn`: the entry represents a YARN container, `container_id` is set
+- `is_master`: e.g. Flink master, can be used for excluding on plots
 
-##### events
-| container_id | job_id | kind | millis | value |
-|---|---|---|---|---|
-| 987 | 234 | cpu | 1465933592209 | 1.234 |
-| 876 | 234 | mem | 1465933592209 | 4321 |
+##### event
+```sql
+execution_unit_id INTEGER     NOT NULL,
+job_id            INTEGER     NOT NULL,
+kind              VARCHAR(63) NOT NULL,
+millis            BIGINT              ,
+value             DOUBLE              ,
+FOREIGN KEY (execution_unit_id) REFERENCES execution_unit(id) ON DELETE CASCADE,
+FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+```
 
 - `kind`: type of the measurement, one of `cpu`, `mem`, `netRx`, `netTx`, `blkio`
 - `millis`: timestamp when the measurement occurred, in milliseconds since the Unix epoch
