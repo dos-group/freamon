@@ -3,11 +3,11 @@ package de.tuberlin.cit.freamon.results
 /** Model class for the execution units on which a job runs
   * (both containers and master, or whole node on standalone) */
 case class ExecutionUnitModel(
-                        jobId: Int,
-                        hostname: String,
-                        isYarn: Boolean,
-                        containerId: String = null,
-                        isMaster: Boolean = false
+                               jobId: Int,
+                               hostname: String,
+                               isYarnContainer: Boolean,
+                               containerId: String = null,
+                               isMaster: Boolean = false
                       ) {
   val id = this.##
 }
@@ -23,12 +23,12 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
   override val tableName: String = "execution_unit"
 
   override val rowParser = {
-    get[Int]    ("id")           ~
-    get[Int]    ("job_id")       ~
-    get[String] ("hostname")     ~
-    get[Boolean] ("is_yarn")     ~
-    get[Boolean] ("is_master")   ~
-    get[String] ("container_id") map {
+    get[Int]     ("id")                ~
+    get[Int]     ("job_id")            ~
+    get[String]  ("hostname")          ~
+    get[Boolean] ("is_yarn_container") ~
+    get[Boolean] ("is_master")         ~
+    get[String]  ("container_id")      map {
       case id ~ jobId ~ hostname ~ isYarn ~ isMaster ~ containerId
       => ExecutionUnitModel(
         jobId,
@@ -46,7 +46,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
         id                   INTEGER     NOT NULL,
         job_id               INTEGER     NOT NULL,
         hostname             VARCHAR(63)         ,
-        is_yarn              BOOLEAN             ,
+        is_yarn_container    BOOLEAN             ,
         is_master            BOOLEAN             ,
         container_id         VARCHAR(63)         ,
         PRIMARY KEY (id),
@@ -54,7 +54,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
       )""").execute()
   }
 
-  private val fields = "id, job_id, hostname, is_yarn, is_master, container_id"
+  private val fields = "id, job_id, hostname, is_yarn_container, is_master, container_id"
 
   override def insert(x: ExecutionUnitModel)(implicit conn: Connection): Unit = {
     SQL(s"""
@@ -62,7 +62,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
         '${x.id}',
         '${x.jobId}',
         '${x.hostname}',
-        '${x.isYarn}',
+        '${x.isYarnContainer}',
         '${x.isMaster}',
         '${x.containerId}'
       )
@@ -76,7 +76,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
         '{id}',
         '{job_id}',
         '{hostname}',
-        '{is_yarn}',
+        '{is_yarn_container}',
         '{is_master}',
         '{container_id}'
       )
@@ -100,7 +100,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
     'id           -> x.id,
     'job_id       -> x.jobId,
     'hostname     -> x.hostname,
-    'is_yarn      -> x.isYarn,
+    'is_yarn_container -> x.isYarnContainer,
     'is_master    -> x.isMaster,
     'container_id -> x.containerId
   )

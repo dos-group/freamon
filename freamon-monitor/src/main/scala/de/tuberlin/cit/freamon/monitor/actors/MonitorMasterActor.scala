@@ -89,7 +89,7 @@ class MonitorMasterActor extends Actor {
       processAudit = false
 
 
-      JobModel.selectWhere(s"app_id = '$applicationId'").headOption.map(oldJob => {
+      JobModel.selectWhere(s"yarn_application_id = '$applicationId'").headOption.map(oldJob => {
         val sec = (stopTime - oldJob.start) / 1000f
         log.info(s"Job finished: $applicationId at ${Instant.ofEpochMilli(stopTime)}, took $sec seconds")
         JobModel.update(oldJob.copy(stop = stopTime))
@@ -112,12 +112,12 @@ class MonitorMasterActor extends Actor {
     case Array("jobStopped", applicationId: String, stopTime: Long) =>
       this.stopApplication(applicationId, stopTime)
 
-    case ApplicationMetadata(appId, framework, signature, datasetSize, coresPC, memPC) => {
-      JobModel.selectWhere(s"app_id = '$appId'").headOption.map(oldJob => {
+    case ApplicationMetadata(appId, framework, signature, inputSize, coresPC, memPC) => {
+      JobModel.selectWhere(s"yarn_application_id = '$appId'").headOption.map(oldJob => {
         JobModel.update(oldJob.copy(appId,
           framework = framework,
           signature = signature,
-          datasetSize = datasetSize,
+          inputSize = inputSize,
           coresPerContainer = coresPC,
           memoryPerContainer = memPC))
         Unit
@@ -129,7 +129,7 @@ class MonitorMasterActor extends Actor {
       sender ! PreviousRuns(
         runs.map(_.numContainers.asInstanceOf[Integer]).toArray,
         runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
-        runs.map(_.datasetSize.asInstanceOf[Double]).toArray
+        runs.map(_.inputSize.asInstanceOf[Double]).toArray
       )
     }
 
@@ -142,10 +142,10 @@ class MonitorMasterActor extends Actor {
       log.info(s"Received a container report for $containerId from $sender")
       log.debug("with " + samples.length + " samples: " + samples.mkString(", "))
 
-      JobModel.selectWhere(s"app_id = '$applicationId'").headOption match {
+      JobModel.selectWhere(s"yarn_application_id = '$applicationId'").headOption match {
         case Some(job) =>
           val hostname = sender().path.address.hostPort
-          val execUnitModel = ExecutionUnitModel(job.id, hostname, isYarn = true, containerId)
+          val execUnitModel = ExecutionUnitModel(job.id, hostname, isYarnContainer = true, containerId)
           ExecutionUnitModel.insert(execUnitModel)
 
           for (foo <- samples) {

@@ -21,7 +21,7 @@ execUnits="`mclient -d freamon -f csv -s "
     select distinct execution_unit.id
     from event, execution_unit, job
     where value > 0
-      and app_id = '$app_id'
+      and yarn_application_id = '$app_id'
       and job.id = execution_unit.job_id
       and execution_unit.id = event.execution_unit_id;"`"
 
