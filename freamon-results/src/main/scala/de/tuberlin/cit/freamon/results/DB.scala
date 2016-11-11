@@ -23,25 +23,37 @@ object DB {
     implicit val conn = getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb")
     createSchema()
     val applicationId = s"application_${(System.currentTimeMillis() / 1000).asInstanceOf[Int]}_0001"
-    val job = JobModel(applicationId, 'Flink, "test.jar", 0, 0, 0, 0, System.currentTimeMillis())
+    val job = JobModel(applicationId, 'Spark, "test.jar", 0, 0, 0, 0, System.currentTimeMillis())
 
     JobModel.insert(job)
+    JobModel.insert(JobModel())
     println(JobModel.selectAll().mkString("\n"))
 
-    WorkerModel.insert(WorkerModel(job.id, "localhost", isYarn = true, "1"))
-    WorkerModel.insert(WorkerModel(job.id, "localhost", isYarn = true, "2"))
+    val w1 = WorkerModel(job.id, "localhost", isYarn = true, "1")
+    val w2 = WorkerModel(job.id, "localhost", isYarn = true, "2")
+    println(s"worker ids: ${w1.id} ${w2.id}")
+    WorkerModel.insert(w1)
+    WorkerModel.insert(w2)
     println(WorkerModel.selectAll().mkString("\n"))
 
-    EventModel.insert(EventModel(1, job.id, 'blkio, System.currentTimeMillis(), 1.23))
-    EventModel.insert(EventModel(1, job.id, 'cpu, System.currentTimeMillis(), 0.42))
-    EventModel.insert(EventModel(1, job.id, 'netRx, System.currentTimeMillis(), 1.23))
-    EventModel.insert(EventModel(1, job.id, 'netTx, System.currentTimeMillis(), 1.98))
-    EventModel.insert(EventModel(1, job.id, 'mem, System.currentTimeMillis(), 123123))
+    EventModel.insert(EventModel(w1.id, job.id, 'cpu, System.currentTimeMillis(), 1))
+    EventModel.insert(EventModel(w2.id, job.id, 'cpu, System.currentTimeMillis(), 1))
+    EventModel.insert(EventModel(w1.id, job.id, 'cpu, System.currentTimeMillis(), 0))
+    EventModel.insert(EventModel(w2.id, job.id, 'cpu, System.currentTimeMillis(), 0.5))
+    EventModel.insert(EventModel(w1.id, job.id, 'cpu, System.currentTimeMillis(), 1))
+    EventModel.insert(EventModel(w2.id, job.id, 'cpu, System.currentTimeMillis(), 0))
+
+    EventModel.insert(EventModel(w1.id, job.id, 'blkio, System.currentTimeMillis(), 1.23))
+    EventModel.insert(EventModel(w1.id, job.id, 'netRx, System.currentTimeMillis(), 1.23))
+    EventModel.insert(EventModel(w1.id, job.id, 'netTx, System.currentTimeMillis(), 1.98))
+    EventModel.insert(EventModel(w1.id, job.id, 'mem, System.currentTimeMillis(), 123123))
     println(EventModel.selectAll().mkString("\n"))
 
-    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head.copy(stop = System.currentTimeMillis())
-    println("updating job: " + newJob)
+    val newJob: JobModel = JobModel.selectWhere(s"app_id = '$applicationId'").head
+      .copy(stop = System.currentTimeMillis())
+    println(s"updating job: $newJob with id ${newJob.id}")
     JobModel.update(newJob)
+
     println(JobModel.selectAll().mkString("\n"))
   }
 
