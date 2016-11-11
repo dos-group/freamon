@@ -145,11 +145,11 @@ class MonitorMasterActor extends Actor {
       JobModel.selectWhere(s"app_id = '$applicationId'").headOption match {
         case Some(job) =>
           val hostname = sender().path.address.hostPort
-          val containerModel = WorkerModel(job.id, hostname, isYarn = true, containerId)
-          WorkerModel.insert(containerModel)
+          val execUnitModel = ExecutionUnitModel(job.id, hostname, isYarn = true, containerId)
+          ExecutionUnitModel.insert(execUnitModel)
 
           for (foo <- samples) {
-             EventModel.insert(new EventModel(containerModel.id, job.id, foo.kind, foo.millis, foo.value))
+             EventModel.insert(new EventModel(execUnitModel.id, job.id, foo.kind, foo.millis, foo.value))
           }
         case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
       }

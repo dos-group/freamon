@@ -1,7 +1,8 @@
 package de.tuberlin.cit.freamon.results
 
-/** Model class for the containers on which a job runs. */
-case class WorkerModel(
+/** Model class for the execution units on which a job runs
+  * (both containers and master, or whole node on standalone) */
+case class ExecutionUnitModel(
                         jobId: Int,
                         hostname: String,
                         isYarn: Boolean,
@@ -11,15 +12,15 @@ case class WorkerModel(
   val id = this.##
 }
 
-/** [[WorkerModel]] companion and storage manager. */
-object WorkerModel extends PersistedAPI[WorkerModel] {
+/** [[ExecutionUnitModel]] companion and storage manager. */
+object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
 
   import java.sql.Connection
 
   import anorm.SqlParser._
   import anorm._
 
-  override val tableName: String = "worker"
+  override val tableName: String = "execution_unit"
 
   override val rowParser = {
     get[Int]    ("id")           ~
@@ -29,7 +30,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     get[Boolean] ("is_master")   ~
     get[String] ("container_id") map {
       case id ~ jobId ~ hostname ~ isYarn ~ isMaster ~ containerId
-      => WorkerModel(
+      => ExecutionUnitModel(
         jobId,
         hostname,
         isYarn,
@@ -55,7 +56,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
 
   private val fields = "id, job_id, hostname, is_yarn, is_master, container_id"
 
-  override def insert(x: WorkerModel)(implicit conn: Connection): Unit = {
+  override def insert(x: ExecutionUnitModel)(implicit conn: Connection): Unit = {
     SQL(s"""
       INSERT INTO $tableName($fields) VALUES(
         '${x.id}',
@@ -68,7 +69,7 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     """).executeInsert()
   }
 
-  override def insert(xs: Seq[WorkerModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
+  override def insert(xs: Seq[ExecutionUnitModel])(implicit conn: Connection): Unit = if (xs.nonEmpty) singleCommit {
     BatchSql(
       s"""
       INSERT INTO $tableName($fields) VALUES(
@@ -85,17 +86,17 @@ object WorkerModel extends PersistedAPI[WorkerModel] {
     ).execute()
   }
 
-  override def update(x: WorkerModel)(implicit conn: Connection): Unit = {
+  override def update(x: ExecutionUnitModel)(implicit conn: Connection): Unit = {
     throw new NotImplementedError("ContainerModel objects are immutable, update is not supported")
   }
 
-  override def delete(x: WorkerModel)(implicit conn: Connection): Unit = {
+  override def delete(x: ExecutionUnitModel)(implicit conn: Connection): Unit = {
     SQL(s"""
     DELETE FROM $tableName WHERE id = ${x.id}
     """).execute()
   }
 
-  def namedParametersFor(x: WorkerModel): Seq[NamedParameter] = Seq[NamedParameter](
+  def namedParametersFor(x: ExecutionUnitModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id           -> x.id,
     'job_id       -> x.jobId,
     'hostname     -> x.hostname,
