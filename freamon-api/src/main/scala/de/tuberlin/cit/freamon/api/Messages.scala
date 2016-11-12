@@ -30,7 +30,7 @@ case class ApplicationMetadata(
                                 appId: String,
                                 framework: Symbol = Symbol(null),
                                 signature: String = null,
-                                datasetSize: Double = 0d,
+                                inputSize: Double = 0d,
                                 coresPerContainer: Int = 0,
                                 memoryPerContainer: Int = 0
                               )

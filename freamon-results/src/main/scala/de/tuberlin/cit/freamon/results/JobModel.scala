@@ -1,18 +1,20 @@
 package de.tuberlin.cit.freamon.results
 
+import java.util.UUID
+
 /** Model class for job runs. */
 case class JobModel(
-                     appId: String,
+                     yarnAppId: String = null,
                      framework: Symbol = Symbol(null),
                      signature: String = null,
-                     datasetSize: Double = 0d,
+                     inputSize: Double = 0d,
                      numContainers: Int = 0,
                      coresPerContainer: Int = 0,
                      memoryPerContainer: Int = 0,
                      start: Long = System.currentTimeMillis(),
-                     stop: Long = 0
+                     stop: Long = 0,
+                     id: Int = UUID.randomUUID().hashCode()
                    ) {
-  val id = appId.##
 }
 
 /** [[JobModel]] companion and storage manager. */
@@ -27,26 +29,28 @@ object JobModel extends PersistedAPI[JobModel] {
 
   override val rowParser = {
     get[Int]     ("id")                   ~
-    get[String]  ("app_id")               ~
+    get[String]  ("yarn_application_id")  ~
     get[String]  ("framework")            ~
     get[String]  ("signature")            ~
-    get[Double]  ("dataset_size")         ~
+    get[Double]  ("input_size")           ~
     get[Int]     ("num_containers")       ~
     get[Int]     ("cores_per_container")  ~
     get[Int]     ("memory_per_container") ~
     get[Long]    ("start")                ~
     get[Long]    ("stop")                 map {
       case id ~ appId ~ framework ~ signature ~ datasetSize ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
-      => JobModel(
-        appId,
-        Symbol(framework),
-        signature,
-        datasetSize,
-        numContainers,
-        coresPerContainer,
-        memoryPerContainer,
-        start,
-        stop)
+      =>
+        JobModel(
+          appId,
+          Symbol(framework),
+          signature,
+          datasetSize,
+          numContainers,
+          coresPerContainer,
+          memoryPerContainer,
+          start,
+          stop,
+          id)
     }
   }
 
@@ -54,10 +58,10 @@ object JobModel extends PersistedAPI[JobModel] {
     SQL(s"""
       CREATE TABLE $tableName (
         id                   INTEGER     NOT NULL,
-        app_id               VARCHAR(63) UNIQUE  ,
+        yarn_application_id  VARCHAR(63)         ,
         framework            VARCHAR(63)         ,
         signature            VARCHAR(255)        ,
-        dataset_size         DOUBLE              ,
+        input_size           DOUBLE              ,
         num_containers       INTEGER             ,
         cores_per_container  INTEGER             ,
         memory_per_container INTEGER             ,
@@ -67,16 +71,16 @@ object JobModel extends PersistedAPI[JobModel] {
       )""").execute()
   }
 
-  private val fields = "id, app_id, framework, signature, dataset_size, num_containers, cores_per_container, memory_per_container, start, stop"
+  private val fields = "id, yarn_application_id, framework, signature, input_size, num_containers, cores_per_container, memory_per_container, start, stop"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
     SQL(s"""
       INSERT INTO $tableName($fields) VALUES(
         '${x.id}',
-        '${x.appId}',
+        '${x.yarnAppId}',
         '${x.framework.name}',
         '${x.signature}',
-        '${x.datasetSize}',
+        '${x.inputSize}',
         '${x.numContainers}',
         '${x.coresPerContainer}',
         '${x.memoryPerContainer}',
@@ -91,10 +95,10 @@ object JobModel extends PersistedAPI[JobModel] {
       s"""
       INSERT INTO $tableName($fields) VALUES(
         '{id}',
-        '{app_id}',
+        '{yarn_application_id}',
         '{framework}',
         '{signature}',
-        '{dataset_size}',
+        '{input_size}',
         '{num_containers}',
         '{cores_per_container}',
         '{memory_per_container}',
@@ -111,10 +115,10 @@ object JobModel extends PersistedAPI[JobModel] {
     SQL(s"""
     UPDATE $tableName SET
       id                   = '${x.id}',
-      app_id               = '${x.appId}',
+      yarn_application_id  = '${x.yarnAppId}',
       framework            = '${x.framework.name}',
       signature            = '${x.signature}',
-      dataset_size         = '${x.datasetSize}',
+      input_size           = '${x.inputSize}',
       num_containers       = '${x.numContainers}',
       cores_per_container  = '${x.coresPerContainer}',
       memory_per_container = '${x.memoryPerContainer}',
@@ -132,10 +136,10 @@ object JobModel extends PersistedAPI[JobModel] {
 
   def namedParametersFor(x: JobModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id                   -> x.id,
-    'app_id               -> x.appId,
+    'yarn_application_id  -> x.yarnAppId,
     'framework            -> x.framework.name,
     'signature            -> x.signature,
-    'dataset_size         -> x.datasetSize,
+    'input_size           -> x.inputSize,
     'num_containers       -> x.numContainers,
     'cores_per_container  -> x.coresPerContainer,
     'memory_per_container -> x.memoryPerContainer,
