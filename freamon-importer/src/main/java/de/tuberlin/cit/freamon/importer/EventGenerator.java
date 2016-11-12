@@ -11,16 +11,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Object creating events from the log files.
+ */
 class EventGenerator {
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(EventGenerator.class);
 
+    /**
+     * Constructor of the object. Connection to the database is established here.
+     */
     EventGenerator(){
         log.debug("EventGenerator started.");
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
+    /**
+     * Method for creating the event table entries for a given job.
+     * @param master - an object specifying the job to be processed.
+     */
     void generateEntries(Master master){
         int jobID = master.getJobID();
         log.debug("jobID = "+jobID);
@@ -87,6 +97,10 @@ class EventGenerator {
 
     }
 
+    /**
+     * Method for checking if the event table exists and if not creating it.
+     * @return - true if table exists (or has just been created); false if does not exist and could not be created.
+     */
     private boolean tableExists(){
         String sql = "SELECT name FROM tables WHERE name = '"+ EventModel.tableName()+"';";
         try {
@@ -109,6 +123,10 @@ class EventGenerator {
         return false;
     }
 
+    /**
+     * Helper method for insertion of a record into the database.
+     * @param record - record as a {@link String[]} object to be inserted.
+     */
     private void insertEventRecord(String[] record){
         String sql = "INSERT INTO "+EventModel.tableName() + "(worker_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;

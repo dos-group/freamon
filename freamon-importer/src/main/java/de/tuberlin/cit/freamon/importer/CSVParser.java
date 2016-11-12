@@ -18,6 +18,11 @@ class CSVParser {
 
     private final static Logger log = Logger.getLogger(CSVParser.class);
 
+    /**
+     * Constructor of the CSV Parser.
+     * @param firstLine - first line, where the body of the file begins.
+     * @param currentFile - path to the file to be parsed.
+     */
     CSVParser(int firstLine, String currentFile){
         log.info("CSVParser started.");
         builder = new StringBuilder();
@@ -25,6 +30,9 @@ class CSVParser {
         this.currentFile = currentFile;
     }
 
+    /**
+     * Method for reading in the file to a {@link StringBuilder} object (to accelerate the reading in operation).
+     */
     private void readFileToStringBuilder(){
         BufferedReader br = null;
         try {
@@ -47,12 +55,15 @@ class CSVParser {
     }
 
 
+    /**
+     * Method for parsing the contents of the {@link StringBuilder} object line by line.
+     * @return - a {@link List} of Entry objects containing the read data.
+     */
     List<Entry> parseStringToEntry(){
         this.readFileToStringBuilder();
         List<Entry> results = new ArrayList<>();
         String[] lines = builder.toString().split("\n");
         for (int i=0;i<lines.length;i++){
-            log.debug("raw: "+lines[i]);
             if (i>=firstLine) {
                 String[] line = lines[i].split(",");
                 long epoch = new Date().getTime();
@@ -92,14 +103,11 @@ class CSVParser {
                     dsk_read = Double.parseDouble(line[Organiser.dsk_read].replaceAll("\"", ""));
                 if (Organiser.dsk_writ != -1)
                     dsk_writ = Double.parseDouble(line[Organiser.dsk_writ].replaceAll("\"", ""));
-                log.debug("processed: "+epoch + "," + usr + "," + sys + "," + idl + "," + wai + "," + hiq + "," + siq + "," + mem_used + "," + mem_buff + "," + mem_cache + "," + mem_free
-                + "," + net_recv + "," + net_send + "," + dsk_read + "," + dsk_writ);
                 Entry entry = new Entry(epoch, usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cache, mem_free, net_recv, net_send,
                         dsk_read, dsk_writ);
                 results.add(entry);
             }
         }
-        log.debug(results.size() + " items processed.");
         return results;
     }
 }

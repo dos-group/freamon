@@ -8,6 +8,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+/**
+ * Object parsing the state.json files.
+ */
 class JSONParser {
 
     private final static Logger log = Logger.getLogger(JSONParser.class);
@@ -15,6 +18,10 @@ class JSONParser {
     private StringBuilder builder;
     private JSONObject json;
 
+    /**
+     * Constructor of the object.
+     * @param pathToFile - path to the state.json file.
+     */
     JSONParser(String pathToFile){
         log.info("JSONParser started.");
         builder = new StringBuilder();
@@ -22,6 +29,10 @@ class JSONParser {
         json = this.convertStringToJSON();
     }
 
+    /**
+     * Method reading in the JSON file to the {@link StringBuilder} object.
+     * @param pathToFile - path to the JSON file to be read.
+     */
     private void readFileToStringBuilder(String pathToFile){
         BufferedReader br = null;
         try {
@@ -43,6 +54,10 @@ class JSONParser {
         }
     }
 
+    /**
+     * Helper method for conversion of the read in state.json file to a JSONObject.
+     * @return - JSON object representing the state.json file.
+     */
     private JSONObject convertStringToJSON(){
         JSONObject result = null;
         try {
@@ -53,6 +68,10 @@ class JSONParser {
         return result;
     }
 
+    /**
+     * Method for extracting the data from the JSON file.
+     * @return - a {@link String[]} object containing the JSON data.
+     */
     String[] extractDataFromJSON(){
         String[] results = new String[6];
 

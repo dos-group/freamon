@@ -7,15 +7,26 @@ import org.apache.log4j.Logger;
 import java.sql.*;
 import java.util.Random;
 
+/**
+ * Object responsible for inserting the records into job table.
+ */
 class JobGenerator {
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(JobGenerator.class);
 
+    /**
+     * Constructor of the object. The connection to the database is also established here.
+     */
     JobGenerator(){
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
+    /**
+     * Method for job generation and insertion into the database.
+     * @param master - object specifying the job to be processed.
+     * @return - updated {@link Master} object with jobID.
+     */
     Master generateAndInsertJob(Master master){
         //generate job
         Random random = new Random();
@@ -58,6 +69,10 @@ class JobGenerator {
 
     }
 
+    /**
+     * Method for getting the last job identifier from the database.
+     * @return - the last job id or if none in the database, then 0 (zero).
+     */
     private int getLastJobID(){
         String sql = "SELECT max (\"id\") from "+JobModel.tableName()+";";
         int result = 0;
@@ -85,6 +100,10 @@ class JobGenerator {
         return result;
     }
 
+    /**
+     * Method for checking if the table exists in the database.
+     * @return - true if exists or has successfully been created; false if unable to create it (if does not exist).
+     */
     private boolean tableExists(){
         String sql = "SELECT name FROM tables WHERE name = '"+JobModel.tableName()+"';";
         try {

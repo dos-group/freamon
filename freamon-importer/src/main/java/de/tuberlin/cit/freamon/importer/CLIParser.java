@@ -3,10 +3,17 @@ package de.tuberlin.cit.freamon.importer;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 
+/**
+ * Object handling the parsing of the arguments into the programme.
+ */
 class CLIParser {
 
     private final static Logger log = Logger.getLogger(CLIParser.class);
 
+    /**
+     * Method declaring and processing the parameters.
+     * @param args - parameters passed into the programme.
+     */
     void processCLIParameters(String[] args){
         Options options = new Options();
 
@@ -29,7 +36,8 @@ class CLIParser {
         Option subfolder = new Option("sf", "subfolder", true, "REQUIRED: Subfolder structure within a job.");
         options.addOption(subfolder);
 
-        Option usr = new Option("u", "usr", true, "column number containing 'usr' (counting starts from 0)");
+        Option usr = new Option("u", "usr", true, "REQUIRED: column number containing 'usr' (counting starts from 0)");
+        usr.setRequired(true);
         options.addOption(usr);
 
         Option sys = new Option("s", "sys", true, "column number containing 'sys' (counting starts from 0)");
@@ -91,6 +99,10 @@ class CLIParser {
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
+
+        HelpFormatter formatter = new HelpFormatter();
+
+
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
@@ -101,34 +113,47 @@ class CLIParser {
 
             if (!cmd.hasOption("d")){
                 log.error("The required parameter -d (--directory) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("an")){
                 log.error("The required parameter -an (--app-name) has not been provided");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("fL")){
                 log.error("The required parameter -fl (--firstLine) has not been provided");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("e")){
                 log.error("The required parameter -e (--epoch) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("sf")){
                 log.error("The required parameter -sf (--subfolder) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("mu")){
                 log.error("The required parameter -mu (--mem-used) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("nr")){
                 log.error("The required parameter -nr (--net-rec) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
             if (!cmd.hasOption("ns")){
                 log.error("The required parameter -ns (--net-send) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
+            if (!cmd.hasOption("u")){
+                log.error("The required parameter -u (--usr) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
 
@@ -186,7 +211,6 @@ class CLIParser {
             Organiser.memoryWorker = Integer.parseInt(cmd.getOptionValue("mw", "-1"));
         }
 
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+
     }
 }

@@ -20,12 +20,19 @@ public class Organiser {
     static String[] jsonData;
 
     private List<String> folderEntries = new ArrayList<>();
-    //private Map<String, List<Entry>> fileEntries = new HashMap<>();
 
+    /**
+     * Default Java method for starting programmes.
+     * @param args - parameters passed to the programme.
+     */
     public static void main(String[] args){
         new Organiser(args);
     }
 
+    /**
+     * Constructor of the Organiser object. The whole sequence of operations is controlled here.
+     * @param args - parameters from the main method.
+     */
     private Organiser(String[] args){
         log.info("Freamon Importer started.");
         CLIParser cli = new CLIParser();
@@ -58,6 +65,10 @@ public class Organiser {
         processedMasters.forEach(eventGenerator::generateEntries);
     }
 
+    /**
+     * Method for discovering the top-level folders of the jobs to be added to the database.
+     * It also saves the folders in the folderEntries ArrayList.
+     */
     private void populateSubfolders(){
         if (folder != null) {
             DirectoryStream.Filter<Path> filter = file -> (Files.isDirectory(file));
@@ -75,6 +86,11 @@ public class Organiser {
         }
     }
 
+    /**
+     * Method for locating the state.json file as well as the logs from the workers (including master) and storing them in a Master object.
+     * @param path - location of a job folder.
+     * @return - a Master object containing job details.
+     */
     private Master generateMastersWithSlaves(String path){
         String state = path + "/state.json";
         JSONParser jsonParser = new JSONParser(state);
@@ -111,14 +127,25 @@ public class Organiser {
                 }
             }
         }
-        return new Master(masterHostname, masterPath, state, slavesHosts, slavesPaths);
+        return new Master(masterHostname, masterPath, slavesHosts, slavesPaths);
 
     }
 
+    /**
+     * Method for checking if a given machine is a master worker.
+     * @param path - path to the log file.
+     * @return - true if master; false otherwise
+     */
     private boolean isMaster(String path){
         return path.contains("cit.tu-berlin.de");
     }
 
+    /**
+     * Helper method for getting a list of files and directories in a specific location.
+     * @param path - location to be examined for files and folders.
+     * @return - a {@link Map} object containing the full path to a folder or file and an integer to indicate whether it is a file (1)
+     * or a folder (2).
+     */
     private Map<String, Integer> getListOfFilesAndDirectories(String path){
         log.info("The path: "+path);
         Map<String, Integer> files = new HashMap<>();

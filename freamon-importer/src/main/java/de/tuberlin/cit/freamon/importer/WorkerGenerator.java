@@ -6,16 +6,27 @@ import org.apache.log4j.Logger;
 
 import java.sql.*;
 
+/**
+ * Object for creation of the workers table.
+ */
 class WorkerGenerator {
 
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(WorkerGenerator.class);
 
+    /**
+     * Constructor of the object. The connection to the database is also established here.
+     */
     WorkerGenerator(){
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
+    /**
+     * Method for generating a table entry for a master worker
+     * @param master - an object specifying the job
+     * @return - updated {@link Master} object with workerID for master being stored.
+     */
     Master generateAndInsertMasterWorker(Master master){
         int jobID = master.getJobID();
         int masterWorkerID = this.getWorkerID(master.getMasterHostname());
@@ -30,6 +41,11 @@ class WorkerGenerator {
         return master;
     }
 
+    /**
+     * Method for generating table entries for slave workers.
+     * @param master - an object specifying the job.
+     * @return - updated {@link Master} object with workerIDs of slave workers.
+     */
     Master generateAndInsertSlaveWorkers(Master master){
         int jobID = master.getJobID();
         int slaveWorkerID;
@@ -48,6 +64,10 @@ class WorkerGenerator {
         return master;
     }
 
+    /**
+     * Helper method for insertion of records to the database.
+     * @param workerEntry - entry to be inserted as a {@link String[]} object.
+     */
     private void insertWorker(String[] workerEntry){
         String sql = "INSERT INTO "+WorkerModel.tableName() + "(id, job_id, hostname, is_yarn) VALUES (?, ?, ?, ?);";
         PreparedStatement pstmt = null;
@@ -74,10 +94,10 @@ class WorkerGenerator {
         }
     }
 
-
-
-
-
+    /**
+     * Helper method for getting the last used workerID from the table.
+     * @return - the greatest workerID used.
+     */
     private int getLastWorkerID(){
         String sql = "SELECT max (\"id\") from "+ WorkerModel.tableName()+";";
         int result = 0;
@@ -105,6 +125,11 @@ class WorkerGenerator {
         return result;
     }
 
+    /**
+     * Method for querying the database for a workerID based on the hostname of the machine
+     * @param hostname - hostname to be queried
+     * @return - workerID as an integer or 0 (zero).
+     */
     private int getWorkerID(String hostname){
         int result = 0;
         if (tableExists()){
@@ -124,6 +149,10 @@ class WorkerGenerator {
         return result;
     }
 
+    /**
+     * Method for checking if the table exists and if not creating it.
+     * @return - true if table exists or has successfully been created; else false.
+     */
     private boolean tableExists(){
         String sql = "SELECT name FROM tables WHERE name = '"+ WorkerModel.tableName()+"';";
         try {

@@ -2,64 +2,98 @@ package de.tuberlin.cit.freamon.importer;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
+/**
+ * Object for storing job details such as the jobID, master hostname and log file location (and the same for the slaves).
+ */
 class Master {
 
     private String masterHostname;
     private String masterPath;
-    private String statePath;
     private String[] slavesHostnames;
     private String[] slavesPaths;
     private Map<String, Integer> workerIDMapping = new HashMap<>();
 
     private int jobID;
 
-    Master(String masterHostname, String masterPath, String statePath, String[] slavesHostnames, String[] slavesPaths){
+    /**
+     * Constructor of the Master object.
+     * @param masterHostname - hostname of the master worker.
+     * @param masterPath - path to the master worker log file.
+     * @param slavesHostnames - hostnames of the slave workers.
+     * @param slavesPaths - paths to the log files of the slave workers.
+     */
+    Master(String masterHostname, String masterPath, String[] slavesHostnames, String[] slavesPaths){
         this.masterHostname = masterHostname;
         this.masterPath = masterPath;
-        this.statePath = statePath;
         this.slavesHostnames = slavesHostnames;
         this.slavesPaths = slavesPaths;
     }
 
+    /**
+     * Method for saving the mapping of a path to a log file and the workerID.
+     * @param path - path to the log file of a worker.
+     * @param workerID - worker identifier.
+     */
     void addWorkerMapping(String path, int workerID){
         this.workerIDMapping.put(path, workerID);
     }
 
-    Set<String> getMappingHostnames(){
-        return this.workerIDMapping.keySet();
-    }
 
+    /**
+     * Method for retrieval of the worker identifier in exchange for a path to the log file of a worker.
+     * @param path - location of the log file of a worker.
+     * @return - worker identifier as a integer.
+     */
     int getWorkerID(String path){
         return this.workerIDMapping.get(path);
     }
 
+    /**
+     * Getter of the hostname of the master worker.
+     * @return - hostname of the master worker.
+     */
     String getMasterHostname() {
         return masterHostname;
     }
 
+    /**
+     * Getter of the path to the log file of the master worker.
+     * @return - path to the log file of the master worker.
+     */
     String getMasterPath() {
         return masterPath;
     }
 
-    String getStatePath() {
-        return statePath;
-    }
-
+    /**
+     * Getter of the hostnames of slave workers.
+     * @return - hostnames of slave workers as a {@link String[]} object.
+     */
     String[] getSlavesHostnames() {
         return slavesHostnames;
     }
 
+    /**
+     * Getter of the paths to the log files of slave workers.
+     * @return - paths of log files of slave workers as a {@link String[]} object.
+     */
     String[] getSlavesPaths() {
         return slavesPaths;
     }
 
-    public int getJobID() {
+    /**
+     * Getter of the job identifier
+     * @return - job identifier as an integer.
+     */
+    int getJobID() {
         return jobID;
     }
 
-    public void setJobID(int jobID) {
+    /**
+     * Setter of the job identifier
+     * @param jobID - jobID as an integer.
+     */
+    void setJobID(int jobID) {
         this.jobID = jobID;
     }
 
