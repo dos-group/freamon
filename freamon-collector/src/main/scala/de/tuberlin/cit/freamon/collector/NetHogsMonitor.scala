@@ -2,7 +2,7 @@ package de.tuberlin.cit.freamon.collector
 
 import scala.sys.process.{Process, ProcessLogger}
 
-case class NetUsageSample(time: Long, pid: Long, transmit: Float, receive: Float)
+case class NetUsageSample(time: Long, pid: Long, transmit: Double, receive: Double)
 
 object NetHogsMonitor {
   def main(args: Array[String]): Unit = {
@@ -23,8 +23,8 @@ object NetHogsMonitor {
       val Array(procStr, upStr, downStr) = line.split("\t")
       val procSplit = procStr.split("/")
       val pid = java.lang.Long.parseLong(procSplit(procSplit.length - 2))
-      val tx = java.lang.Float.parseFloat(upStr)
-      val rx = java.lang.Float.parseFloat(downStr)
+      val tx = java.lang.Double.parseDouble(upStr)
+      val rx = java.lang.Double.parseDouble(downStr)
       Some(NetUsageSample(now, pid, tx, rx))
     } catch {
       case e: Throwable =>
