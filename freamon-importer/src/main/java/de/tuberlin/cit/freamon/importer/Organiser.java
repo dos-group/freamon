@@ -15,7 +15,7 @@ public class Organiser {
     private final static Logger log = Logger.getLogger(Organiser.class);
     static int firstLine, epoch, usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cach, mem_free, net_recv, net_send, dsk_read, dsk_writ;
     static int numWorkers, coresWorker, memoryWorker;
-    static double datasetSize;
+    static double input_size;
     static String framework, signature, folder, appName, subfolder;
     static String[] jsonData;
 
@@ -51,11 +51,11 @@ public class Organiser {
             System.out.println("------------------------------------------");
         }
 
-        WorkerGenerator workerGenerator = new WorkerGenerator();
+        ExecutionUnitGenerator executionUnitGenerator = new ExecutionUnitGenerator();
 
         for (Master master : masters){
-            Master m_AfterMasterProcessed = workerGenerator.generateAndInsertMasterWorker(master);
-            Master m_AfterSlavesProcessed = workerGenerator.generateAndInsertSlaveWorkers(m_AfterMasterProcessed);
+            Master m_AfterMasterProcessed = executionUnitGenerator.generateAndInsertMasterWorker(master);
+            Master m_AfterSlavesProcessed = executionUnitGenerator.generateAndInsertSlaveWorkers(m_AfterMasterProcessed);
             processedMasters.add(m_AfterSlavesProcessed);
         }
         log.debug("There are "+processedMasters.size()+" processed master entries.");

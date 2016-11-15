@@ -48,17 +48,20 @@ class EventGenerator {
                 double mem = e.getMem_used();
                 double netRx = e.getNet_recv();
                 double netTx = e.getNet_send();
-                double blkio = -1;
+                double dsk_read = e.getDsk_read();
+                double dsk_writ = e.getDsk_writ();
                 String[] record_cpu = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpu", String.valueOf(epoch), String.valueOf(cpu)};
                 String[] record_mem = {String.valueOf(masterWorkerID), String.valueOf(jobID), "mem", String.valueOf(epoch), String.valueOf(mem)};
                 String[] record_netRx = {String.valueOf(masterWorkerID), String.valueOf(jobID), "netRx", String.valueOf(epoch), String.valueOf(netRx)};
                 String[] record_netTx = {String.valueOf(masterWorkerID), String.valueOf(jobID), "netTx", String.valueOf(epoch), String.valueOf(netTx)};
-                String[] record_blkio = {String.valueOf(masterWorkerID), String.valueOf(jobID), "blkio", String.valueOf(epoch), String.valueOf(blkio)};
+                String[] record_dskRead = {String.valueOf(masterWorkerID), String.valueOf(jobID), "diskRead", String.valueOf(epoch), String.valueOf(dsk_read)};
+                String[] record_dskWrit = {String.valueOf(masterWorkerID), String.valueOf(jobID), "diskWrite", String.valueOf(epoch), String.valueOf(dsk_writ)};
                 masterRecords.add(record_cpu);
                 masterRecords.add(record_mem);
                 masterRecords.add(record_netRx);
                 masterRecords.add(record_netTx);
-                masterRecords.add(record_blkio);
+                masterRecords.add(record_dskRead);
+                masterRecords.add(record_dskWrit);
             }
             log.info("Inserting entries for master worker...");
             masterRecords.forEach(this::insertEventRecord);
@@ -78,17 +81,20 @@ class EventGenerator {
                     double mem = e.getMem_used();
                     double netRx = e.getNet_recv();
                     double netTx = e.getNet_send();
-                    double blkio = -1;
+                    double dsk_read = e.getDsk_read();
+                    double dsk_writ = e.getDsk_writ();
                     String[] record_cpu = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpu", String.valueOf(epoch), String.valueOf(cpu)};
                     String[] record_mem = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "mem", String.valueOf(epoch), String.valueOf(mem)};
                     String[] record_netRx = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "netRx", String.valueOf(epoch), String.valueOf(netRx)};
                     String[] record_netTx = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "netTx", String.valueOf(epoch), String.valueOf(netTx)};
-                    String[] record_blkio = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "blkio", String.valueOf(epoch), String.valueOf(blkio)};
+                    String[] record_dskRead = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "diskRead", String.valueOf(epoch), String.valueOf(dsk_read)};
+                    String[] record_dskWrit = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "diskWrite", String.valueOf(epoch), String.valueOf(dsk_writ)};
                     slaveRecords.add(record_cpu);
                     slaveRecords.add(record_mem);
                     slaveRecords.add(record_netRx);
                     slaveRecords.add(record_netTx);
-                    slaveRecords.add(record_blkio);
+                    slaveRecords.add(record_dskRead);
+                    slaveRecords.add(record_dskWrit);
                 }
                 log.info("Inserting records of slave "+(i+1)+" of "+(master.getSlavesPaths().length-1));
                 slaveRecords.forEach(this::insertEventRecord);
@@ -128,7 +134,7 @@ class EventGenerator {
      * @param record - record as a {@link String[]} object to be inserted.
      */
     private void insertEventRecord(String[] record){
-        String sql = "INSERT INTO "+EventModel.tableName() + "(worker_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
+        String sql = "INSERT INTO "+EventModel.tableName() + "(execution_unit_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;
         try {
             pstmt = connection.prepareStatement(sql);

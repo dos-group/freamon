@@ -1,24 +1,25 @@
 package de.tuberlin.cit.freamon.importer;
 
 import de.tuberlin.cit.freamon.results.DB;
-import de.tuberlin.cit.freamon.results.WorkerModel;
+import de.tuberlin.cit.freamon.results.ExecutionUnitModel;
 import org.apache.log4j.Logger;
 
 import java.sql.*;
+import java.util.UUID;
 
 /**
  * Object for creation of the workers table.
  */
-class WorkerGenerator {
+class ExecutionUnitGenerator {
 
 
     private Connection connection;
-    private final static Logger log = Logger.getLogger(WorkerGenerator.class);
+    private final static Logger log = Logger.getLogger(ExecutionUnitGenerator.class);
 
     /**
      * Constructor of the object. The connection to the database is also established here.
      */
-    WorkerGenerator(){
+    ExecutionUnitGenerator(){
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
@@ -31,10 +32,10 @@ class WorkerGenerator {
         int jobID = master.getJobID();
         int masterWorkerID = this.getWorkerID(master.getMasterHostname());
         if (masterWorkerID==0)
-            masterWorkerID = this.getLastWorkerID() + 1;
+            masterWorkerID = UUID.randomUUID().hashCode();
         String masterHostname = master.getMasterHostname();
 
-        String[] masterWorkerEntry = {String.valueOf(masterWorkerID), String.valueOf(jobID), masterHostname};
+        String[] masterWorkerEntry = {String.valueOf(masterWorkerID), String.valueOf(jobID), masterHostname, "true"};
         this.insertWorker(masterWorkerEntry);
         master.addWorkerMapping(master.getMasterPath(), masterWorkerID);
 
@@ -54,9 +55,9 @@ class WorkerGenerator {
             if (master.getSlavesHostnames()[i]!=null){
                 slaveWorkerID = this.getWorkerID(master.getSlavesHostnames()[i]);
                 if (slaveWorkerID==0)
-                    slaveWorkerID = this.getLastWorkerID() + 1;
+                    slaveWorkerID = UUID.randomUUID().hashCode();
                 slaveHostname = master.getSlavesHostnames()[i];
-                String[] slaveWorkerEntry = {String.valueOf(slaveWorkerID), String.valueOf(jobID), slaveHostname};
+                String[] slaveWorkerEntry = {String.valueOf(slaveWorkerID), String.valueOf(jobID), slaveHostname, "false"};
                 this.insertWorker(slaveWorkerEntry);
                 master.addWorkerMapping(master.getSlavesPaths()[i], slaveWorkerID);
             }
@@ -69,8 +70,9 @@ class WorkerGenerator {
      * @param workerEntry - entry to be inserted as a {@link String[]} object.
      */
     private void insertWorker(String[] workerEntry){
-        String sql = "INSERT INTO "+WorkerModel.tableName() + "(id, job_id, hostname, is_yarn) VALUES (?, ?, ?, ?);";
+        String sql = "INSERT INTO "+ExecutionUnitModel.tableName() + "(id, job_id, hostname, is_yarn_container, is_master) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;
+        log.debug("ExecUnit Entry: id: "+workerEntry[0] + ", job_id: "+workerEntry[1] + ", hostname: "+workerEntry[2]+", is_master: "+workerEntry[3]);
 
         try {
             pstmt = connection.prepareStatement(sql);
@@ -78,6 +80,7 @@ class WorkerGenerator {
             pstmt.setInt(2, Integer.parseInt(workerEntry[1]));
             pstmt.setString(3, workerEntry[2]);
             pstmt.setBoolean(4, false);
+            pstmt.setBoolean(5, Boolean.parseBoolean(workerEntry[3]));
             pstmt.execute();
         }
         catch (SQLException e){
@@ -98,8 +101,8 @@ class WorkerGenerator {
      * Helper method for getting the last used workerID from the table.
      * @return - the greatest workerID used.
      */
-    private int getLastWorkerID(){
-        String sql = "SELECT max (\"id\") from "+ WorkerModel.tableName()+";";
+    /*private int getLastWorkerID(){
+        String sql = "SELECT max (\"id\") from "+ ExecutionUnitModel.tableName()+";";
         int result = 0;
         if (tableExists()){
             log.debug("Table exists.");
@@ -123,7 +126,7 @@ class WorkerGenerator {
             }
         }
         return result;
-    }
+    }*/
 
     /**
      * Method for querying the database for a workerID based on the hostname of the machine
@@ -133,7 +136,7 @@ class WorkerGenerator {
     private int getWorkerID(String hostname){
         int result = 0;
         if (tableExists()){
-            String sql = "SELECT id FROM "+WorkerModel.tableName()+" WHERE hostname = ?;";
+            String sql = "SELECT id FROM "+ ExecutionUnitModel.tableName()+" WHERE hostname = ?;";
             try {
                 PreparedStatement pstmt = connection.prepareStatement(sql);
                 pstmt.setString(1, hostname);
@@ -154,17 +157,17 @@ class WorkerGenerator {
      * @return - true if table exists or has successfully been created; else false.
      */
     private boolean tableExists(){
-        String sql = "SELECT name FROM tables WHERE name = '"+ WorkerModel.tableName()+"';";
+        String sql = "SELECT name FROM tables WHERE name = '"+ ExecutionUnitModel.tableName()+"';";
         try {
             PreparedStatement pstmt = connection.prepareStatement(sql);
             ResultSet resultSet = pstmt.executeQuery();
             //Table not found - Create table
             if (!resultSet.next()) {
-                WorkerModel.createTable(connection);
+                ExecutionUnitModel.createTable(connection);
             }
             else {
                 //Table found
-                if (resultSet.getString(1).equalsIgnoreCase(WorkerModel.tableName()))
+                if (resultSet.getString(1).equalsIgnoreCase(ExecutionUnitModel.tableName()))
                     return true;
             }
         }

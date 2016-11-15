@@ -196,7 +196,7 @@ class CLIParser {
 
             Organiser.dsk_writ = Integer.parseInt(cmd.getOptionValue("dw", "-1"));
 
-            Organiser.datasetSize = Integer.parseInt(cmd.getOptionValue("dS", "-1"));
+            Organiser.input_size = Integer.parseInt(cmd.getOptionValue("dS", "-1"));
 
             Organiser.framework = cmd.getOptionValue("fw", "Freamon");
 
@@ -204,7 +204,7 @@ class CLIParser {
 
             Organiser.numWorkers = Integer.parseInt(cmd.getOptionValue("nw", "-1"));
 
-            Organiser.datasetSize = Integer.parseInt(cmd.getOptionValue("dS", "-1"));
+            Organiser.input_size = Integer.parseInt(cmd.getOptionValue("dS", "-1"));
 
             Organiser.coresWorker = Integer.parseInt(cmd.getOptionValue("cw", "-1"));
 

@@ -49,7 +49,7 @@ object ExecutionUnitModel extends PersistedAPI[ExecutionUnitModel] {
         is_yarn_container    BOOLEAN             ,
         is_master            BOOLEAN             ,
         container_id         VARCHAR(63)         ,
-        PRIMARY KEY (id),
+        PRIMARY KEY (id, job_id),
         FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
