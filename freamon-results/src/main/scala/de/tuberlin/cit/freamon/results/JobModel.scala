@@ -8,9 +8,9 @@ case class JobModel(
                      framework: Symbol = Symbol(null),
                      signature: String = null,
                      inputSize: Double = 0d,
-                     numContainers: Int = 0,
-                     coresPerContainer: Int = 0,
-                     memoryPerContainer: Int = 0,
+                     numWorkers: Int = 0,
+                     coresPerWorker: Int = 0,
+                     memoryPerWorker: Int = 0,
                      start: Long = System.currentTimeMillis(),
                      stop: Long = 0,
                      id: Int = UUID.randomUUID().hashCode()
@@ -33,21 +33,21 @@ object JobModel extends PersistedAPI[JobModel] {
     get[String]  ("framework")            ~
     get[String]  ("signature")            ~
     get[Double]  ("input_size")           ~
-    get[Int]     ("num_containers")       ~
-    get[Int]     ("cores_per_container")  ~
-    get[Int]     ("memory_per_container") ~
+    get[Int]     ("num_workers")          ~
+    get[Int]     ("cores_per_worker")     ~
+    get[Int]     ("memory_per_worker")    ~
     get[Long]    ("start")                ~
     get[Long]    ("stop")                 map {
-      case id ~ appId ~ framework ~ signature ~ datasetSize ~ numContainers ~ coresPerContainer ~ memoryPerContainer ~ start ~ stop
+      case id ~ appId ~ framework ~ signature ~ datasetSize ~ numWorkers ~ coresPerWorker ~ memoryPerWorker ~ start ~ stop
       =>
         JobModel(
           appId,
           Symbol(framework),
           signature,
           datasetSize,
-          numContainers,
-          coresPerContainer,
-          memoryPerContainer,
+          numWorkers,
+          coresPerWorker,
+          memoryPerWorker,
           start,
           stop,
           id)
@@ -62,16 +62,16 @@ object JobModel extends PersistedAPI[JobModel] {
         framework            VARCHAR(63)         ,
         signature            VARCHAR(255)        ,
         input_size           DOUBLE              ,
-        num_containers       INTEGER             ,
-        cores_per_container  INTEGER             ,
-        memory_per_container INTEGER             ,
+        num_workers          INTEGER             ,
+        cores_per_worker     INTEGER             ,
+        memory_per_worker    INTEGER             ,
         start                BIGINT              ,
         stop                 BIGINT              ,
         PRIMARY KEY (id)
       )""").execute()
   }
 
-  private val fields = "id, yarn_application_id, framework, signature, input_size, num_containers, cores_per_container, memory_per_container, start, stop"
+  private val fields = "id, yarn_application_id, framework, signature, input_size, num_workers, cores_per_worker, memory_per_worker, start, stop"
 
   override def insert(x: JobModel)(implicit conn: Connection): Unit = {
     SQL(s"""
@@ -81,9 +81,9 @@ object JobModel extends PersistedAPI[JobModel] {
         '${x.framework.name}',
         '${x.signature}',
         '${x.inputSize}',
-        '${x.numContainers}',
-        '${x.coresPerContainer}',
-        '${x.memoryPerContainer}',
+        '${x.numWorkers}',
+        '${x.coresPerWorker}',
+        '${x.memoryPerWorker}',
         '${x.start}',
         '${x.stop}'
       )
@@ -99,9 +99,9 @@ object JobModel extends PersistedAPI[JobModel] {
         '{framework}',
         '{signature}',
         '{input_size}',
-        '{num_containers}',
-        '{cores_per_container}',
-        '{memory_per_container}',
+        '{num_workers}',
+        '{cores_per_worker}',
+        '{memory_per_worker}',
         '{start}',
         '{stop}'
       )
@@ -119,9 +119,9 @@ object JobModel extends PersistedAPI[JobModel] {
       framework            = '${x.framework.name}',
       signature            = '${x.signature}',
       input_size           = '${x.inputSize}',
-      num_containers       = '${x.numContainers}',
-      cores_per_container  = '${x.coresPerContainer}',
-      memory_per_container = '${x.memoryPerContainer}',
+      num_workers          = '${x.numWorkers}',
+      cores_per_worker     = '${x.coresPerWorker}',
+      memory_per_worker    = '${x.memoryPerWorker}',
       start                = '${x.start}',
       stop                 = '${x.stop}'
     WHERE id = ${x.id}
@@ -140,9 +140,9 @@ object JobModel extends PersistedAPI[JobModel] {
     'framework            -> x.framework.name,
     'signature            -> x.signature,
     'input_size           -> x.inputSize,
-    'num_containers       -> x.numContainers,
-    'cores_per_container  -> x.coresPerContainer,
-    'memory_per_container -> x.memoryPerContainer,
+    'num_workers          -> x.numWorkers,
+    'cores_per_worker     -> x.coresPerWorker,
+    'memory_per_worker    -> x.memoryPerWorker,
     'start                -> x.start,
     'stop                 -> x.stop
   )

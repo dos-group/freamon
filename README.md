@@ -1,7 +1,8 @@
 # Freamon
-Lightweight monitoring of the resource usage of containerized YARN applications
+Lightweight monitoring of the resource usage of distributed data analytics applications
 
-See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon, information for developers (e.g. building and modules), and additional features like HDFS audit logging and importing existing dstat data.
+See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon,
+information for developers (e.g. building and modules), and additional features like parsing HDFS audit logs and importing existing monitoring data from dstat.
 
 ## Usage
 Make sure the `JAVA_HOME` and `HADOOP_PREFIX` environment variables are set, they are used by the start script and by Hadoop.
@@ -48,7 +49,7 @@ To stop Hadoop, you can run on the Hadoop master node:
 The collected resource usage statistics are now stored in the database.
 
 #### Graphical analysis
-To analyze the usage of a single resource used by each of the containers of a job,
+To analyze the usage of a single resource used by each of the execution_units of a job,
 you can plot it using [dstat-tools](https://github.com/citlab/dstat-tools):
 
     sbin/graph.sh <application_ID> <type>
@@ -69,9 +70,9 @@ CREATE TABLE job (
     framework            VARCHAR(63)         ,
     signature            VARCHAR(255)        ,
     input_size           DOUBLE              ,
-    num_containers       INTEGER             ,
-    cores_per_container  INTEGER             ,
-    memory_per_container INTEGER             ,
+    num_workers          INTEGER             ,
+    cores_per_worker     INTEGER             ,
+    memory_per_worker    INTEGER             ,
     start                BIGINT              ,
     stop                 BIGINT              ,
     PRIMARY KEY (id)
@@ -143,5 +144,5 @@ The message has the following fields:
 - `framework`: `Symbol`, defaults to `Symbol(null)`
 - `signature`: `String`, defaults to `null`
 - `datasetSize`: `Double`, defaults to 0
-- `coresPerContainer`: `Int`, defaults to 0
-- `memoryPerContainer`: `Int`, defaults to 0
+- `coresPerWorker`: `Int`, defaults to 0
+- `memoryPerWorker`: `Int`, defaults to 0

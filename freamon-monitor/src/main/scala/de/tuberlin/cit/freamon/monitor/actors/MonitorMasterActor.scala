@@ -118,8 +118,8 @@ class MonitorMasterActor extends Actor {
           framework = framework,
           signature = signature,
           inputSize = inputSize,
-          coresPerContainer = coresPC,
-          memoryPerContainer = memPC))
+          coresPerWorker = coresPC,
+          memoryPerWorker = memPC))
         Unit
       }).getOrElse(log.warning("Cannot update application metadata for " + appId))
     }
@@ -127,7 +127,7 @@ class MonitorMasterActor extends Actor {
     case FindPreviousRuns(signature) => {
       val runs = JobModel.selectWhere(s"signature = '$signature'")
       sender ! PreviousRuns(
-        runs.map(_.numContainers.asInstanceOf[Integer]).toArray,
+        runs.map(_.numWorkers.asInstanceOf[Integer]).toArray,
         runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
         runs.map(_.inputSize.asInstanceOf[Double]).toArray
       )

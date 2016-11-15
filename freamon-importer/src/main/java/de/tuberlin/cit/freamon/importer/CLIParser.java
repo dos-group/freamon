@@ -80,14 +80,14 @@ class CLIParser {
         Option datasetSize = new Option("dS", "dataset-size", true, "dataset size");
         options.addOption(datasetSize);
 
-        Option numContainers = new Option("nC", "num-containers", true, "number of containers");
-        options.addOption(numContainers);
+        Option numWorkers = new Option("nC", "num-workers", true, "number of workers (e.g. containers)");
+        options.addOption(numWorkers);
 
-        Option coresContainer = new Option("cC", "cores-container", true, "number of cores per container");
-        options.addOption(coresContainer);
+        Option workerCores = new Option("cC", "cores-worker", true, "number of cores per worker");
+        options.addOption(workerCores);
 
-        Option memoryContainer = new Option("mC", "memory-container", true, "amount of memory per container");
-        options.addOption(memoryContainer);
+        Option workerMemory = new Option("mC", "memory-worker", true, "amount of memory per worker");
+        options.addOption(workerMemory);
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
