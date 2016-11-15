@@ -1,7 +1,8 @@
 # Freamon
-Lightweight monitoring of the resource usage of containerized YARN applications
+Lightweight monitoring of the resource usage of distributed data analytics applications
 
-See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon, information for developers (e.g. building and modules), and additional features like HDFS audit logging and importing existing dstat data.
+See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon,
+information for developers (e.g. building and modules), and additional features like parsing HDFS audit logs and importing existing monitoring data from dstat.
 
 ## Usage
 Make sure the `JAVA_HOME` and `HADOOP_PREFIX` environment variables are set, they are used by the start script and by Hadoop.
@@ -48,7 +49,7 @@ To stop Hadoop, you can run on the Hadoop master node:
 The collected resource usage statistics are now stored in the database.
 
 #### Graphical analysis
-To analyze the usage of a single resource used by each of the containers of a job,
+To analyze the usage of a single resource used by each of the execution_units of a job,
 you can plot it using [dstat-tools](https://github.com/citlab/dstat-tools):
 
     sbin/graph.sh <application_ID> <type>

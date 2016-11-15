@@ -31,8 +31,8 @@ case class ApplicationMetadata(
                                 framework: Symbol = Symbol(null),
                                 signature: String = null,
                                 inputSize: Double = 0d,
-                                coresPerContainer: Int = 0,
-                                memoryPerContainer: Int = 0
+                                coresPerWorker: Int = 0,
+                                memoryPerWorker: Int = 0
                               )
 
 /** Single data point of a resource's usage by a container, similar to freamon.results.EventModel
