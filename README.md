@@ -1,7 +1,7 @@
 # Freamon
 Lightweight monitoring of the resource usage of containerized YARN applications
 
-See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon, information for developers (e.g. building and modules), and additional features like HDFS audit logging
+See the [wiki](https://github.com/citlab/freamon/wiki) for information on installation and configuration of Freamon, information for developers (e.g. building and modules), and additional features like HDFS audit logging and importing existing dstat data.
 
 ## Usage
 Make sure the `JAVA_HOME` and `HADOOP_PREFIX` environment variables are set, they are used by the start script and by Hadoop.
@@ -63,17 +63,19 @@ The data is stored in the following tables:
 
 ##### job
 ```sql
-id                   INTEGER     NOT NULL,
-yarn_application_id  VARCHAR(63)         ,
-framework            VARCHAR(63)         ,
-signature            VARCHAR(255)        ,
-input_size           DOUBLE              ,
-num_containers       INTEGER             ,
-cores_per_container  INTEGER             ,
-memory_per_container INTEGER             ,
-start                BIGINT              ,
-stop                 BIGINT              ,
-PRIMARY KEY (id)
+CREATE TABLE job (
+    id                   INTEGER     NOT NULL,
+    yarn_application_id  VARCHAR(63)         ,
+    framework            VARCHAR(63)         ,
+    signature            VARCHAR(255)        ,
+    input_size           DOUBLE              ,
+    num_containers       INTEGER             ,
+    cores_per_container  INTEGER             ,
+    memory_per_container INTEGER             ,
+    start                BIGINT              ,
+    stop                 BIGINT              ,
+    PRIMARY KEY (id)
+)
 ```
 
 - `start`, `stop`: timestamp when the job was started/stopped, in milliseconds since the Unix epoch
@@ -82,14 +84,16 @@ PRIMARY KEY (id)
 
 ##### execution_unit
 ```sql
-id                   INTEGER     NOT NULL,
-job_id               INTEGER     NOT NULL,
-hostname             VARCHAR(63)         ,
-is_yarn_container    BOOLEAN             ,
-is_master            BOOLEAN             ,
-container_id         VARCHAR(63)         ,
-PRIMARY KEY (id),
-FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+CREATE TABLE execution_unit (
+    id                   INTEGER     NOT NULL,
+    job_id               INTEGER     NOT NULL,
+    hostname             VARCHAR(63)         ,
+    is_yarn_container    BOOLEAN             ,
+    is_master            BOOLEAN             ,
+    container_id         VARCHAR(63)         ,
+    PRIMARY KEY (id),
+    FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+)
 ```
 
 - `is_yarn_container`: the entry represents a YARN container, `container_id` is set
@@ -97,13 +101,15 @@ FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
 
 ##### event
 ```sql
-execution_unit_id INTEGER     NOT NULL,
-job_id            INTEGER     NOT NULL,
-kind              VARCHAR(63) NOT NULL,
-millis            BIGINT              ,
-value             DOUBLE              ,
-FOREIGN KEY (execution_unit_id) REFERENCES execution_unit(id) ON DELETE CASCADE,
-FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+CREATE TABLE event (
+    execution_unit_id INTEGER NOT NULL,
+    job_id       INTEGER     NOT NULL,
+    kind         VARCHAR(63) NOT NULL,
+    millis       BIGINT              ,
+    value        DOUBLE              ,
+    FOREIGN KEY (execution_unit_id) REFERENCES execution_unit(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES job(id) ON DELETE CASCADE
+)
 ```
 
 - `kind`: type of the measurement, one of `cpu`, `mem`, `netRx`, `netTx`, `diskRead`, `diskWrite`
