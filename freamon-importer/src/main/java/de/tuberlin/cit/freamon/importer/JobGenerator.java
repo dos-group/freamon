@@ -76,37 +76,6 @@ class JobGenerator {
     }
 
     /**
-     * Method for getting the last job identifier from the database.
-     * @return - the last job id or if none in the database, then 0 (zero).
-     */
-    /*private int getLastJobID(){
-        String sql = "SELECT max (\"id\") from "+JobModel.tableName()+";";
-        int result = 0;
-        if (tableExists()){
-            log.debug("Table exists.");
-            Statement stmt = null;
-
-            try {
-                stmt = connection.createStatement();
-                ResultSet resultSet = stmt.executeQuery(sql);
-                while (resultSet.next())
-                    result = resultSet.getInt(1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            finally {
-                if (stmt != null)
-                    try {
-                        stmt.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-            }
-        }
-        return result;
-    }*/
-
-    /**
      * Method for checking if the table exists in the database.
      * @return - true if exists or has successfully been created; false if unable to create it (if does not exist).
      */

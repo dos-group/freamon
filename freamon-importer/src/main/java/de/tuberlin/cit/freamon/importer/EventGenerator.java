@@ -44,19 +44,28 @@ class EventGenerator {
         if (tableExists()){
             for (Entry e : masterEntries){
                 long epoch = e.getEpoch();
-                double cpu = e.getUsr();
+                double cpuUsr = e.getUsr();
+                double cpuSys = e.getSys();
+                double cpuIdl = e.getIdl();
+                double cpuIOWait = e.getWai();
                 double mem = e.getMem_used();
                 double netRx = e.getNet_recv();
                 double netTx = e.getNet_send();
                 double dsk_read = e.getDsk_read();
                 double dsk_writ = e.getDsk_writ();
-                String[] record_cpu = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpu", String.valueOf(epoch), String.valueOf(cpu)};
+                String[] record_cpuUsr = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpuUsr", String.valueOf(epoch), String.valueOf(cpuUsr)};
+                String[] record_cpuSys = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpuSys", String.valueOf(epoch), String.valueOf(cpuSys)};
+                String[] record_cpuIdl = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpuIdl", String.valueOf(epoch), String.valueOf(cpuIdl)};
+                String[] record_cpuIOWait = {String.valueOf(masterWorkerID), String.valueOf(jobID), "cpuIOWait", String.valueOf(epoch), String.valueOf(cpuIOWait)};
                 String[] record_mem = {String.valueOf(masterWorkerID), String.valueOf(jobID), "mem", String.valueOf(epoch), String.valueOf(mem)};
                 String[] record_netRx = {String.valueOf(masterWorkerID), String.valueOf(jobID), "netRx", String.valueOf(epoch), String.valueOf(netRx)};
                 String[] record_netTx = {String.valueOf(masterWorkerID), String.valueOf(jobID), "netTx", String.valueOf(epoch), String.valueOf(netTx)};
                 String[] record_dskRead = {String.valueOf(masterWorkerID), String.valueOf(jobID), "diskRead", String.valueOf(epoch), String.valueOf(dsk_read)};
                 String[] record_dskWrit = {String.valueOf(masterWorkerID), String.valueOf(jobID), "diskWrite", String.valueOf(epoch), String.valueOf(dsk_writ)};
-                masterRecords.add(record_cpu);
+                masterRecords.add(record_cpuUsr);
+                masterRecords.add(record_cpuSys);
+                masterRecords.add(record_cpuIdl);
+                masterRecords.add(record_cpuIOWait);
                 masterRecords.add(record_mem);
                 masterRecords.add(record_netRx);
                 masterRecords.add(record_netTx);
@@ -77,19 +86,28 @@ class EventGenerator {
             if (tableExists()){
                 for (Entry e : slaveEntries){
                     long epoch = e.getEpoch();
-                    double cpu = e.getUsr();
+                    double cpuUsr = e.getUsr();
+                    double cpuSys = e.getSys();
+                    double cpuIdl = e.getIdl();
+                    double cpuIOWait = e.getWai();
                     double mem = e.getMem_used();
                     double netRx = e.getNet_recv();
                     double netTx = e.getNet_send();
                     double dsk_read = e.getDsk_read();
                     double dsk_writ = e.getDsk_writ();
-                    String[] record_cpu = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpu", String.valueOf(epoch), String.valueOf(cpu)};
+                    String[] record_cpuUsr = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpuUsr", String.valueOf(epoch), String.valueOf(cpuUsr)};
+                    String[] record_cpuSys = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpuSys", String.valueOf(epoch), String.valueOf(cpuSys)};
+                    String[] record_cpuIdl = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpuIdl", String.valueOf(epoch), String.valueOf(cpuIdl)};
+                    String[] record_cpuIOWait = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "cpuIOWait", String.valueOf(epoch), String.valueOf(cpuIOWait)};
                     String[] record_mem = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "mem", String.valueOf(epoch), String.valueOf(mem)};
                     String[] record_netRx = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "netRx", String.valueOf(epoch), String.valueOf(netRx)};
                     String[] record_netTx = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "netTx", String.valueOf(epoch), String.valueOf(netTx)};
                     String[] record_dskRead = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "diskRead", String.valueOf(epoch), String.valueOf(dsk_read)};
                     String[] record_dskWrit = {String.valueOf(slaveWorkerID), String.valueOf(jobID), "diskWrite", String.valueOf(epoch), String.valueOf(dsk_writ)};
-                    slaveRecords.add(record_cpu);
+                    slaveRecords.add(record_cpuUsr);
+                    slaveRecords.add(record_cpuSys);
+                    slaveRecords.add(record_cpuIdl);
+                    slaveRecords.add(record_cpuIOWait);
                     slaveRecords.add(record_mem);
                     slaveRecords.add(record_netRx);
                     slaveRecords.add(record_netTx);

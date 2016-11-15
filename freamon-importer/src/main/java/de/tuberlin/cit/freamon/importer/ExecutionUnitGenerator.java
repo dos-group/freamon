@@ -98,37 +98,6 @@ class ExecutionUnitGenerator {
     }
 
     /**
-     * Helper method for getting the last used workerID from the table.
-     * @return - the greatest workerID used.
-     */
-    /*private int getLastWorkerID(){
-        String sql = "SELECT max (\"id\") from "+ ExecutionUnitModel.tableName()+";";
-        int result = 0;
-        if (tableExists()){
-            log.debug("Table exists.");
-            Statement stmt = null;
-
-            try {
-                stmt = connection.createStatement();
-                ResultSet resultSet = stmt.executeQuery(sql);
-                while (resultSet.next())
-                    result = resultSet.getInt(1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            finally {
-                if (stmt != null)
-                    try {
-                        stmt.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-            }
-        }
-        return result;
-    }*/
-
-    /**
      * Method for querying the database for a workerID based on the hostname of the machine
      * @param hostname - hostname to be queried
      * @return - workerID as an integer or 0 (zero).
