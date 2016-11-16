@@ -40,13 +40,16 @@ class CLIParser {
         usr.setRequired(true);
         options.addOption(usr);
 
-        Option sys = new Option("s", "sys", true, "column number containing 'sys' (counting starts from 0)");
+        Option sys = new Option("s", "sys", true, "REQUIRED: column number containing 'sys' (counting starts from 0)");
+        sys.setRequired(true);
         options.addOption(sys);
 
-        Option idl = new Option("i", "idl", true, "column number containing 'idl' (counting starts from 0)");
+        Option idl = new Option("i", "idl", true, "REQUIRED: column number containing 'idl' (counting starts from 0)");
+        sys.setRequired(true);
         options.addOption(idl);
 
-        Option wai = new Option("w", "wai", true, "column number containing 'wai' (counting starts from 0)");
+        Option wai = new Option("w", "wai", true, "REQUIRED: column number containing 'wai' (counting starts from 0)");
+        wai.setRequired(true);
         options.addOption(wai);
 
         Option hiq = new Option("h", "hiq", true, "column number containing 'hiq' (counting starts from 0)");
@@ -87,8 +90,7 @@ class CLIParser {
 
         Option signature = new Option("sign", "signature", true, "signature");
         options.addOption(signature);
-
-        Option datasetSize = new Option("dS", "dataset-size", true, "dataset size");
+        Option datasetSize = new Option("iS", "input-size", true, "input size");
         options.addOption(datasetSize);
 
         Option coresWorker = new Option("cw", "cores-worker", true, "number of cores per worker");
@@ -156,6 +158,21 @@ class CLIParser {
                 formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }
+            if (!cmd.hasOption("s")){
+                log.error("The required parameter -s (--sys) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
+            if (!cmd.hasOption("i")){
+                log.error("The required parameter -i (--idl) has not been provided.");
+                formatter.printHelp("java - jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
+            if (!cmd.hasOption("w")){
+                log.error("The required parameter -w (--wai) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
 
 
             Organiser.folder = cmd.getOptionValue("d");
@@ -196,11 +213,11 @@ class CLIParser {
 
             Organiser.dsk_writ = Integer.parseInt(cmd.getOptionValue("dw", "-1"));
 
-            Organiser.input_size = Integer.parseInt(cmd.getOptionValue("dS", "-1"));
+            Organiser.input_size = Integer.parseInt(cmd.getOptionValue("iS", "-1"));
 
             Organiser.framework = cmd.getOptionValue("fw", "Freamon");
 
-            Organiser.signature = cmd.getOptionValue("sign");
+            Organiser.signature = cmd.getOptionValue("sign", "unknown_signature");
 
             Organiser.numWorkers = Integer.parseInt(cmd.getOptionValue("nw", "-1"));
 

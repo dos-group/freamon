@@ -18,6 +18,7 @@ class EventGenerator {
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(EventGenerator.class);
+    private List<String[]> recordsToBeWritten;
 
     /**
      * Constructor of the object. Connection to the database is established here.
@@ -25,6 +26,7 @@ class EventGenerator {
     EventGenerator(){
         log.debug("EventGenerator started.");
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
+        recordsToBeWritten = new ArrayList<>();
     }
 
     /**
@@ -148,32 +150,43 @@ class EventGenerator {
     }
 
     /**
-     * Helper method for insertion of a record into the database.
+     * Helper method for insertion of a record into the {@link ArrayList} for all records to inserted as a batch.
      * @param record - record as a {@link String[]} object to be inserted.
      */
     private void insertEventRecord(String[] record){
+        this.recordsToBeWritten.add(record);
+    }
+
+    /**
+     * Method for inserting all the records from the recordsToBeWritten {@link ArrayList} into the database.
+     * This is conducted in the batch mode.
+     */
+    void writeEventRecords(){
         String sql = "INSERT INTO "+EventModel.tableName() + "(execution_unit_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;
-        try {
+        try{
             pstmt = connection.prepareStatement(sql);
-            pstmt.setInt(1, Integer.parseInt(record[0]));
-            pstmt.setInt(2, Integer.parseInt(record[1]));
-            pstmt.setString(3, record[2]);
-            pstmt.setLong(4, Long.valueOf(record[3]));
-            pstmt.setDouble(5, Double.valueOf(record[4]));
-            pstmt.execute();
+
+            for (String[] record : this.recordsToBeWritten){
+                pstmt.setInt(1, Integer.parseInt(record[0]));
+                pstmt.setInt(2, Integer.parseInt(record[1]));
+                pstmt.setString(3, record[2]);
+                pstmt.setLong(4, Long.valueOf(record[3]));
+                pstmt.setDouble(5, Double.valueOf(record[4]));
+                pstmt.addBatch();
+            }
+            pstmt.executeBatch();
         }
         catch (SQLException e){
             e.printStackTrace();
         }
         finally {
-            if (pstmt!=null){
-                try {
+            try {
+                if (pstmt != null)
                     pstmt.close();
-                }
-                catch (SQLException e){
-                    e.printStackTrace();
-                }
+            }
+            catch (SQLException e){
+                e.printStackTrace();
             }
         }
     }

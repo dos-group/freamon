@@ -23,7 +23,7 @@ class JSONParser {
      * @param pathToFile - path to the state.json file.
      */
     JSONParser(String pathToFile){
-        log.info("JSONParser started.");
+        log.debug("JSONParser started.");
         builder = new StringBuilder();
         this.readFileToStringBuilder(pathToFile);
         json = this.convertStringToJSON();

@@ -24,7 +24,7 @@ class CSVParser {
      * @param currentFile - path to the file to be parsed.
      */
     CSVParser(int firstLine, String currentFile){
-        log.info("CSVParser started.");
+        log.debug("CSVParser started.");
         builder = new StringBuilder();
         this.firstLine = firstLine;
         this.currentFile = currentFile;

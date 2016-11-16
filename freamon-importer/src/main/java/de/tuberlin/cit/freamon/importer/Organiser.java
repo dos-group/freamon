@@ -63,6 +63,9 @@ public class Organiser {
         EventGenerator eventGenerator = new EventGenerator();
 
         processedMasters.forEach(eventGenerator::generateEntries);
+        log.info("Starting to populate the database with events. Please be patient.");
+        eventGenerator.writeEventRecords();
+        log.info("Finished.");
     }
 
     /**
