@@ -90,9 +90,10 @@ class CLIParser {
 
         Option signature = new Option("sign", "signature", true, "signature");
         options.addOption(signature);
-        Option datasetSize = new Option("iS", "input-size", true, "input size");
-        options.addOption(datasetSize);
-        
+
+        Option inputSize = new Option("iS", "input-size", true, "input size");
+        options.addOption(inputSize);
+
         Option coresWorker = new Option("cw", "cores-worker", true, "number of cores per worker");
         options.addOption(coresWorker);
 
