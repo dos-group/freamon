@@ -165,9 +165,13 @@ class EventGenerator {
         String sql = "INSERT INTO "+EventModel.tableName() + "(execution_unit_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;
         try{
+            connection.setAutoCommit(false);
             pstmt = connection.prepareStatement(sql);
 
-            for (String[] record : this.recordsToBeWritten){
+            for (int i=0;i<this.recordsToBeWritten.size();i++){
+                if (i % 1000 == 0)
+                    log.info("Written "+i + " of "+this.recordsToBeWritten.size()+" records to DB.");
+                String[] record = this.recordsToBeWritten.get(i);
                 pstmt.setInt(1, Integer.parseInt(record[0]));
                 pstmt.setInt(2, Integer.parseInt(record[1]));
                 pstmt.setString(3, record[2]);
@@ -176,6 +180,7 @@ class EventGenerator {
                 pstmt.addBatch();
             }
             pstmt.executeBatch();
+            connection.commit();
         }
         catch (SQLException e){
             e.printStackTrace();
