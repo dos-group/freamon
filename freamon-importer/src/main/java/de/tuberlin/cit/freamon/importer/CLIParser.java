@@ -80,9 +80,11 @@ class CLIParser {
         options.addOption(net_send);
 
         Option dsk_read = new Option("dr", "dsk-read", true, "column number containing 'read (dsk)' (counting starts from 0)");
+        dsk_read.setRequired(true);
         options.addOption(dsk_read);
 
         Option dsk_writ = new Option("dw", "dsk-writ", true, "column number containing 'writ (dsk)' (counting starts from 0)");
+        dsk_writ.setRequired(true);
         options.addOption(dsk_writ);
 
         Option framework = new Option("fw", "framework", true, "framework");
@@ -180,6 +182,16 @@ class CLIParser {
             }
             if (!cmd.hasOption("w")){
                 log.error("The required parameter -w (--wai) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
+            if (!cmd.hasOption("dr")){
+                log.error("The required parameter -dr (--dsk-read) has not been provided.");
+                formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
+                System.exit(1);
+            }
+            if (!cmd.hasOption("dw")){
+                log.error("The required parameter -dw (--disk-writ) has not been provided.");
                 formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
                 System.exit(1);
             }

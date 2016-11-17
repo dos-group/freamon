@@ -36,8 +36,9 @@ public class Organiser {
     private Organiser(String[] args){
         log.info("Freamon Importer started.");
         CLIParser cli = new CLIParser();
-        JobGenerator jobGenerator = new JobGenerator();
         cli.processCLIParameters(args);
+        JobGenerator jobGenerator = new JobGenerator();
+
 
         this.populateSubfolders();
 
