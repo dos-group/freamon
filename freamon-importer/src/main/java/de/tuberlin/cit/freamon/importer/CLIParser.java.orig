@@ -85,12 +85,6 @@ class CLIParser {
         Option dsk_writ = new Option("dw", "dsk-writ", true, "column number containing 'writ (dsk)' (counting starts from 0)");
         options.addOption(dsk_writ);
 
-        Option jID = new Option("jID", "job-id", true, "job ID");
-        options.addOption(jID);
-
-        Option appID = new Option("aID", "app-id", true, "app ID");
-        options.addOption(appID);
-
         Option framework = new Option("fw", "framework", true, "framework");
         options.addOption(framework);
 
@@ -99,11 +93,22 @@ class CLIParser {
         Option datasetSize = new Option("iS", "input-size", true, "input size");
         options.addOption(datasetSize);
 
+<<<<<<< HEAD
         Option coresWorker = new Option("cw", "cores-worker", true, "number of cores per worker");
         options.addOption(coresWorker);
 
         Option memoryWorker = new Option("mw", "memory-worker", true, "amount of memory per worker");
         options.addOption(memoryWorker);
+=======
+        Option numWorkers = new Option("nC", "num-workers", true, "number of workers (e.g. containers)");
+        options.addOption(numWorkers);
+
+        Option workerCores = new Option("cC", "cores-worker", true, "number of cores per worker");
+        options.addOption(workerCores);
+
+        Option workerMemory = new Option("mC", "memory-worker", true, "amount of memory per worker");
+        options.addOption(workerMemory);
+>>>>>>> db-schema-fix
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
@@ -193,43 +198,30 @@ class CLIParser {
 
             Organiser.usr = Integer.parseInt(cmd.getOptionValue("u", "-1"));
 
-        if (cmd!=null && cmd.hasOption("s"))
             Organiser.sys = Integer.parseInt(cmd.getOptionValue("s", "-1"));
 
-        if (cmd!=null && cmd.hasOption("i"))
             Organiser.idl = Integer.parseInt(cmd.getOptionValue("i", "-1"));
 
-        if (cmd!=null && cmd.hasOption("w"))
             Organiser.wai = Integer.parseInt(cmd.getOptionValue("w", "-1"));
 
-        if (cmd!=null && cmd.hasOption("h"))
             Organiser.hiq = Integer.parseInt(cmd.getOptionValue("h", "-1"));
 
-        if (cmd!=null && cmd.hasOption("S"))
             Organiser.siq = Integer.parseInt(cmd.getOptionValue("S", "-1"));
 
-        if (cmd!=null && cmd.hasOption("mu"))
             Organiser.mem_used = Integer.parseInt(cmd.getOptionValue("mu", "-1"));
 
-        if (cmd!=null && cmd.hasOption("mb"))
             Organiser.mem_buff = Integer.parseInt(cmd.getOptionValue("mb", "-1"));
 
-        if (cmd!=null && cmd.hasOption("mc"))
             Organiser.mem_cach = Integer.parseInt(cmd.getOptionValue("mc", "-1"));
 
-        if (cmd!=null && cmd.hasOption("mf"))
             Organiser.mem_free = Integer.parseInt(cmd.getOptionValue("mf", "-1"));
 
-        if (cmd!=null && cmd.hasOption("nr"))
             Organiser.net_recv = Integer.parseInt(cmd.getOptionValue("nr", "-1"));
 
-        if (cmd!=null && cmd.hasOption("ns"))
             Organiser.net_send = Integer.parseInt(cmd.getOptionValue("ns", "-1"));
 
-        if (cmd!=null && cmd.hasOption("dr"))
             Organiser.dsk_read = Integer.parseInt(cmd.getOptionValue("dr", "-1"));
 
-        if (cmd!=null && cmd.hasOption("dw"))
             Organiser.dsk_writ = Integer.parseInt(cmd.getOptionValue("dw", "-1"));
 
             Organiser.input_size = Integer.parseInt(cmd.getOptionValue("iS", "-1"));
@@ -247,15 +239,6 @@ class CLIParser {
             Organiser.memoryWorker = Integer.parseInt(cmd.getOptionValue("mw", "-1"));
         }
 
-        if (cmd!=null && cmd.hasOption("cC"))
-            Organiser.coresContainer = Integer.parseInt(cmd.getOptionValue("cC", "-1"));
 
-        if (cmd!=null && cmd.hasOption("mC"))
-            Organiser.memoryContainer = Integer.parseInt(cmd.getOptionValue("mC", "-1"));
-
-
-
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("java -jar freamon-importer.jar OPTIONS", options);
     }
 }
