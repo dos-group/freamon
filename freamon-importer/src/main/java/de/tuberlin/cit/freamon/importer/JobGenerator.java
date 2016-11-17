@@ -46,8 +46,8 @@ class JobGenerator {
 
 
         //insert job into DB
-        String sql = "INSERT INTO "+JobModel.tableName() + " (id, yarn_application_id, framework, signature, input_size, num_containers, " +
-                "cores_per_container, memory_per_container, start, stop) "+
+        String sql = "INSERT INTO "+JobModel.tableName() + " (id, yarn_application_id, framework, signature, input_size, num_workers, " +
+                "cores_per_worker, memory_per_worker, start, stop) "+
                 "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
         if(!tableExists())
