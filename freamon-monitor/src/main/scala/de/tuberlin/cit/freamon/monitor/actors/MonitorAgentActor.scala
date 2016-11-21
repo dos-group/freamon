@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import com.typesafe.config.Config
 import de.tuberlin.cit.freamon.api._
-import de.tuberlin.cit.freamon.collector.{NetHogsMonitor, NetUsageSample, ProcPoll}
+import de.tuberlin.cit.freamon.collector._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -14,6 +14,13 @@ import scala.collection.mutable.ArrayBuffer
 class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
+
+  // Akka fails sending a message if it is too large.
+  // This number limits how many samples can queue up
+  // to be sent before the collection gets too large.
+  // TODO make this configurable for "live reporting"
+  val maxSamplesPerMsg = 8 * 60 // 8 samples/second * 60 seconds/minute
+
   val hostConfig = context.system.settings.config
 
   // appId -> containerId
@@ -30,6 +37,16 @@ class MonitorAgentActor() extends Actor {
     if (hostConfig.hasPath(netHogsCommandConfigKey) && !hostConfig.getIsNull(netHogsCommandConfigKey)) {
       val nethogsCommand = hostConfig.getString(netHogsCommandConfigKey)
       Some(new NetHogsMonitor(nethogsCommand, self ! _))
+    } else {
+      None
+    }
+  }
+
+  val pidStatMonitor = {
+    val pidStatCommandConfigKey = "freamon.hosts.slaves.pidstatCommand"
+    if (hostConfig.hasPath(pidStatCommandConfigKey) && !hostConfig.getIsNull(pidStatCommandConfigKey)) {
+      val pidstatCommand = hostConfig.getString(pidStatCommandConfigKey)
+      Some(new PidStatMonitor(pidstatCommand, self ! _))
     } else {
       None
     }
@@ -101,6 +118,20 @@ class MonitorAgentActor() extends Actor {
             log.debug(s"Recording net sample $sample")
             stats += StatSample(containerId, 'netTx, sample.time, sample.transmit)
             stats += StatSample(containerId, 'netRx, sample.time, sample.receive)
+          }
+      }
+
+    case sample: PidStatSample =>
+      // store sample if pid is being recorded (is key in hashmap)
+      procPoll.containersByPid.get(sample.pid) match {
+        case None => // ignored pid
+        case Some(containerId) =>
+          containerStats get containerId map { stats =>
+            log.debug(s"Recording pidstat sample $sample")
+            stats += StatSample(containerId, 'cpuUsr, sample.time, sample.usr)
+            stats += StatSample(containerId, 'cpuSys, sample.time, sample.sys)
+            stats += StatSample(containerId, 'diskRd, sample.time, sample.read)
+            stats += StatSample(containerId, 'diskWr, sample.time, sample.write)
           }
       }
 
