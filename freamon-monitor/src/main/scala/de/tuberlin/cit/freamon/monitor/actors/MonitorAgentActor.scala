@@ -52,10 +52,12 @@ class MonitorAgentActor() extends Actor {
     }
   }
 
+  val masterActor: ActorSelection = this.getMasterActor(hostConfig)
+
   override def preStart(): Unit = {
     log.info("Monitor Agent started")
 
-    this.getMasterActor(hostConfig) ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
+    masterActor ! WorkerAnnouncement(InetAddress.getLocalHost.getHostName)
   }
 
   def getMasterActor(hostConfig: Config): ActorSelection = {
@@ -73,6 +75,16 @@ class MonitorAgentActor() extends Actor {
     containerStats get sample.containerId foreach { samples =>
       log.debug(s"Recording sample $sample")
       samples += sample
+      if (samples.size >= maxSamplesPerMsg) {
+        // the container id string contains the app id if it's a yarn container,
+        // but getting it this way will work in any case
+        val appId = containersPerApp.filter({
+          case (_, containerIds) => containerIds.contains(sample.containerId)
+        }).head._1
+        log.debug(s"Sending collected samples for ${sample.containerId}")
+        masterActor ! ContainerReport(appId, sample.containerId, samples.toArray)
+        samples.clear()
+      }
     }
   }
 
