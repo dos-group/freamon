@@ -69,6 +69,13 @@ class MonitorAgentActor() extends Actor {
     context.actorSelection(masterActorPath)
   }
 
+  def recordSample(sample: StatSample): Unit = {
+    containerStats get sample.containerId foreach { samples =>
+      log.debug(s"Recording sample $sample")
+      samples += sample
+    }
+  }
+
   def receive = {
 
     case StartRecording(applicationId: String, containerIds: Array[String]) =>
@@ -104,21 +111,16 @@ class MonitorAgentActor() extends Actor {
       }
 
     case sample: StatSample =>
-      containerStats get sample.containerId foreach { samples =>
-        log.debug(s"Recording sample $sample")
-        samples += sample
-      }
+      recordSample(sample)
 
     case sample: NetUsageSample =>
       // store sample if pid is being recorded (is key in hashmap)
       procPoll.containersByPid.get(sample.pid) match {
         case None => // ignored pid
         case Some(containerId) =>
-          containerStats get containerId map { stats =>
-            log.debug(s"Recording net sample $sample")
-            stats += StatSample(containerId, 'netTx, sample.time, sample.transmit)
-            stats += StatSample(containerId, 'netRx, sample.time, sample.receive)
-          }
+          log.debug(s"Recording net sample $sample")
+          recordSample(StatSample(containerId, 'netTx, sample.time, sample.transmit))
+          recordSample(StatSample(containerId, 'netRx, sample.time, sample.receive))
       }
 
     case sample: PidStatSample =>
@@ -126,13 +128,11 @@ class MonitorAgentActor() extends Actor {
       procPoll.containersByPid.get(sample.pid) match {
         case None => // ignored pid
         case Some(containerId) =>
-          containerStats get containerId map { stats =>
-            log.debug(s"Recording pidstat sample $sample")
-            stats += StatSample(containerId, 'cpuUsr, sample.time, sample.usr)
-            stats += StatSample(containerId, 'cpuSys, sample.time, sample.sys)
-            stats += StatSample(containerId, 'diskRd, sample.time, sample.read)
-            stats += StatSample(containerId, 'diskWr, sample.time, sample.write)
-          }
+          log.debug(s"Recording pidstat sample $sample")
+          recordSample(StatSample(containerId, 'cpuUsr, sample.time, sample.usr))
+          recordSample(StatSample(containerId, 'cpuSys, sample.time, sample.sys))
+          recordSample(StatSample(containerId, 'diskRd, sample.time, sample.read))
+          recordSample(StatSample(containerId, 'diskWr, sample.time, sample.write))
       }
 
   }
