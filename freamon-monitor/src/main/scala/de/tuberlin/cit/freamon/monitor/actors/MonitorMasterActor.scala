@@ -8,12 +8,11 @@ import java.util.concurrent.LinkedBlockingQueue
 import akka.actor.{Actor, ActorSelection, Address}
 import akka.event.Logging
 import de.tuberlin.cit.freamon.api._
+import de.tuberlin.cit.freamon.collector.AuditLogProducer
+import de.tuberlin.cit.freamon.monitor.utils.AuditLogForwarder
 import de.tuberlin.cit.freamon.results._
 import de.tuberlin.cit.freamon.yarnclient.yarnClient
 import org.apache.hadoop.yarn.api.records.ApplicationId
-import de.tuberlin.cit.freamon.collector.AuditLogProducer
-import de.tuberlin.cit.freamon
-import de.tuberlin.cit.freamon.monitor.utils.AuditLogForwarder
 
 import scala.collection.mutable
 
@@ -145,11 +144,16 @@ class MonitorMasterActor extends Actor {
       JobModel.selectWhere(s"yarn_application_id = '$applicationId'").headOption match {
         case Some(job) =>
           val hostname = sender().path.address.hostPort
-          val execUnitModel = ExecutionUnitModel(job.id, hostname, isYarnContainer = true, containerId)
-          ExecutionUnitModel.insert(execUnitModel)
+          val execUnit = ExecutionUnitModel.selectWhere(s"container_id = '$containerId'").headOption match {
+            case Some(execUnit) => execUnit
+            case None =>
+              val execUnit = ExecutionUnitModel(job.id, hostname, isYarnContainer = true, containerId)
+              ExecutionUnitModel.insert(execUnit)
+              execUnit
+          }
 
           for (foo <- samples) {
-             EventModel.insert(new EventModel(execUnitModel.id, job.id, foo.kind, foo.millis, foo.value))
+             EventModel.insert(new EventModel(execUnit.id, job.id, foo.kind, foo.millis, foo.value))
           }
         case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
       }
