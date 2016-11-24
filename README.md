@@ -20,7 +20,7 @@ If MonetDB is not already running, start it:
 
 Now you can start Freamon with your cluster configuration. Run this on the master node:
 
-    sbin/start-cluster.sh myCluster.conf
+    sbin/start-cluster.sh <cluster_conf>
 
 This starts Freamon on the master node and all slave nodes.
 You can find the PID and log files at `logs/`.
@@ -35,7 +35,7 @@ and collect the resource usage data of each participating container.
 ### Stopping
 When you are done running your experiments, stop Freamon:
 
-    sbin/stop-cluster.sh myCluster.conf
+    sbin/stop-cluster.sh <cluster_conf>
 
 If you want to stop MonetDB, run:
 
