@@ -63,3 +63,4 @@ you can plot it using [dstat-tools](https://github.com/citlab/dstat-tools):
 `type` is one of the values for `events.kind`, see [events table format](#events).
 
 This creates a file named `application_<ID>_<type>.png`.
+
