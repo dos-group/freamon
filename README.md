@@ -16,6 +16,7 @@ Start Hadoop as usual, for example run on the Hadoop master node:
 If MonetDB is not already running, start it:
 
     monetdbd start "$FARMDIR"
+    monetdb start freamon
 
 Now you can start Freamon with your cluster configuration. Run this on the master node:
 
@@ -47,6 +48,11 @@ To stop Hadoop, you can run on the Hadoop master node:
 
 ### Results analysis
 The collected resource usage statistics are now stored in the database.
+
+#### Interactive SQL 
+MonetDB comes with the `mcient` command-line tool. To interactively access the database:
+
+    mclient freamon
 
 #### Graphical analysis
 To analyze the usage of a single resource used by each of the execution_units of a job,
