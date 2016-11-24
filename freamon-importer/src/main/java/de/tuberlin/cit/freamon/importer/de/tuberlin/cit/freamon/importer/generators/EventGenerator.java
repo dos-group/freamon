@@ -1,5 +1,9 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators;
 
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.Entry;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.DstatImporter;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.Master;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.CSVParser;
 import de.tuberlin.cit.freamon.results.DB;
 import de.tuberlin.cit.freamon.results.EventModel;
 import org.apache.log4j.Logger;
@@ -14,7 +18,7 @@ import java.util.List;
 /**
  * Object creating events from the log files.
  */
-class EventGenerator {
+public class EventGenerator {
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(EventGenerator.class);
@@ -23,7 +27,7 @@ class EventGenerator {
     /**
      * Constructor of the object. Connection to the database is established here.
      */
-    EventGenerator(){
+    public EventGenerator(){
         log.debug("EventGenerator started.");
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
         recordsToBeWritten = new ArrayList<>();
@@ -33,14 +37,14 @@ class EventGenerator {
      * Method for creating the event table entries for a given job.
      * @param master - an object specifying the job to be processed.
      */
-    void generateEntries(Master master){
+    public void generateEntries(Master master){
         int jobID = master.getJobID();
         log.debug("jobID = "+jobID);
 
         //Master
         int masterWorkerID = master.getWorkerID(master.getMasterPath());
         log.debug("masterWorkerID = "+masterWorkerID);
-        CSVParser csvParser = new CSVParser(Organiser.firstLine, master.getMasterPath());
+        CSVParser csvParser = new CSVParser(DstatImporter.firstLine, master.getMasterPath());
         List<Entry> masterEntries = csvParser.parseStringToEntry();
         List<String[]> masterRecords = new ArrayList<>();
         if (tableExists()){
@@ -82,7 +86,7 @@ class EventGenerator {
         for (int i=0;i<master.getSlavesPaths().length-1;i++){
             int slaveWorkerID = master.getWorkerID(master.getSlavesPaths()[i]);
             log.debug("slaveWorkerID = "+slaveWorkerID);
-            csvParser = new CSVParser(Organiser.firstLine, master.getSlavesPaths()[i]);
+            csvParser = new CSVParser(DstatImporter.firstLine, master.getSlavesPaths()[i]);
             List<Entry> slaveEntries = csvParser.parseStringToEntry();
             List<String[]> slaveRecords = new ArrayList<>();
             if (tableExists()){
@@ -161,7 +165,7 @@ class EventGenerator {
      * Method for inserting all the records from the recordsToBeWritten {@link ArrayList} into the database.
      * This is conducted in the batch mode.
      */
-    void writeEventRecords(){
+    public void writeEventRecords(){
         String sql = "INSERT INTO "+EventModel.tableName() + "(execution_unit_id, job_id, kind, millis, value) VALUES (?, ?, ?, ?, ?);";
         PreparedStatement pstmt = null;
         try{

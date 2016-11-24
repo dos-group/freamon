@@ -1,5 +1,6 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators;
 
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.Master;
 import de.tuberlin.cit.freamon.results.DB;
 import de.tuberlin.cit.freamon.results.ExecutionUnitModel;
 import org.apache.log4j.Logger;
@@ -10,7 +11,7 @@ import java.util.UUID;
 /**
  * Object for creation of the workers table.
  */
-class ExecutionUnitGenerator {
+public class ExecutionUnitGenerator {
 
 
     private Connection connection;
@@ -19,7 +20,7 @@ class ExecutionUnitGenerator {
     /**
      * Constructor of the object. The connection to the database is also established here.
      */
-    ExecutionUnitGenerator(){
+    public ExecutionUnitGenerator(){
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
@@ -28,7 +29,7 @@ class ExecutionUnitGenerator {
      * @param master - an object specifying the job
      * @return - updated {@link Master} object with workerID for master being stored.
      */
-    Master generateAndInsertMasterWorker(Master master){
+    public Master generateAndInsertMasterWorker(Master master){
         int jobID = master.getJobID();
         int masterWorkerID = this.getWorkerID(master.getMasterHostname());
         if (masterWorkerID==0)
@@ -47,7 +48,7 @@ class ExecutionUnitGenerator {
      * @param master - an object specifying the job.
      * @return - updated {@link Master} object with workerIDs of slave workers.
      */
-    Master generateAndInsertSlaveWorkers(Master master){
+    public Master generateAndInsertSlaveWorkers(Master master){
         int jobID = master.getJobID();
         int slaveWorkerID;
         String slaveHostname;

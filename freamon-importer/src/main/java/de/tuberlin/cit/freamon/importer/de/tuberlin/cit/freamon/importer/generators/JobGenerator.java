@@ -1,5 +1,7 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators;
 
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.DstatImporter;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.Master;
 import de.tuberlin.cit.freamon.results.DB;
 import de.tuberlin.cit.freamon.results.JobModel;
 import org.apache.log4j.Logger;
@@ -11,7 +13,7 @@ import java.util.UUID;
 /**
  * Object responsible for inserting the records into job table.
  */
-class JobGenerator {
+public class JobGenerator {
 
     private Connection connection;
     private final static Logger log = Logger.getLogger(JobGenerator.class);
@@ -19,7 +21,7 @@ class JobGenerator {
     /**
      * Constructor of the object. The connection to the database is also established here.
      */
-    JobGenerator(){
+    public JobGenerator(){
         connection = DB.getConnection("jdbc:monetdb://localhost/freamon", "monetdb", "monetdb");
     }
 
@@ -28,19 +30,19 @@ class JobGenerator {
      * @param master - object specifying the job to be processed.
      * @return - updated {@link Master} object with jobID.
      */
-    Master generateAndInsertJob(Master master){
+    public Master generateAndInsertJob(Master master){
         log.debug("Received a job to be generated.");
         //generate job
         Random random = new Random();
         long start = 0;
-        long stop = Long.parseLong(Organiser.jsonData[4]);
-        String appID = Organiser.appName+"_"+stop+"_"+random.nextInt();
-        String framework = ((Organiser.framework!=null)? Organiser.framework : "unknown");
-        String signature = ((Organiser.signature!=null)? Organiser.signature : "unknown_signature");
-        double input_size = Organiser.input_size;
-        int noOfContainers = Organiser.numWorkers;
-        int noOfCoresContainer = Organiser.coresWorker;
-        int memoryContainer = Organiser.memoryWorker;
+        long stop = Long.parseLong(DstatImporter.jsonData[4]);
+        String appID = DstatImporter.appName+"_"+stop+"_"+random.nextInt();
+        String framework = ((DstatImporter.framework!=null)? DstatImporter.framework : "unknown");
+        String signature = ((DstatImporter.signature!=null)? DstatImporter.signature : "unknown_signature");
+        double input_size = DstatImporter.input_size;
+        int noOfContainers = DstatImporter.numWorkers;
+        int noOfCoresContainer = DstatImporter.coresWorker;
+        int memoryContainer = DstatImporter.memoryWorker;
         int id = UUID.randomUUID().hashCode();
         master.setJobID(id);
 

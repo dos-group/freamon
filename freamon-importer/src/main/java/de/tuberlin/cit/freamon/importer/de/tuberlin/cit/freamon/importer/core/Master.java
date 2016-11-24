@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Object for storing job details such as the jobID, master hostname and log file location (and the same for the slaves).
  */
-class Master {
+public class Master {
 
     private String masterHostname;
     private String masterPath;
@@ -35,7 +35,7 @@ class Master {
      * @param path - path to the log file of a worker.
      * @param workerID - worker identifier.
      */
-    void addWorkerMapping(String path, int workerID){
+    public void addWorkerMapping(String path, int workerID){
         this.workerIDMapping.put(path, workerID);
     }
 
@@ -45,7 +45,7 @@ class Master {
      * @param path - location of the log file of a worker.
      * @return - worker identifier as a integer.
      */
-    int getWorkerID(String path){
+    public int getWorkerID(String path){
         return this.workerIDMapping.get(path);
     }
 
@@ -53,7 +53,7 @@ class Master {
      * Getter of the hostname of the master worker.
      * @return - hostname of the master worker.
      */
-    String getMasterHostname() {
+    public String getMasterHostname() {
         return masterHostname;
     }
 
@@ -61,7 +61,7 @@ class Master {
      * Getter of the path to the log file of the master worker.
      * @return - path to the log file of the master worker.
      */
-    String getMasterPath() {
+    public String getMasterPath() {
         return masterPath;
     }
 
@@ -69,7 +69,7 @@ class Master {
      * Getter of the hostnames of slave workers.
      * @return - hostnames of slave workers as a {@link String[]} object.
      */
-    String[] getSlavesHostnames() {
+    public String[] getSlavesHostnames() {
         return slavesHostnames;
     }
 
@@ -77,7 +77,7 @@ class Master {
      * Getter of the paths to the log files of slave workers.
      * @return - paths of log files of slave workers as a {@link String[]} object.
      */
-    String[] getSlavesPaths() {
+    public String[] getSlavesPaths() {
         return slavesPaths;
     }
 
@@ -85,7 +85,7 @@ class Master {
      * Getter of the job identifier
      * @return - job identifier as an integer.
      */
-    int getJobID() {
+    public int getJobID() {
         return jobID;
     }
 
@@ -93,7 +93,7 @@ class Master {
      * Setter of the job identifier
      * @param jobID - jobID as an integer.
      */
-    void setJobID(int jobID) {
+    public void setJobID(int jobID) {
         this.jobID = jobID;
     }
 

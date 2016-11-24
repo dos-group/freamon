@@ -1,5 +1,9 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core;
 
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.EventGenerator;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.ExecutionUnitGenerator;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.JobGenerator;
+import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.JSONParser;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -10,14 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class Organiser {
+public class DstatImporter {
 
-    private final static Logger log = Logger.getLogger(Organiser.class);
-    static int firstLine, epoch, usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cach, mem_free, net_recv, net_send, dsk_read, dsk_writ;
-    static int numWorkers, coresWorker, memoryWorker;
-    static double input_size;
-    static String framework, signature, folder, appName, subfolder;
-    static String[] jsonData;
+    private final static Logger log = Logger.getLogger(DstatImporter.class);
+    public static int firstLine, epoch, usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cach, mem_free, net_recv, net_send, dsk_read, dsk_writ;
+    public static int numWorkers, coresWorker, memoryWorker;
+    public static double input_size;
+    public static String framework;
+    public static String signature;
+    static String folder;
+    public static String appName;
+    static String subfolder, masterDifferentiator;
+    public static String[] jsonData;
 
     private List<String> folderEntries = new ArrayList<>();
 
@@ -26,14 +34,14 @@ public class Organiser {
      * @param args - parameters passed to the programme.
      */
     public static void main(String[] args){
-        new Organiser(args);
+        new DstatImporter(args);
     }
 
     /**
-     * Constructor of the Organiser object. The whole sequence of operations is controlled here.
+     * Constructor of the DstatImporter object. The whole sequence of operations is controlled here.
      * @param args - parameters from the main method.
      */
-    private Organiser(String[] args){
+    private DstatImporter(String[] args){
         log.info("Freamon Importer started.");
         CLIParser cli = new CLIParser();
         cli.processCLIParameters(args);
@@ -141,7 +149,7 @@ public class Organiser {
      * @return - true if master; false otherwise
      */
     private boolean isMaster(String path){
-        return path.contains("cit.tu-berlin.de");
+        return path.contains(masterDifferentiator);
     }
 
     /**

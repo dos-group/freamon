@@ -1,9 +1,9 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util;
 
 /**
  * Object storing the parsed CSV line.
  */
-class Entry {
+public class Entry {
 
     private double usr, sys, idl, wai, hiq, siq, mem_used, mem_buff, mem_cache, mem_free, net_recv, net_send, dsk_read, dsk_writ;
     private long epoch;
@@ -26,7 +26,7 @@ class Entry {
      * @param dsk_read - dsk_read column in the file
      * @param dsk_writ - dsk_writ column in the file
      */
-    Entry(long epoch, double usr, double sys, double idl, double wai, double hiq, double siq, double mem_used, double mem_buff, double mem_cache, double mem_free,
+    public Entry(long epoch, double usr, double sys, double idl, double wai, double hiq, double siq, double mem_used, double mem_buff, double mem_cache, double mem_free,
           double net_recv, double net_send, double dsk_read, double dsk_writ){
         this.epoch = epoch;
         this.usr = usr;
@@ -49,7 +49,7 @@ class Entry {
      * Getter of the epoch variable
      * @return - long
      */
-    long getEpoch() {
+    public long getEpoch() {
         return epoch;
     }
 
@@ -57,7 +57,7 @@ class Entry {
      * Getter of the usr variable
      * @return - double
      */
-    double getUsr() {
+    public double getUsr() {
         return usr;
     }
 
@@ -65,7 +65,7 @@ class Entry {
      * Getter of the sys variable
      * @return - double
      */
-    double getSys() {
+    public double getSys() {
         return sys;
     }
 
@@ -73,7 +73,7 @@ class Entry {
      * Getter of the idl variable
      * @return - double
      */
-    double getIdl() {
+    public double getIdl() {
         return idl;
     }
 
@@ -81,7 +81,7 @@ class Entry {
      * Getter of the wai variable
      * @return - double
      */
-    double getWai() {
+    public double getWai() {
         return wai;
     }
 
@@ -105,7 +105,7 @@ class Entry {
      * Getter of the mem_used variable
      * @return - double
      */
-    double getMem_used() {
+    public double getMem_used() {
         return mem_used;
     }
 
@@ -113,7 +113,7 @@ class Entry {
      * Getter of the mem_buff variable
      * @return - double
      */
-    double getMem_buff() {
+    public double getMem_buff() {
         return mem_buff;
     }
 
@@ -121,7 +121,7 @@ class Entry {
      * Getter of the mem_cache variable
      * @return - double
      */
-    double getMem_cache() {
+    public double getMem_cache() {
         return mem_cache;
     }
 
@@ -129,7 +129,7 @@ class Entry {
      * Getter of the mem_free variable
      * @return - double
      */
-    double getMem_free() {
+    public double getMem_free() {
         return mem_free;
     }
 
@@ -137,7 +137,7 @@ class Entry {
      * Getter of the net_recv variable
      * @return - double
      */
-    double getNet_recv() {
+    public double getNet_recv() {
         return net_recv;
     }
 
@@ -145,7 +145,7 @@ class Entry {
      * Getter of the net_send variable
      * @return - double
      */
-    double getNet_send() {
+    public double getNet_send() {
         return net_send;
     }
 
@@ -153,7 +153,7 @@ class Entry {
      * Getter of the dsk_read variable
      * @return - double
      */
-    double getDsk_read() {
+    public double getDsk_read() {
         return dsk_read;
     }
 
@@ -161,7 +161,7 @@ class Entry {
      * Getter of the dsk_writ variable
      * @return - double
      */
-    double getDsk_writ() {
+    public double getDsk_writ() {
         return dsk_writ;
     }
 

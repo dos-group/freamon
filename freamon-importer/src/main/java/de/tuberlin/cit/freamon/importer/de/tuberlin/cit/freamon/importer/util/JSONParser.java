@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer;
+package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;
@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Object parsing the state.json files.
  */
-class JSONParser {
+public class JSONParser {
 
     private final static Logger log = Logger.getLogger(JSONParser.class);
 
@@ -22,7 +22,7 @@ class JSONParser {
      * Constructor of the object.
      * @param pathToFile - path to the state.json file.
      */
-    JSONParser(String pathToFile){
+    public JSONParser(String pathToFile){
         log.debug("JSONParser started.");
         builder = new StringBuilder();
         this.readFileToStringBuilder(pathToFile);
@@ -72,7 +72,7 @@ class JSONParser {
      * Method for extracting the data from the JSON file.
      * @return - a {@link String[]} object containing the JSON data.
      */
-    String[] extractDataFromJSON(){
+    public String[] extractDataFromJSON(){
         String[] results = new String[6];
 
         try {
