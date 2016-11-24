@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core;
+package de.tuberlin.cit.freamon.importer.core;
 
 import java.util.HashMap;
 import java.util.Map;

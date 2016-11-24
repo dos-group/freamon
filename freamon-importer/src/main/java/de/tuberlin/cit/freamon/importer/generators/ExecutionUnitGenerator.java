@@ -1,6 +1,6 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators;
+package de.tuberlin.cit.freamon.importer.generators;
 
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.Master;
+import de.tuberlin.cit.freamon.importer.core.Master;
 import de.tuberlin.cit.freamon.results.DB;
 import de.tuberlin.cit.freamon.results.ExecutionUnitModel;
 import org.apache.log4j.Logger;

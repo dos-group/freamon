@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util;
+package de.tuberlin.cit.freamon.importer.util;
 
 /**
  * Object storing the parsed CSV line.

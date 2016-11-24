@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core;
+package de.tuberlin.cit.freamon.importer.core;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;

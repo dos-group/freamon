@@ -1,4 +1,4 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util;
+package de.tuberlin.cit.freamon.importer.util;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONException;

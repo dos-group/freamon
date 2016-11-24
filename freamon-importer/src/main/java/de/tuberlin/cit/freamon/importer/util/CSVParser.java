@@ -1,7 +1,7 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util;
+package de.tuberlin.cit.freamon.importer.util;
 
 
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.DstatImporter;
+import de.tuberlin.cit.freamon.importer.core.DstatImporter;
 import org.apache.log4j.Logger;
 
 import java.io.*;

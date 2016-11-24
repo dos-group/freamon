@@ -1,9 +1,9 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core;
+package de.tuberlin.cit.freamon.importer.core;
 
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.EventGenerator;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.ExecutionUnitGenerator;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators.JobGenerator;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.JSONParser;
+import de.tuberlin.cit.freamon.importer.generators.EventGenerator;
+import de.tuberlin.cit.freamon.importer.generators.ExecutionUnitGenerator;
+import de.tuberlin.cit.freamon.importer.generators.JobGenerator;
+import de.tuberlin.cit.freamon.importer.util.JSONParser;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;

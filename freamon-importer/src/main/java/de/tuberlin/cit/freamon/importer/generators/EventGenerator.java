@@ -1,9 +1,9 @@
-package de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.generators;
+package de.tuberlin.cit.freamon.importer.generators;
 
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.Entry;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.DstatImporter;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.core.Master;
-import de.tuberlin.cit.freamon.importer.de.tuberlin.cit.freamon.importer.util.CSVParser;
+import de.tuberlin.cit.freamon.importer.util.Entry;
+import de.tuberlin.cit.freamon.importer.core.DstatImporter;
+import de.tuberlin.cit.freamon.importer.core.Master;
+import de.tuberlin.cit.freamon.importer.util.CSVParser;
 import de.tuberlin.cit.freamon.results.DB;
 import de.tuberlin.cit.freamon.results.EventModel;
 import org.apache.log4j.Logger;
