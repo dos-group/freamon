@@ -53,6 +53,8 @@
         <akka.version>2.4.1</akka.version>
         <anorm.version>2.4.0</anorm.version>
         <monetdb.version>2.19</monetdb.version>
+        <!-- Encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
 </project>
