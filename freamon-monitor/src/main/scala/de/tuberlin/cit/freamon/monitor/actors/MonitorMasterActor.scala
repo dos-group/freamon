@@ -111,12 +111,13 @@ class MonitorMasterActor extends Actor {
     case Array("jobStopped", applicationId: String, stopTime: Long) =>
       this.stopApplication(applicationId, stopTime)
 
-    case ApplicationMetadata(appId, framework, signature, inputSize, coresPC, memPC) => {
+    case ApplicationMetadata(appId, framework, signature, inputSize, numWorkers, coresPC, memPC) => {
       JobModel.selectWhere(s"yarn_application_id = '$appId'").headOption.map(oldJob => {
         JobModel.update(oldJob.copy(appId,
           framework = framework,
           signature = signature,
           inputSize = inputSize,
+          numWorkers = numWorkers,
           coresPerWorker = coresPC,
           memoryPerWorker = memPC))
         Unit

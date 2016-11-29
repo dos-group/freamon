@@ -31,6 +31,7 @@ case class ApplicationMetadata(
                                 framework: Symbol = Symbol(null),
                                 signature: String = null,
                                 inputSize: Double = 0d,
+                                numWorkers: Int = 0,
                                 coresPerWorker: Int = 0,
                                 memoryPerWorker: Int = 0
                               )
