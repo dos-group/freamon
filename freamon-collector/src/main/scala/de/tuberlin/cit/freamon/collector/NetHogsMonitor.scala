@@ -13,7 +13,7 @@ object NetHogsMonitor {
 
   /**
     * @param line NetHogs stdout potentially containing process network usage data
-    * @return pid and timestamped up and down usage in KB/s, or None if this line did not contain any usage info
+    * @return pid and timestamped up and down usage in B/s, or None if this line did not contain any usage info
     */
   def processLine(line: String): Option[NetUsageSample] = {
     if (!line.contains("\t"))
@@ -25,7 +25,7 @@ object NetHogsMonitor {
       val pid = java.lang.Long.parseLong(procSplit(procSplit.length - 2))
       val tx = java.lang.Double.parseDouble(upStr)
       val rx = java.lang.Double.parseDouble(downStr)
-      Some(NetUsageSample(now, pid, tx, rx))
+      Some(NetUsageSample(now, pid, tx * 1000, rx * 1000))
     } catch {
       case e: Throwable =>
         println(s"NetHogs failed processing line '$line': $e")
