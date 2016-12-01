@@ -15,13 +15,10 @@ class MonitorAgentActor() extends Actor {
 
   val log = Logging(context.system, this)
 
-  // Akka fails sending a message if it is too large.
-  // This number limits how many samples can queue up
-  // to be sent before the collection gets too large.
-  // TODO make this configurable for "live reporting"
-  val maxSamplesPerMsg = 8 * 60 // 8 samples/second * 60 seconds/minute
-
   val hostConfig = context.system.settings.config
+
+  // how many samples to queue up (in containerStats) before sending a message to the master
+  val sampleBatchSize = hostConfig.getInt("freamon.hosts.slaves.batchsize")
 
   // appId -> containerId
   val containersPerApp = new mutable.HashMap[String, ArrayBuffer[String]]
@@ -89,7 +86,7 @@ class MonitorAgentActor() extends Actor {
     containerStats get sample.containerId foreach { samples =>
       log.debug(s"Recording sample $sample")
       samples += sample
-      if (samples.size >= maxSamplesPerMsg) {
+      if (samples.size >= sampleBatchSize) {
         // the container id string contains the app id if it's a yarn container,
         // but getting it this way will work in any case
         val appId = containersPerApp.filter({
