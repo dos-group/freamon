@@ -158,6 +158,14 @@ class MonitorMasterActor extends Actor {
         case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
       }
 
+    case GeneralWorkerReport(workerId, samples) =>
+      log.info(s"Received a general worker report from $workerId with "+samples.length+" samples.")
+
+      for(sample <- samples){
+        HostEventModel.insert(new HostEventModel(sample.containerId, sample.kind, sample.millis, sample.value))
+        log.debug(s"Inserted: ${sample.containerId}, ${sample.kind}, ${sample.millis}, ${sample.value}\n")
+      }
+
     case StartProcessingAuditLog(path) => {
       log.debug("Starting to process the audit log...")
       val producer: AuditLogProducer = new AuditLogProducer(queue, path)

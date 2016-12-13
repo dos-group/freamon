@@ -143,7 +143,7 @@ object DstatMonitor{
   * @param sendSample - carrier for the received line from dstat
   */
 class DstatMonitor(sendSample: DstatSample => Any) {
-  val process = Process("dstat -c -C total -d -D total -n -N total -m --noheaders").run(new DstatTraceParser(sendSample))
+  val process: Process = Process("dstat -c -C total -d -D total -n -N total -m --noheaders").run(new DstatTraceParser(sendSample))
 }
 
 /**
@@ -152,7 +152,7 @@ class DstatMonitor(sendSample: DstatSample => Any) {
   */
 class DstatTraceParser(sendSample: DstatSample => Any) extends ProcessLogger() {
 
-  override def out(s: => String) = DstatMonitor.processLine(s).map(sendSample)
+  override def out(s: => String): Unit = DstatMonitor.processLine(s).map(sendSample)
 
   override def err(s: => String): Unit = println("[Dstat StdErr] " + s)
 

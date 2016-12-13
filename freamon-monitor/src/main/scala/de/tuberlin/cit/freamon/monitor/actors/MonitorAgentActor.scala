@@ -42,6 +42,16 @@ class MonitorAgentActor() extends Actor {
     }
   }
 
+  val dstatMonitor = {
+    val dstatConfigKey = "freamon.hosts.slaves.dstatRecording"
+    if (hostConfig.hasPath(dstatConfigKey) && !hostConfig.getIsNull(dstatConfigKey)) {
+      val dstatRecording = hostConfig.getBoolean(dstatRecording)
+      if (dstatRecording)
+        Some(new DstatMonitor(self ! _))
+      else None
+    }
+  }
+
   val pidStatMonitor = {
     val pidStatCommandConfigKey = "freamon.hosts.slaves.pidstatCommand"
     if (hostConfig.hasPath(pidStatCommandConfigKey) && !hostConfig.getIsNull(pidStatCommandConfigKey)) {
@@ -83,6 +93,18 @@ class MonitorAgentActor() extends Actor {
         }).head._1
         log.debug(s"Sending collected samples for ${sample.containerId}")
         masterActor ! ContainerReport(appId, sample.containerId, samples.toArray)
+        samples.clear()
+      }
+    }
+  }
+
+  def recordGeneralSample(sample: StatSample): Unit = {
+    containerStats get sample.containerId foreach { samples =>
+      log.debug(s"Recording general sample $sample")
+      samples += sample
+      if (samples.size >= maxSamplesPerMsg) {
+        log.debug(s"Sending collected samples for ${sample.containerId}")
+        masterActor ! GeneralWorkerReport(sample.containerId, samples.toArray)
         samples.clear()
       }
     }
@@ -146,6 +168,19 @@ class MonitorAgentActor() extends Actor {
           recordSample(StatSample(containerId, 'diskRd, sample.time, sample.read))
           recordSample(StatSample(containerId, 'diskWr, sample.time, sample.write))
       }
+
+    case sample: DstatSample =>
+      // store sample if slave records its overall state
+      log.debug(s"Recording dstat sample $sample")
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuUsr, sample.time, sample.cpuUsr))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuSys, sample.time, sample.cpuSys))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuIdl, sample.time, sample.cpuIdl))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuWai, sample.time, sample.cpuWai))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskRd, sample.time, sample.diskRd))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskWr, sample.time, sample.diskWr))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'netRx, sample.time, sample.netRx))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'netTx, sample.time, sample.netTx))
+      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'mem, sample.time, sample.mem))
 
   }
 
