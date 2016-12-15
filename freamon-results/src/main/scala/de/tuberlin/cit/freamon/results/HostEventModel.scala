@@ -48,9 +48,9 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
       s"""
          INSERT INTO $tableName($fields) VALUES(
          '${x.hostname}',
-         '${x.kind.name},
-         '${x.millis},
-         '${x.value})
+         '${x.kind.name}',
+         '${x.millis}',
+         '${x.value}')
        """).executeInsert()
   }
 
