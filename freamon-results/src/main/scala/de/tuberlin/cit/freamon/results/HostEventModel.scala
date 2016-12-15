@@ -37,7 +37,7 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
          kind                VARCHAR(63) NOT NULL,
          millis              BIGINT      NOT NULL,
          value               DOUBLE      NOT NULL,
-         PRIMARY KEY (hostname)
+         PRIMARY KEY (hostname))
        """).execute()
   }
 
