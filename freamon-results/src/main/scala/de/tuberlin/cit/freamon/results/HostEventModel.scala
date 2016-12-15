@@ -50,7 +50,7 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
          '${x.hostname}',
          '${x.kind.name},
          '${x.millis},
-         '${x.value}
+         '${x.value})
        """).executeInsert()
   }
 
@@ -61,7 +61,7 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
          '{hostname}',
          '{kind}',
          '{millis}',
-         '{value}'
+         '{value}')
        """,
       namedParametersFor(xs.head),
       xs.tail.map(namedParametersFor): _*
