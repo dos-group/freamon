@@ -50,6 +50,7 @@ class MonitorAgentActor() extends Actor {
         Some(new DstatMonitor(self ! _))
       else None
     }
+    containerStats.put(InetAddress.getLocalHost.getHostName, new ArrayBuffer[StatSample]())
   }
 
   val pidStatMonitor = {
