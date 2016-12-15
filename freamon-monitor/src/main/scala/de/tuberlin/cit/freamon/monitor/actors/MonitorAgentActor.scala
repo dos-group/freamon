@@ -45,7 +45,7 @@ class MonitorAgentActor() extends Actor {
   val dstatMonitor = {
     val dstatConfigKey = "freamon.hosts.slaves.dstatRecording"
     if (hostConfig.hasPath(dstatConfigKey) && !hostConfig.getIsNull(dstatConfigKey)) {
-      val dstatRecording = hostConfig.getBoolean(dstatRecording)
+      val dstatRecording = hostConfig.getBoolean(dstatConfigKey)
       if (dstatRecording)
         Some(new DstatMonitor(self ! _))
       else None

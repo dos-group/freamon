@@ -5,9 +5,7 @@ case class HostEventModel(
                          kind: Symbol,
                          millis: Long,
                          value: Double
-                         ){
-  val id:Int = this.##
-}
+                         )
 
 object HostEventModel extends PersistedAPI[HostEventModel]{
 
@@ -19,12 +17,12 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
 
   override val rowParser: RowParser[HostEventModel] = {
     get[String]     ("hostname")        ~
-    get[Symbol]  ("kind")              ~
+    get[String]  ("kind")              ~
     get[Long]    ("millis")            ~
     get[Double]  ("value")             map {
       case hostname ~ kind ~ millis ~ value => HostEventModel(
         hostname,
-        kind,
+        Symbol(kind),
         millis,
         value
       )
@@ -50,7 +48,7 @@ object HostEventModel extends PersistedAPI[HostEventModel]{
       s"""
          INSERT INTO $tableName($fields) VALUES(
          '${x.hostname}',
-         '${x.kind},
+         '${x.kind.name},
          '${x.millis},
          '${x.value}
        """).executeInsert()
