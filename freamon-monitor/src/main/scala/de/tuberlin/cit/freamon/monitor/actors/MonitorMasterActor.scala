@@ -148,7 +148,8 @@ class MonitorMasterActor extends Actor {
           val execUnit = ExecutionUnitModel.selectWhere(s"container_id = '$containerId'").headOption match {
             case Some(execUnit) => execUnit
             case None =>
-              val execUnit = ExecutionUnitModel(job.id, hostname, isYarnContainer = true, containerId)
+              val isMaster = 1 == containerId.split('_').last.toInt
+              val execUnit = ExecutionUnitModel(job.id, hostname, isYarnContainer = true, containerId, isMaster)
               ExecutionUnitModel.insert(execUnit)
               execUnit
           }
