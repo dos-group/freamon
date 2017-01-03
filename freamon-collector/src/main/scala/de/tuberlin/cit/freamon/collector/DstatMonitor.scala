@@ -15,8 +15,8 @@ import scala.sys.process.{Process, ProcessLogger}
   * @param netTx - send
   * @param mem - used
   */
-case class DstatSample(time: Long, cpuUsr: Double, cpuSys: Double, cpuIdl: Double, cpuWai: Double,
-                       diskRd: Double, diskWr: Double, netRx: Double, netTx: Double, mem: Double)
+case class HostSample(time: Long, cpuUsr: Double, cpuSys: Double, cpuIdl: Double, cpuWai: Double,
+                      diskRd: Double, diskWr: Double, netRx: Double, netTx: Double, mem: Double)
 
 object DstatMonitor{
   def main(args: Array[String]): Unit = {
@@ -31,7 +31,7 @@ object DstatMonitor{
     * @param line - line received from dstat
     * @return - a DstatSample object
     */
-  def processLine(line: String): Option[DstatSample] = {
+  def processLine(line: String): Option[HostSample] = {
     if (line.contains("total"))
       return None
     if (line.contains("usr") || line.contains("read"))
@@ -50,7 +50,7 @@ object DstatMonitor{
       val netRx = cleanNumber(nRx)
       val netTx = cleanNumber(nTx)
       val memUsed = cleanNumber(mUsed)
-      Some(DstatSample(now, cpuUsr, cpuSys, cpuIdl, cpuWai, dskRead, dskWrit, netRx, netTx, memUsed))
+      Some(HostSample(now, cpuUsr, cpuSys, cpuIdl, cpuWai, dskRead, dskWrit, netRx, netTx, memUsed))
     }
     catch {
       case e: Throwable =>
@@ -142,7 +142,7 @@ object DstatMonitor{
   * Class to run the dstat process
   * @param sendSample - carrier for the received line from dstat
   */
-class DstatMonitor(sendSample: DstatSample => Any) {
+class DstatMonitor(sendSample: HostSample => Any) {
   val process: Process = Process("dstat -c -C total -d -D total -n -N total -m --noheaders").run(new DstatTraceParser(sendSample))
 }
 
@@ -150,7 +150,7 @@ class DstatMonitor(sendSample: DstatSample => Any) {
   * Class allowing the diversion of the dstat output into processLine function.
   * @param sendSample - dstat line to be diverted
   */
-class DstatTraceParser(sendSample: DstatSample => Any) extends ProcessLogger() {
+class DstatTraceParser(sendSample: HostSample => Any) extends ProcessLogger() {
 
   override def out(s: => String): Unit = DstatMonitor.processLine(s).map(sendSample)
 

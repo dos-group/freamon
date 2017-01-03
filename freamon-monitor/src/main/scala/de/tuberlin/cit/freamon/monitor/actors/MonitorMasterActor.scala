@@ -158,7 +158,7 @@ class MonitorMasterActor extends Actor {
         case None => log.error(s"No such job in DB: $applicationId (ContainerReport)")
       }
 
-    case GeneralWorkerReport(workerId, samples) =>
+    case HostReport(workerId, samples) =>
       log.info(s"Received a general worker report from $workerId with "+samples.length+" samples.")
 
       for(sample <- samples){

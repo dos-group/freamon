@@ -29,6 +29,9 @@ class MonitorAgentActor() extends Actor {
   // containerId -> [sample]
   val containerStats = new mutable.HashMap[String, ArrayBuffer[StatSample]]
 
+  // hostname -> [sample]
+  val hostStats = new mutable.HashMap[String, ArrayBuffer[StatSample]]
+
   // required to find the container's pid once a container starts
   val procPoll = new ProcPoll(1, self ! _).startRecording()
 
@@ -43,14 +46,14 @@ class MonitorAgentActor() extends Actor {
   }
 
   val dstatMonitor = {
-    val dstatConfigKey = "freamon.hosts.slaves.dstatRecording"
+    val dstatConfigKey = "freamon.hosts.slaves.hostRecording"
     if (hostConfig.hasPath(dstatConfigKey) && !hostConfig.getIsNull(dstatConfigKey)) {
       val dstatRecording = hostConfig.getBoolean(dstatConfigKey)
       if (dstatRecording)
         Some(new DstatMonitor(self ! _))
       else None
     }
-    containerStats.put(InetAddress.getLocalHost.getHostName, new ArrayBuffer[StatSample]())
+    hostStats.put(InetAddress.getLocalHost.getHostName, new ArrayBuffer[StatSample]())
   }
 
   val pidStatMonitor = {
@@ -99,13 +102,14 @@ class MonitorAgentActor() extends Actor {
     }
   }
 
-  def recordGeneralSample(sample: StatSample): Unit = {
-    containerStats get sample.containerId foreach { samples =>
+  def recordHostSample(sample: StatSample): Unit = {
+    // Don't get confused about containerId: It's just reusing the same data type
+    hostStats get sample.containerId foreach { samples =>
       log.debug(s"Recording general sample $sample")
       samples += sample
       if (samples.size >= maxSamplesPerMsg) {
         log.debug(s"Sending collected samples for ${sample.containerId}")
-        masterActor ! GeneralWorkerReport(sample.containerId, samples.toArray)
+        masterActor ! HostReport(sample.containerId, samples.toArray)
         samples.clear()
       }
     }
@@ -170,18 +174,18 @@ class MonitorAgentActor() extends Actor {
           recordSample(StatSample(containerId, 'diskWr, sample.time, sample.write))
       }
 
-    case sample: DstatSample =>
+    case sample: HostSample =>
       // store sample if slave records its overall state
       log.debug(s"Recording dstat sample $sample")
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuUsr, sample.time, sample.cpuUsr))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuSys, sample.time, sample.cpuSys))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuIdl, sample.time, sample.cpuIdl))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuWai, sample.time, sample.cpuWai))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskRd, sample.time, sample.diskRd))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskWr, sample.time, sample.diskWr))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'netRx, sample.time, sample.netRx))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'netTx, sample.time, sample.netTx))
-      recordGeneralSample(StatSample(InetAddress.getLocalHost.getHostName, 'mem, sample.time, sample.mem))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuUsr, sample.time, sample.cpuUsr))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuSys, sample.time, sample.cpuSys))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuIdl, sample.time, sample.cpuIdl))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'cpuWai, sample.time, sample.cpuWai))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskRd, sample.time, sample.diskRd))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'diskWr, sample.time, sample.diskWr))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'netRx, sample.time, sample.netRx))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'netTx, sample.time, sample.netTx))
+      recordHostSample(StatSample(InetAddress.getLocalHost.getHostName, 'mem, sample.time, sample.mem))
 
   }
 

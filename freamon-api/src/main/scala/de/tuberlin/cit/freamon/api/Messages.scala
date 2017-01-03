@@ -22,7 +22,7 @@ case class WorkerAnnouncement(workerHostname: String)
 
 case class ContainerReport(applicationId: String, containerId: String, samples: Array[StatSample])
 
-case class GeneralWorkerReport(workerId: String, samples: Array[StatSample])
+case class HostReport(workerId: String, samples: Array[StatSample])
 
 case class ForwardAuditLogEntries()
 
