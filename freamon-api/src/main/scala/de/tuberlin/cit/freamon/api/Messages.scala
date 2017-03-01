@@ -50,3 +50,7 @@ case class StatSample(
                        millis: Long,
                        value: Double
                      )
+
+case class StageDuration(jobSignature: String, stageNr: Int, inputSize: Double, numExecutors: Int, stageStart: Long, stageStop: Long)
+
+case class FindPreviousStages(jobSignature: String, stageNr: Int)
