@@ -124,10 +124,25 @@ class MonitorMasterActor extends Actor {
       }).getOrElse(log.warning("Cannot update application metadata for " + appId))
     }
 
+    case StageDuration(jobSignature, stageNr, inputSize, numExecutors, stageStart, stageStop) => {
+      val sm = new StageModel(jobSignature, inputSize, stageNr, numExecutors, stageStart, stageStop)
+      StageModel.insert(sm)
+      log.debug(s"Added new stage info for stage #$stageNr with $numExecutors executors")
+    }
+
     case FindPreviousRuns(signature) => {
       val runs = JobModel.selectWhere(s"signature = '$signature'")
       sender ! PreviousRuns(
         runs.map(_.numWorkers.asInstanceOf[Integer]).toArray,
+        runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
+        runs.map(_.inputSize.asInstanceOf[Double]).toArray
+      )
+    }
+
+    case FindPreviousStages(signature, stageNr) => {
+      val runs = StageModel.selectWhere(s"signature = '$signature' and stage_nr = '$stageNr'")
+      sender ! PreviousRuns(
+        runs.map(_.numExecutors.asInstanceOf[Integer]).toArray,
         runs.map(r => ((r.stop - r.start) / 1000d).asInstanceOf[Double]).toArray,
         runs.map(_.inputSize.asInstanceOf[Double]).toArray
       )
