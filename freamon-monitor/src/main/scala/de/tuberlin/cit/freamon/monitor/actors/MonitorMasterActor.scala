@@ -140,7 +140,7 @@ class MonitorMasterActor extends Actor {
       )
     }
 
-    case FindPreviousStages(signature, stageNr) => {
+    case FindPreviousRunsOfStage(signature, stageNr) => {
       val runs = StageModel.selectWhere(s"signature = '$signature' and stage_nr = '$stageNr'")
       sender ! PreviousRuns(
         runs.map(_.numExecutors.asInstanceOf[Integer]).toArray,

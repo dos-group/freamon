@@ -53,4 +53,4 @@ case class StatSample(
 
 case class StageDuration(jobSignature: String, stageNr: Int, inputSize: Double, numExecutors: Int, stageStart: Long, stageStop: Long)
 
-case class FindPreviousStages(jobSignature: String, stageNr: Int)
+case class FindPreviousRunsOfStage(jobSignature: String, stageNr: Int)
