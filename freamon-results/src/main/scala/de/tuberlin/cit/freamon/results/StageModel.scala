@@ -2,6 +2,7 @@ package de.tuberlin.cit.freamon.results
 
 /** Model class for Spark stages. */
 case class StageModel(
+                     jobId: Int,
                      appSignature: String = null,
                      inputSize: Double = 0d,
                      stageNr: Int = 0,
@@ -24,15 +25,17 @@ object StageModel extends PersistedAPI[StageModel] {
 
   override val rowParser = {
     get[Int]     ("id")                   ~
+    get[Int]     ("job_id")               ~
     get[String]  ("signature")            ~
     get[Double]  ("input_size")           ~
     get[Int]     ("stage_nr")             ~
     get[Int]     ("num_executors")        ~
     get[Long]    ("start")                ~
     get[Long]    ("stop")                 map {
-      case id ~ signature ~ inputSize ~ stageNr ~ numExecutors ~ start ~ stop
+      case id ~ jobId ~ signature ~ inputSize ~ stageNr ~ numExecutors ~ start ~ stop
       =>
         StageModel(
+          jobId,
           signature,
           inputSize,
           stageNr,
@@ -52,16 +55,18 @@ object StageModel extends PersistedAPI[StageModel] {
         num_executors        INTEGER             ,
         start                BIGINT              ,
         stop                 BIGINT              ,
-        PRIMARY KEY (id)
+        PRIMARY KEY (id),
+        FOREIGN KEY (job_id) REFERENCES ${JobModel.tableName}(id) ON DELETE CASCADE
       )""").execute()
   }
 
-  private val fields = "id, signature, input_size, stage_nr, num_executors, start, stop"
+  private val fields = "id, job_id, signature, input_size, stage_nr, num_executors, start, stop"
 
   override def insert(x: StageModel)(implicit conn: Connection): Unit = {
     SQL(s"""
       INSERT INTO $tableName($fields) VALUES(
         '${x.id}',
+        '${x.jobId}',
         '${x.appSignature}',
         '${x.inputSize}',
         '${x.stageNr}',
@@ -77,6 +82,7 @@ object StageModel extends PersistedAPI[StageModel] {
       s"""
       INSERT INTO $tableName($fields) VALUES(
         '{id}',
+        '{jobId}',
         '{appSignature}',
         '{inputSize}',
         '{stageNr}',
@@ -94,6 +100,7 @@ object StageModel extends PersistedAPI[StageModel] {
     SQL(s"""
     UPDATE $tableName SET
       id            = '${x.id}',
+      job_id        = '${x.jobId}',
       signature     = '${x.appSignature}',
       input_size    = '${x.inputSize}',
       stage_nr      = '${x.stageNr}',
@@ -112,6 +119,7 @@ object StageModel extends PersistedAPI[StageModel] {
 
   def namedParametersFor(x: StageModel): Seq[NamedParameter] = Seq[NamedParameter](
     'id            -> x.id,
+    'job_id        -> x.jobId,
     'signature     -> x.appSignature,
     'input_size    -> x.inputSize,
     'stage_nr      -> x.stageNr,

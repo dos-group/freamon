@@ -125,7 +125,8 @@ class MonitorMasterActor extends Actor {
     }
 
     case StageDuration(jobSignature, stageNr, inputSize, numExecutors, stageStart, stageStop) => {
-      val sm = new StageModel(jobSignature, inputSize, stageNr, numExecutors, stageStart, stageStop)
+      val jobId = ???
+      val sm = new StageModel(jobId, jobSignature, inputSize, stageNr, numExecutors, stageStart, stageStop)
       StageModel.insert(sm)
       log.debug(s"Added new stage info for stage #$stageNr with $numExecutors executors")
     }
