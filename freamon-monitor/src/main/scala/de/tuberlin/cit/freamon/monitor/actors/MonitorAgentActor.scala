@@ -104,7 +104,7 @@ class MonitorAgentActor() extends Actor {
     hostStats get sample.containerId foreach { samples =>
       log.debug(s"Recording general sample $sample")
       samples += sample
-      if (samples.size >= maxSamplesPerMsg) {
+      if (samples.size >= sampleBatchSize) {
         log.debug(s"Sending collected samples for ${sample.containerId}")
         masterActor ! HostReport(sample.containerId, samples.toArray)
         samples.clear()
